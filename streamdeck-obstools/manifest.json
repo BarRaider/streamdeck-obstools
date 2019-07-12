@@ -1,0 +1,83 @@
+{
+  "Actions": [
+    {
+      "Icon": "Images/icon",
+      "Name": "CPU Usage",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "18"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Shows the current OBS CPU usage",
+      "UUID": "com.barraider.obstools.cpuusage",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Dropped Frames",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "20"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Shows the number of dropped frames on your Stream Deck",
+      "UUID": "com.barraider.obstools.droppedframes",
+      "PropertyInspectorPath": "PropertyInspector/DroppedFrames.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Instant Reply",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "20"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Toggles the Instant Reply On or Off",
+      "UUID": "com.barraider.obstools.instantreply",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Previous Scene",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "18"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Returns you to your previous OBS scene",
+      "UUID": "com.barraider.obstools.previousscene",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    }
+  ],
+  "Author": "BarRaider",
+  "Description": "Additional commands and feedback from OBS on your Stream Deck.\n*** PRE-RELEASE Version ***",
+  "Name": "OBS Tools",
+  "Icon": "Images/pluginIcon",
+  "URL": "https://barraider.github.io/",
+  "Version": "0.5",
+  "CodePath": "com.barraider.obstools",
+  "Category": "OBS [BarRaider]",
+  "CategoryIcon": "Images/categoryIcon",
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "4.3"
+  }
+}

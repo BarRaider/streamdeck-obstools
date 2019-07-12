@@ -1,0 +1,226 @@
+﻿using BarRaider.ObsTools.Wrappers;
+using BarRaider.SdTools;
+using OBSWebsocketDotNet;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BarRaider.ObsTools
+{
+    public class OBSManager
+    {
+        #region Private Members
+
+        private const string CONNECTION_STRING = "ws://{0}:{1}";
+
+        private static OBSManager instance = null;
+        private static readonly object objLock = new object();
+        private readonly OBSWebsocket obs;
+        
+        #endregion
+
+        #region Constructors
+
+        public static OBSManager Instance
+        {
+            get
+            {
+                if (instance != null)
+                {
+                    return instance;
+                }
+
+                lock (objLock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new OBSManager();
+                    }
+                    return instance;
+                }
+            }
+        }
+
+        private OBSManager()
+        {
+            IsConnected = false;
+            obs = new OBSWebsocket();
+
+            obs.Connected += Obs_Connected;
+            obs.Disconnected += Obs_Disconnected;
+            obs.StreamStatus += Obs_StreamStatus;
+            obs.SceneChanged += Obs_SceneChanged;
+            obs.ReplayBufferStateChanged += Obs_ReplayBufferStateChanged;
+            ServerManager.Instance.TokensChanged += Instance_TokensChanged;
+
+            Connect();
+  
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public event EventHandler ObsConnectionChanged;
+        public event EventHandler<StreamStatusEventArgs> StreamStatusChanged;
+        public event EventHandler<SceneChangedEventArgs> SceneChanged;
+        public event EventHandler<OutputState> ReplayBufferStateChanged;
+
+        public bool IsConnected { get; private set; }
+        
+
+        public void Connect()
+        {
+            if (!obs.IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
+                var serverInfo = ServerManager.Instance.ServerInfo;
+
+                if (serverInfo == null)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Cannot connect, Server info missing");
+                    return;
+                }
+                
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect to {serverInfo.Ip}:{serverInfo.Port}");
+                        obs.WSTimeout = new TimeSpan(0, 0, 10);
+                        obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
+                    }
+                    catch (AuthFailureException)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
+                        ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Connection Exception: {ex}");
+                    }
+                });
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (!obs.IsConnected)
+            {
+                obs.Disconnect();
+            }
+        }
+
+        public bool ChangeScene(string sceneName)
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.SetCurrentScene(sceneName);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ChangeScene Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool StartInstantReplay()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.StartReplayBuffer();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StartInstantReplay Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public Task<bool> StopAndSaveInstantReplay()
+        {
+            return Task.Run(() =>
+            {
+                if (obs.IsConnected)
+                {
+
+                    try
+                    {
+                        obs.SaveReplayBuffer();
+                        System.Threading.Thread.Sleep(1000);
+                        obs.StopReplayBuffer();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopAndSaveInstantReplay Exception: {ex}");
+                    }
+                }
+                return false;
+            });
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void Obs_Connected(object sender, EventArgs e)
+        {
+            IsConnected = true;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {obs.GetVersion().OBSStudioVersion}");
+
+            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void Obs_Disconnected(object sender, EventArgs e)
+        {
+            IsConnected = false;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");
+            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void Obs_StreamStatus(OBSWebsocket sender, StreamStatus status)
+        {
+            StreamStatusChanged?.Invoke(this, new StreamStatusEventArgs(status));
+        }
+
+        private void Obs_SceneChanged(OBSWebsocket sender, string newSceneName)
+        {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {newSceneName}");
+            SceneChanged?.Invoke(this, new SceneChangedEventArgs(newSceneName));
+        }
+        private void Instance_TokensChanged(object sender, ServerInfoEventArgs e)
+        {
+            if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
+            {
+                Connect();
+            }
+            else if (!ServerManager.Instance.ServerInfoExists)
+            {
+                Disconnect();
+            }
+        }
+
+        private void Obs_ReplayBufferStateChanged(OBSWebsocket sender, OutputState type)
+        {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {type}");
+            ReplayBufferStateChanged?.Invoke(this, type);
+        }
+
+
+        #endregion
+
+
+    }
+}

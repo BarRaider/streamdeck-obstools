@@ -1,0 +1,38 @@
+{
+  "Localization": {
+    "Setup": {
+      "Intro": {
+        "Title": "Initial Setup",
+        "Description": "This wizard will help you link OBS with the plugin.<br/><B>IMPORTANT:</B> You must install the latest version of ",
+        "WebSocket": "obs-websocket",
+        "Description2":  " for this plugin to work. After installing, Enable the WebSockets server through the <i>Tools->\"WebSockets Server Settings\"</i> menu in OBS before continuing.",
+        "Start": "Continue",
+        "Close": "Not Now"
+      },
+      "Pairing": {
+        "Title": "Link Account",
+        "Description": "Note: It is <b>HIGHLY RECOMMENDED</b> you also set a password when enabling the WebSockets server through OBS.<br/>The 'Ip' and 'Port' should be kept as is, unless you made changes through OBS. If you created a password, please input it below",
+        "IpTitle": "IP",
+        "IpPlaceholder": "127.0.0.1",
+        "PortTitle": "Port",
+        "PortPlaceholder": "4444",
+        "PassTitle": "Password",
+        "PassPlaceholder": "Password",
+        "Submit": "Submit Settings",
+        "Close": "Cancel"
+      },
+      "Result": {
+        "ValidateTitle": "Saving Settings",
+        "ValidateDescription": "This should take up to 5 seconds...",
+        "SuccessTitle": "Settings Saved",
+        "SuccessDescription": "You may now close this window and start using the plugin",
+        "FailTitle": "VALIDATION FAILED",
+        "FailDescription": "We failed to save the settings. Please try again.",
+        "FailRetry": "Try Again",
+        "Close": "Close",
+        "Cancel": "Cancel",
+        "Save": "Done"
+      }
+    }
+  }
+}
