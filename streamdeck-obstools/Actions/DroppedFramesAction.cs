@@ -31,11 +31,15 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings();
                 instance.ServerInfoExists = false;
                 instance.DroppedFramesType = DroppedFramesType.DroppedFrames;
+                instance.AlertColor = "#FF0000";
                 return instance;
             }
 
             [JsonProperty(PropertyName = "droppedFramesType")]
             public DroppedFramesType DroppedFramesType { get; set; }
+
+            [JsonProperty(PropertyName = "alertColor")]
+            public String AlertColor { get; set; }
         }
 
         protected PluginSettings Settings
@@ -57,7 +61,8 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private static readonly string[] pageArr = { Properties.Settings.Default.AlertPage1, Properties.Settings.Default.AlertPage2, Properties.Settings.Default.AlertPage3, Properties.Settings.Default.AlertPage2 };
+        private const int TOTAL_ALERT_STAGES = 4;
+
         private StreamStatusEventArgs streamStatus;
         private int lastCountOfDroppedFrames = 0;
         private Timer tmrAlert = new Timer();
@@ -202,31 +207,54 @@ namespace BarRaider.ObsTools.Actions
             isAlerting = true;
         }
 
+        private Color GenerateStageColor(string initialColor, int stage, int totalAmountOfStages)
+        {
+            Color color = ColorTranslator.FromHtml(initialColor);
+            int a = color.A;
+            double r = color.R;
+            double g = color.G;
+            double b = color.B;
+
+            // Try and increase the color in the last stage;
+            if (stage == totalAmountOfStages - 1)
+            {
+                stage = 1;
+            }
+
+            for (int idx = 0; idx < stage; idx++)
+            {
+                r /= 2;
+                g /= 2;
+                b /= 2;
+            }
+
+            return Color.FromArgb(a, (int)r, (int)g, (int)b);
+        }
+
         private void TmrAlert_Elapsed(object sender, ElapsedEventArgs e)
         {
             String message = lastCountOfDroppedFrames.ToString();
-            Image img = Tools.Base64StringToImage(pageArr[alertStage]);
-            // Todo: Change size if using different size image
-            Graphics graphics = Graphics.FromImage(img);
-            int height = 144;
-            int width = 144;
+            Bitmap img = Tools.GenerateKeyImage(deviceType, out Graphics graphics);
+            int height = Tools.GetKeyDefaultHeight(deviceType);
+            int width = Tools.GetKeyDefaultWidth(deviceType);
 
+            // Background
+            var bgBrush = new SolidBrush(GenerateStageColor(Settings.AlertColor, alertStage, TOTAL_ALERT_STAGES));
+            graphics.FillRectangle(bgBrush, 0, 0, width, height);          
 
-            var font = new Font("Verdana", 50, FontStyle.Bold);
+            var font = new Font("Verdana", 25, FontStyle.Bold);
             var fgBrush = Brushes.White;
             SizeF stringSize = graphics.MeasureString(message, font);
             float stringPos = 0;
-            float stringHeight = 54;
+            float stringHeight = Math.Abs((height - stringSize.Height)) / 2;
             if (stringSize.Width < width)
             {
                 stringPos = Math.Abs((width - stringSize.Width)) / 2;
-                stringHeight = Math.Abs((height - stringSize.Height)) / 2;
             }
             graphics.DrawString(message, font, fgBrush, new PointF(stringPos, stringHeight));
             Connection.SetImageAsync(img);
 
-            alertStage = (alertStage + 1) % pageArr.Length;
-
+            alertStage = (alertStage + 1) % TOTAL_ALERT_STAGES;
         }
 
         public override Task SaveSettings()

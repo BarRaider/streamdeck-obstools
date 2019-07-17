@@ -44,12 +44,6 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        #region Private Members
-
-        private string currentSceneName;
-        private string previousSceneName;
-
-        #endregion
         public PreviousSceneAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
@@ -60,14 +54,12 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
-            OBSManager.Instance.SceneChanged += Instance_SceneChanged;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
         }
 
         public override void Dispose()
         {
-            OBSManager.Instance.SceneChanged -= Instance_SceneChanged;
             base.Dispose();
         }
 
@@ -79,9 +71,9 @@ namespace BarRaider.ObsTools.Actions
             if (!baseHandledKeypress)
             {
                 bool sceneChanged = false;
-                if (!string.IsNullOrEmpty(previousSceneName))
+                if (!string.IsNullOrEmpty(OBSManager.Instance.PreviousSceneName))
                 {
-                    sceneChanged = OBSManager.Instance.ChangeScene(previousSceneName);
+                    sceneChanged = OBSManager.Instance.ChangeScene(OBSManager.Instance.PreviousSceneName);
                 }
 
                 if (sceneChanged)
@@ -104,9 +96,9 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (!String.IsNullOrEmpty(previousSceneName))
+                if (!String.IsNullOrEmpty(OBSManager.Instance.PreviousSceneName))
                 {
-                    await Connection.SetTitleAsync($"{previousSceneName}");
+                    await Connection.SetTitleAsync($"{OBSManager.Instance.PreviousSceneName.Replace(" ", "\n")}");
                 }
             }
         }
@@ -121,11 +113,6 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
-        private void Instance_SceneChanged(object sender, SceneChangedEventArgs e)
-        {
-            previousSceneName = currentSceneName;
-            currentSceneName = e.CurrentSceneName;
-        }
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));

@@ -55,6 +55,7 @@ namespace BarRaider.ObsTools
             obs.ReplayBufferStateChanged += Obs_ReplayBufferStateChanged;
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
 
+            InstantReplyStatus = OutputState.Stopped;
             Connect();
   
         }
@@ -70,6 +71,13 @@ namespace BarRaider.ObsTools
 
         public bool IsConnected { get; private set; }
         
+        public string CurrentSceneName { get; private set; }
+
+        public string PreviousSceneName { get; private set; }
+
+        public OutputState InstantReplyStatus { get; private set; }
+
+        public bool IsStreaming { get; private set; }
 
         public void Connect()
         {
@@ -147,23 +155,37 @@ namespace BarRaider.ObsTools
             return false;
         }
 
-        public Task<bool> StopAndSaveInstantReplay()
+        public bool StopInstantReplay()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.StopReplayBuffer();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopInstantReplay Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public Task<bool> SaveInstantReplay()
         {
             return Task.Run(() =>
             {
                 if (obs.IsConnected)
                 {
-
                     try
                     {
                         obs.SaveReplayBuffer();
-                        System.Threading.Thread.Sleep(1000);
-                        obs.StopReplayBuffer();
                         return true;
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopAndSaveInstantReplay Exception: {ex}");
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"SaveInstantReplay Exception: {ex}");
                     }
                 }
                 return false;
@@ -179,7 +201,7 @@ namespace BarRaider.ObsTools
             IsConnected = true;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
             Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {obs.GetVersion().OBSStudioVersion}");
-
+            IsStreaming = obs.GetStreamingStatus().IsStreaming;
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -192,11 +214,14 @@ namespace BarRaider.ObsTools
 
         private void Obs_StreamStatus(OBSWebsocket sender, StreamStatus status)
         {
+            IsStreaming = status.Streaming;
             StreamStatusChanged?.Invoke(this, new StreamStatusEventArgs(status));
         }
 
         private void Obs_SceneChanged(OBSWebsocket sender, string newSceneName)
         {
+            PreviousSceneName = CurrentSceneName;
+            CurrentSceneName = newSceneName;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {newSceneName}");
             SceneChanged?.Invoke(this, new SceneChangedEventArgs(newSceneName));
         }
@@ -214,10 +239,10 @@ namespace BarRaider.ObsTools
 
         private void Obs_ReplayBufferStateChanged(OBSWebsocket sender, OutputState type)
         {
+            InstantReplyStatus = type;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {type}");
             ReplayBufferStateChanged?.Invoke(this, type);
         }
-
 
         #endregion
 

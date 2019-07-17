@@ -26,22 +26,22 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Shows the number of dropped frames on your Stream Deck",
+      "Tooltip": "Shows the number of dropped frames on your Stream Deck and alerts if it increases",
       "UUID": "com.barraider.obstools.droppedframes",
       "PropertyInspectorPath": "PropertyInspector/DroppedFrames.html"
     },
     {
       "Icon": "Images/icon",
-      "Name": "Instant Reply",
+      "Name": "Instant Replay",
       "States": [
         {
           "Image": "Images/pluginAction",
           "TitleAlignment": "middle",
-          "FontSize": "20"
+          "FontSize": "14"
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Toggles the Instant Reply On or Off",
+      "Tooltip": "Saves your Instant Replay and allows to Toggle the Instant Replay On or Off",
       "UUID": "com.barraider.obstools.instantreply",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
     },
@@ -56,17 +56,17 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Returns you to your previous OBS scene",
+      "Tooltip": "Allows you to switch back to your previously used scene",
       "UUID": "com.barraider.obstools.previousscene",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
     }
   ],
   "Author": "BarRaider",
-  "Description": "Additional commands and feedback from OBS on your Stream Deck.\n*** PRE-RELEASE Version ***",
+  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck",
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://barraider.github.io/",
-  "Version": "0.5",
+  "Version": "1.0",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",
