@@ -43,7 +43,7 @@
       "SupportedInMultiActions": false,
       "Tooltip": "Saves your Instant Replay and allows to Toggle the Instant Replay On or Off",
       "UUID": "com.barraider.obstools.instantreply",
-      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+      "PropertyInspectorPath": "PropertyInspector/InstantReplay.html"
     },
     {
       "Icon": "Images/icon",

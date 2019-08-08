@@ -17,14 +17,38 @@ namespace BarRaider.ObsTools.Actions
     [PluginActionId("com.barraider.obstools.instantreply")]
     public class InstantReplyAction : ActionBase
     {
+        private const int DEFAULT_REPLAY_SECONDS = 20;
         protected class PluginSettings : PluginSettingsBase
         {
             public static PluginSettings CreateDefaultSettings()
             {
-                PluginSettings instance = new PluginSettings();
-                instance.ServerInfoExists = false;
+                PluginSettings instance = new PluginSettings
+                {
+                    ServerInfoExists = false,
+                    AutoReplay = false,
+                    ReplayDirectory = String.Empty,
+                    MuteSound = false,
+                    SourceName = String.Empty,
+                    HideReplaySeconds = DEFAULT_REPLAY_SECONDS.ToString()
+                };
                 return instance;
             }
+
+            [JsonProperty(PropertyName = "replayDirectory")]
+            public String ReplayDirectory { get; set; }
+
+            [JsonProperty(PropertyName = "autoReplay")]
+            public bool AutoReplay { get; set; }
+
+            [JsonProperty(PropertyName = "hideReplaySeconds")]
+            public String HideReplaySeconds { get; set; }
+
+            [JsonProperty(PropertyName = "sourceName")]
+            public String SourceName { get; set; }
+
+            [JsonProperty(PropertyName = "muteSound")]
+            public bool MuteSound { get; set; }
+
         }
 
         protected PluginSettings Settings
@@ -51,6 +75,8 @@ namespace BarRaider.ObsTools.Actions
         private bool keyPressed = false;
         private bool longKeyPressed = false;
         private DateTime keyPressStart;
+        private GlobalSettings global;
+        private int hideReplaySettings = DEFAULT_REPLAY_SECONDS;
 
         #endregion
         public InstantReplyAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -65,6 +91,8 @@ namespace BarRaider.ObsTools.Actions
             }
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
+            Connection.GetGlobalSettingsAsync();
+            InitializeSettings();
         }
 
         public override void Dispose()
@@ -119,7 +147,7 @@ namespace BarRaider.ObsTools.Actions
             if (keyPressed)
             {
                 int timeKeyWasPressed = (int)(DateTime.Now - keyPressStart).TotalMilliseconds;
-                if (timeKeyWasPressed >= LONG_KEYPRESS_LENGTH) // User is issuing a long keypress
+                if (timeKeyWasPressed >= LONG_KEYPRESS_LENGTH && !longKeyPressed) // User is issuing a long keypress
                 {
                     LongKeyPress();
                 }
@@ -127,17 +155,38 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync($"Replay:\n{(OBSManager.Instance.InstantReplyStatus == OutputState.Started ? "On" : "Off")}");
+                await Connection.SetTitleAsync($"Replay:\n{(OBSManager.Instance.IsReplayBuffer || OBSManager.Instance.InstantReplyStatus == OutputState.Started ? "On" : "Off")}");
             }
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
-            Tools.AutoPopulateSettings(settings, payload.Settings);
+            Tools.AutoPopulateSettings(Settings, payload.Settings);
+            InitializeSettings();
+            SetGlobalSettings();
             SaveSettings();
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
+        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+        {
+            // Global Settings exist
+            if (payload?.Settings != null && payload.Settings.Count > 0)
+            {
+                global = payload.Settings.ToObject<GlobalSettings>();
+                Settings.AutoReplay = global.AutoReplay;
+                Settings.ReplayDirectory = global.ReplayDirectory;
+                Settings.HideReplaySeconds = global.HideReplaySeconds.ToString();
+                Settings.SourceName = global.SourceName;
+                Settings.MuteSound = global.MuteSound;
+                SaveSettings();
+            }
+            else // Global settings do not exist
+            {
+                global = new GlobalSettings();
+                SetGlobalSettings();
+            }
+
+        }
 
         public override Task SaveSettings()
         {
@@ -191,14 +240,33 @@ namespace BarRaider.ObsTools.Actions
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"Instant Replay LongKeyPress Exception: {ex}");
                 Connection.ShowAlert();
             }
-
-
         }
 
+        private void SetGlobalSettings()
+        {
+            global.AutoReplay = Settings.AutoReplay;
+            global.ReplayDirectory = Settings.ReplayDirectory;
+            global.HideReplaySeconds = hideReplaySettings;
+            global.MuteSound = Settings.MuteSound;
+            global.SourceName = Settings.SourceName;
+            Connection.SetGlobalSettingsAsync(JObject.FromObject(global));
+        }
+
+        private void InitializeSettings()
+        {
+            // Port is empty or not numeric
+            if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out int seconds))
+            {
+                Settings.HideReplaySeconds = DEFAULT_REPLAY_SECONDS.ToString();
+                SaveSettings();
+            }
+            else
+            {
+                hideReplaySettings = seconds;
+            }
+        }
 
         #endregion
-
-
 
     }
 }

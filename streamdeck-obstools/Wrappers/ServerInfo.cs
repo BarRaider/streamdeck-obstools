@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace BarRaider.ObsTools.Wrappers
 {
     [Serializable]
-    internal class ServerInfo
+    public class ServerInfo
     {
         public string Ip { get; set; }
 
