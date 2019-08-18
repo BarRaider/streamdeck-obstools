@@ -1,5 +1,6 @@
 ﻿using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,13 +14,11 @@ namespace BarRaider.ObsTools
     internal class ServerManager
     {
         #region Private Members
-        private const string TOKEN_FILE = "obs.dat";
-
         private static ServerManager instance = null;
         private static readonly object objLock = new object();
 
         private ServerInfo token;
-        private object refreshTokensLock = new object();
+        private GlobalSettings global;
 
         #endregion
 
@@ -52,7 +51,8 @@ namespace BarRaider.ObsTools
 
         private ServerManager()
         {
-            LoadToken();
+            GlobalSettingsManager.Instance.OnReceivedGlobalSettings += Instance_OnReceivedGlobalSettings;
+            GlobalSettingsManager.Instance.RequestGlobalSettings();
         }
 
         #endregion
@@ -98,29 +98,27 @@ namespace BarRaider.ObsTools
 
         #region Private Methods
 
-        private void LoadToken()
+        private void LoadToken(ServerInfo serverInfo)
         {
             try
             {
-                string fileName = Path.Combine(System.AppContext.BaseDirectory, TOKEN_FILE);
-                if (File.Exists(fileName))
+                if (serverInfo == null)
                 {
-                    using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
-                    {
-                        var formatter = new BinaryFormatter();
-                        token = (ServerInfo)formatter.Deserialize(stream);
-                        if (token == null)
-                        {
-                            Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to load tokens, deserialized token is null");
-                            return;
-                        }
-                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Token initialized. Last refresh date was: {token.TokenLastRefresh}");
-                    }
+
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to load tokens, deserialized serverInfo is null");
+                    return;
                 }
-                else
+
+                token = new ServerInfo()
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Failed to load tokens, token file does not exist: {fileName}");
-                }
+                    Ip = serverInfo.Ip,
+                    Password = serverInfo.Password,
+                    Port = serverInfo.Port,
+                    TokenLastRefresh = serverInfo.TokenLastRefresh
+
+                };
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Token initialized. Last refresh date was: {token.TokenLastRefresh}");
+                TokensChanged?.Invoke(this, new ServerInfoEventArgs(new ServerInfo() { Ip = token.Ip, Port = token.Port, Password = token.Password, TokenLastRefresh = token.TokenLastRefresh }));
             }
             catch (Exception ex)
             {
@@ -132,18 +130,43 @@ namespace BarRaider.ObsTools
         {
             try
             {
-                var formatter = new BinaryFormatter();
-                using (var stream = new FileStream(Path.Combine(System.AppContext.BaseDirectory, TOKEN_FILE), FileMode.Create, FileAccess.Write))
+                if (global == null)
                 {
-
-                    formatter.Serialize(stream, token);
-                    stream.Close();
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"New token saved. Last refresh date was: {token.TokenLastRefresh}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to save token, Global Settings is null");
+                    return;
                 }
+
+                // Set token in Global Settings
+                if (token == null)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "Saving null token to Global Settings");
+                    global.ServerInfo = null;
+                }
+                else
+                {
+                    global.ServerInfo = new ServerInfo()
+                    {
+                        Ip = token.Ip,
+                        Password = token.Password,
+                        Port = token.Port,
+                        TokenLastRefresh = token.TokenLastRefresh
+                    };
+                }
+                GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(global));
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"New token saved. Last refresh date was: {token.TokenLastRefresh}");
             }
             catch (Exception ex)
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"Exception saving tokens: {ex}");
+            }
+        }
+
+        private void Instance_OnReceivedGlobalSettings(object sender, ReceivedGlobalSettingsPayload payload)
+        {
+            if (payload?.Settings != null && payload.Settings.Count > 0)
+            {
+                global = payload.Settings.ToObject<GlobalSettings>();
+                LoadToken(global.ServerInfo);
             }
         }
 

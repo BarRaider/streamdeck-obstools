@@ -25,6 +25,6 @@ namespace BarRaider.ObsTools.Wrappers
         public bool MuteSound { get; set; }
 
         [JsonProperty(PropertyName = "serverInfo")]
-        public ServerInfo Server { get; set; }
+        public ServerInfo ServerInfo { get; set; }
     }
 }

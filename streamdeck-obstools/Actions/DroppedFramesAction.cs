@@ -28,10 +28,12 @@ namespace BarRaider.ObsTools.Actions
         {
             public static PluginSettings CreateDefaultSettings()
             {
-                PluginSettings instance = new PluginSettings();
-                instance.ServerInfoExists = false;
-                instance.DroppedFramesType = DroppedFramesType.DroppedFrames;
-                instance.AlertColor = "#FF0000";
+                PluginSettings instance = new PluginSettings
+                {
+                    ServerInfoExists = false,
+                    DroppedFramesType = DroppedFramesType.DroppedFrames,
+                    AlertColor = "#FF0000"
+                };
                 return instance;
             }
 
@@ -65,10 +67,9 @@ namespace BarRaider.ObsTools.Actions
 
         private StreamStatusEventArgs streamStatus;
         private int lastCountOfDroppedFrames = 0;
-        private Timer tmrAlert = new Timer();
+        private readonly Timer tmrAlert = new Timer();
         private bool isAlerting = false;
         private int alertStage = 0;
-        private StreamDeckDeviceType deviceType;
         private bool firstDataLoad = true;
 
         #endregion
@@ -86,7 +87,6 @@ namespace BarRaider.ObsTools.Actions
 
             tmrAlert.Interval = 200;
             tmrAlert.Elapsed += TmrAlert_Elapsed;
-            deviceType = Connection.DeviceInfo().Type;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
         }
@@ -234,15 +234,15 @@ namespace BarRaider.ObsTools.Actions
         private void TmrAlert_Elapsed(object sender, ElapsedEventArgs e)
         {
             String message = lastCountOfDroppedFrames.ToString();
-            Bitmap img = Tools.GenerateKeyImage(deviceType, out Graphics graphics);
-            int height = Tools.GetKeyDefaultHeight(deviceType);
-            int width = Tools.GetKeyDefaultWidth(deviceType);
+            Bitmap img = Tools.GenerateGenericKeyImage(out Graphics graphics);
+            int height = img.Height;
+            int width = img.Width;
 
             // Background
             var bgBrush = new SolidBrush(GenerateStageColor(Settings.AlertColor, alertStage, TOTAL_ALERT_STAGES));
             graphics.FillRectangle(bgBrush, 0, 0, width, height);          
 
-            var font = new Font("Verdana", 25, FontStyle.Bold);
+            var font = new Font("Verdana", 34, FontStyle.Bold);
             var fgBrush = Brushes.White;
             SizeF stringSize = graphics.MeasureString(message, font);
             float stringPos = 0;

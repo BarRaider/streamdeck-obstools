@@ -23,7 +23,7 @@ namespace BarRaider.ObsTools
         private int hideReplaySeconds = 0;
         private string sourceName = String.Empty;
         private GlobalSettings global;
-        FileSystemWatcher watcher;
+        readonly FileSystemWatcher watcher;
 
         #endregion
 
@@ -58,14 +58,15 @@ namespace BarRaider.ObsTools
             GlobalSettingsManager.Instance.OnReceivedGlobalSettings += Instance_OnReceivedGlobalSettings;
             GlobalSettingsManager.Instance.RequestGlobalSettings();
 
-            watcher = new FileSystemWatcher();
-
-            // Watch for changes in LastAccess and LastWrite times, and
-            // the renaming of files or directories.
-            watcher.NotifyFilter = NotifyFilters.LastAccess
+            watcher = new FileSystemWatcher
+            {
+                // Watch for changes in LastAccess and LastWrite times, and
+                // the renaming of files or directories.
+                NotifyFilter = NotifyFilters.LastAccess
                                  | NotifyFilters.LastWrite
                                  | NotifyFilters.FileName
-                                 | NotifyFilters.CreationTime;
+                                 | NotifyFilters.CreationTime
+            };
 
 
             // Add event handlers.

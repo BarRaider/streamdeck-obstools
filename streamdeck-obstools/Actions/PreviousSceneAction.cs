@@ -21,8 +21,10 @@ namespace BarRaider.ObsTools.Actions
         {
             public static PluginSettings CreateDefaultSettings()
             {
-                PluginSettings instance = new PluginSettings();
-                instance.ServerInfoExists = false;
+                PluginSettings instance = new PluginSettings
+                {
+                    ServerInfoExists = false
+                };
                 return instance;
             }
         }

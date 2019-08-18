@@ -62,11 +62,11 @@
     }
   ],
   "Author": "BarRaider",
-  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck",
+  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck. Features include: Instant Replay (on stream), Dropped frames alarm, Quick scenes toggle, OBS CPU usage",
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://barraider.github.io/",
-  "Version": "1.0",
+  "Version": "1.2",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",
