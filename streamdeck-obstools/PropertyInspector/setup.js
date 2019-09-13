@@ -1,4 +1,5 @@
 ﻿var authWindow = null;
+var twitchWindow = null;
 
 document.addEventListener('websocketCreate', function () {
     console.log("Websocket created!");
@@ -42,6 +43,21 @@ function checkToken(payload) {
             authWindow = window.open("Setup/index.html")
         }
     }
+
+    // Open up setup dialog for twitch if needed
+    if (payload['twitchTokenExists'] && payload['twitchIntegration']) {
+        if (twitchWindow) {
+            twitchWindow.loadSuccessView();
+        }
+    }
+    else if (payload['serverInfoExists'] && payload['twitchIntegration']) {
+        if (twitchWindow) {
+            twitchWindow.loadFailedView();
+        }
+        else {
+            twitchWindow = window.open("TwitchSetup/index.html")
+        }
+    }
 }
 
 function openObsDownload() {
@@ -74,6 +90,29 @@ function updateServerInfo(ip, port, password) {
     sendPayloadToPlugin(payload);
     console.log("Approving server info");
 }
+
+function openTwitchAuth() {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'event': 'openUrl',
+            'payload': {
+                'url': 'https://id.twitch.tv/oauth2/authorize?client_id=aao2j8zfthy2rh10satdmxwojt70ph&redirect_uri=https://BarRaider.com/twitchauth&response_type=token&scope=channel_feed_read%20chat:read%20chat:edit%20whispers:read%20whispers:edit'
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
+
+function updateApprovalCode(val) {
+    var approvalCode = val;
+
+    var payload = {};
+    payload.property_inspector = 'updateApproval';
+    payload.approvalCode = approvalCode;
+    sendPayloadToPlugin(payload);
+    console.log("Approving code");
+}
+
 
 function sendPayloadToPlugin(payload) {
     if (websocket && (websocket.readyState === 1)) {

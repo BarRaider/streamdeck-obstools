@@ -14,10 +14,18 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
+
+    //---------------------------------------------------
+    //          BarRaider's Hall Of Fame
+    // 100 Bits: siliconart
+    //---------------------------------------------------
+
     [PluginActionId("com.barraider.obstools.instantreply")]
     public class InstantReplyAction : ActionBase
     {
-        private const int DEFAULT_REPLAY_SECONDS = 20;
+        private const int HIDE_REPLAY_SECONDS = 20;
+        private const int DEFAULT_REPLAY_COOLDOWN = 30;
+        private const int DELAY_REPLAY_SECONDS = 1;
         protected class PluginSettings : PluginSettingsBase
         {
             public static PluginSettings CreateDefaultSettings()
@@ -25,11 +33,16 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings
                 {
                     ServerInfoExists = false,
+                    TwitchTokenExists = false,
                     AutoReplay = false,
                     ReplayDirectory = String.Empty,
                     MuteSound = false,
                     SourceName = String.Empty,
-                    HideReplaySeconds = DEFAULT_REPLAY_SECONDS.ToString()
+                    HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString(),
+                    DelayReplaySeconds = DELAY_REPLAY_SECONDS.ToString(),
+                    TwitchIntegration = false,
+                    ReplayCooldown = "30",
+                    AllowedUsers = String.Empty
                 };
                 return instance;
             }
@@ -40,6 +53,9 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "autoReplay")]
             public bool AutoReplay { get; set; }
 
+            [JsonProperty(PropertyName = "delayReplaySeconds")]
+            public String DelayReplaySeconds { get; set; }
+
             [JsonProperty(PropertyName = "hideReplaySeconds")]
             public String HideReplaySeconds { get; set; }
 
@@ -49,6 +65,18 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "muteSound")]
             public bool MuteSound { get; set; }
 
+            [JsonProperty(PropertyName = "twitchIntegration")]
+            public bool TwitchIntegration { get; set; }
+
+            [JsonProperty(PropertyName = "replayCooldown")]
+            public string ReplayCooldown { get; set; }
+
+            [JsonProperty(PropertyName = "allowedUsers")]
+            public string AllowedUsers { get; set; }
+
+            [JsonProperty(PropertyName = "twitchTokenExists")]
+            public bool TwitchTokenExists { get; set; }
+            
         }
 
         protected PluginSettings Settings
@@ -76,7 +104,9 @@ namespace BarRaider.ObsTools.Actions
         private bool longKeyPressed = false;
         private DateTime keyPressStart;
         private GlobalSettings global;
-        private int hideReplaySettings = DEFAULT_REPLAY_SECONDS;
+        private int hideReplaySettings = HIDE_REPLAY_SECONDS;
+        private int replayCooldown = DEFAULT_REPLAY_COOLDOWN;
+        private int delayReplaySettings = DELAY_REPLAY_SECONDS;
 
         #endregion
         public InstantReplyAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -92,11 +122,15 @@ namespace BarRaider.ObsTools.Actions
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             Connection.GetGlobalSettingsAsync();
+            ChatPager.Twitch.TwitchChat.Instance.PageRaised += Instance_PageRaised;
+            ChatPager.Twitch.TwitchTokenManager.Instance.TokenStatusChanged += Instance_TokenStatusChanged;
             InitializeSettings();
         }
 
         public override void Dispose()
         {
+            ChatPager.Twitch.TwitchChat.Instance.PageRaised -= Instance_PageRaised;
+            ChatPager.Twitch.TwitchTokenManager.Instance.TokenStatusChanged -= Instance_TokenStatusChanged;
             base.Dispose();
         }
 
@@ -249,22 +283,73 @@ namespace BarRaider.ObsTools.Actions
             global.HideReplaySeconds = hideReplaySettings;
             global.MuteSound = Settings.MuteSound;
             global.SourceName = Settings.SourceName;
+            global.DelayReplaySeconds = delayReplaySettings;
             Connection.SetGlobalSettingsAsync(JObject.FromObject(global));
         }
 
         private void InitializeSettings()
         {
             // Port is empty or not numeric
-            if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out int seconds))
+            if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))
             {
-                Settings.HideReplaySeconds = DEFAULT_REPLAY_SECONDS.ToString();
+                Settings.HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString();
                 SaveSettings();
+            }
+         
+            if (String.IsNullOrEmpty(Settings.ReplayCooldown) || !int.TryParse(Settings.ReplayCooldown, out replayCooldown))
+            {
+                Settings.ReplayCooldown = DEFAULT_REPLAY_COOLDOWN.ToString();
+            }
+
+            if (String.IsNullOrEmpty(Settings.DelayReplaySeconds) || !int.TryParse(Settings.DelayReplaySeconds, out delayReplaySettings))
+            {
+                Settings.DelayReplaySeconds = DELAY_REPLAY_SECONDS.ToString();
+                SaveSettings();
+            }
+
+            if (Settings.TwitchIntegration)
+            {
+                ResetChat();
+            }
+        }
+
+        private void ResetChat()
+        {
+            List<string> allowedPagers = null;
+
+            if (!String.IsNullOrWhiteSpace(Settings.AllowedUsers))
+            {
+                allowedPagers = Settings.AllowedUsers?.Replace("\r\n", "\n").Split('\n').ToList();
+            }
+            ChatPager.Twitch.TwitchChat.Instance.Initialize(replayCooldown, allowedPagers);
+        }
+
+        private async void Instance_PageRaised(object sender, ChatPager.Twitch.PageRaisedEventArgs e)
+        {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Replay requested by chat");
+            if (OBSManager.Instance.InstantReplyStatus == OutputState.Started) // Actively running Instant Replay
+            {
+                if (await OBSManager.Instance.SaveInstantReplay())
+                {
+                    await Connection.ShowOk();
+                }
+                else
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Instant Replay SaveInstantReplay Failed");
+                    await Connection.ShowAlert();
+                }
             }
             else
             {
-                hideReplaySettings = seconds;
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot Save Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
             }
         }
+
+        private void Instance_TokenStatusChanged(object sender, EventArgs e)
+        {
+            Settings.TwitchTokenExists = ChatPager.Twitch.TwitchTokenManager.Instance.TokenExists;
+        }
+
 
         #endregion
 

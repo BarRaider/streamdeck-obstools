@@ -21,6 +21,7 @@ namespace BarRaider.ObsTools
         private bool muteSound = false;
         private string replayDirectory = null;
         private int hideReplaySeconds = 0;
+        private int delayReplaySeconds = 0;
         private string sourceName = String.Empty;
         private GlobalSettings global;
         readonly FileSystemWatcher watcher;
@@ -81,16 +82,17 @@ namespace BarRaider.ObsTools
                 autoReplay = global.AutoReplay;
                 replayDirectory = global.ReplayDirectory;
                 hideReplaySeconds = global.HideReplaySeconds;
+                delayReplaySeconds = global.DelayReplaySeconds;
                 sourceName = global.SourceName;
                 muteSound = global.MuteSound;
             }
 
-            InitalizeDirectoryWatcher();
+            InitializeDirectoryWatcher();
         }
 
-        private void InitalizeDirectoryWatcher()
+        private void InitializeDirectoryWatcher()
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "InitalizeDirectoryWatcher Called");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "InitializeDirectoryWatcher Called");
 
             // Stop watching.
             watcher.EnableRaisingEvents = false;
@@ -100,15 +102,19 @@ namespace BarRaider.ObsTools
             {
                 watcher.Path = replayDirectory;
                 watcher.EnableRaisingEvents = true;
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"InitalizeDirectoryWatcher watching over directory {replayDirectory}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher watching over directory {replayDirectory}");
+            }
+            else
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher Disabled. AutoReplay: {autoReplay} Directory: {replayDirectory}");
             }
         }
 
         private void FileCreated(object sender, FileSystemEventArgs e)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"InitalizeDirectoryWatcher new file created: {e.Name}");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher new file created: {e.Name}");
 
-            OBSManager.Instance.PlayInstantReplay(e.FullPath, sourceName, hideReplaySeconds, muteSound);
+            OBSManager.Instance.PlayInstantReplay(e.FullPath, sourceName, delayReplaySeconds, hideReplaySeconds, muteSound);            
         }
 
         #endregion

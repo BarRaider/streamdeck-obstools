@@ -59,14 +59,29 @@
       "Tooltip": "Allows you to switch back to your previously used scene",
       "UUID": "com.barraider.obstools.previousscene",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Video Player",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "10"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Configure videos to play on a Media soure",
+      "UUID": "com.barraider.obstools.videoplayer",
+      "PropertyInspectorPath": "PropertyInspector/VideoPlayer.html"
     }
   ],
   "Author": "BarRaider",
   "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck. Features include: Instant Replay (on stream), Dropped frames alarm, Quick scenes toggle, OBS CPU usage",
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
-  "URL": "https://barraider.github.io/",
-  "Version": "1.2",
+  "URL": "https://BarRaider.com/",
+  "Version": "1.3",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",

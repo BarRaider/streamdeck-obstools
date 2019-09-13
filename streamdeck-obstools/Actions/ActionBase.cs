@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BarRaider.ObsTools.Actions
@@ -111,8 +112,16 @@ namespace BarRaider.ObsTools.Actions
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting server info. Ip: {ip} Port: {port} Password: {String.IsNullOrEmpty(password)}");
                         ServerManager.Instance.InitTokens(ip, port, password, DateTime.Now);
                         break;
+                    case "updateapproval":
+                        string approvalCode = (string)payload["approvalCode"];
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Twitch Requesting approval with code: {approvalCode}");
+                        ChatPager.Twitch.TwitchTokenManager.Instance.SetToken(new ChatPager.Twitch.TwitchToken() { Token = approvalCode, TokenLastRefresh = DateTime.Now });
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Twitch RefreshToken completed. Token Exists: {ChatPager.Twitch.TwitchTokenManager.Instance.TokenExists}");
+                        break;
                     case "resetplugin":
                         Logger.Instance.LogMessage(TracingLevel.WARN, $"ResetPlugin called. Tokens are cleared");
+                        ChatPager.Twitch.TwitchTokenManager.Instance.RevokeToken();
+                        Thread.Sleep(3000);
                         ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
                         await SaveSettings();
                         break;

@@ -197,7 +197,7 @@ namespace BarRaider.ObsTools
             });
         }
 
-        public Task<bool> PlayInstantReplay(string fileName, string sourceName, int hideReplaySeconds, bool muteSound)
+        public Task<bool> PlayInstantReplay(string fileName, string sourceName, int delayReplaySeconds, int hideReplaySeconds, bool muteSound)
         {
             return Task.Run(() =>
             {
@@ -217,11 +217,14 @@ namespace BarRaider.ObsTools
                 {
                     try
                     {
+                        Thread.Sleep(delayReplaySeconds * 1000);
+                        obs.SetMute(sourceName, muteSound);
+                        obs.SetSourceRender(sourceName, false);
                         var sourceSettings = obs.GetMediaSourceSettings(sourceName);
                         sourceSettings.Media.IsLocalFile = true;
                         sourceSettings.Media.LocalFile = fileName;
                         obs.SetMediaSourceSettings(sourceSettings);
-                        obs.SetMute(sourceName, muteSound);
+                        Thread.Sleep(200);
                         obs.SetSourceRender(sourceName, true);
 
                         if (hideReplaySeconds > 0)
@@ -230,6 +233,7 @@ namespace BarRaider.ObsTools
                             {
                                 Thread.Sleep(hideReplaySeconds * 1000);
                                 obs.SetSourceRender(sourceName, false);
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"PlayInstantReplay AutoHid source {sourceName} after {hideReplaySeconds} seconds");
                             });
                         }
 

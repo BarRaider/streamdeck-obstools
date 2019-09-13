@@ -1,0 +1,36 @@
+{
+  "Localization": {
+    "Setup": {
+      "Intro": {
+        "Title" : "Initial Setup",
+        "Description": "This wizard will help you link your Twitch account with the plugin",
+        "Start": "Link Account",
+        "Close": "Not Now"
+      },
+      "Pairing": {
+        "Title": "Link Account",
+        "Description": "To use this plugin you need to authorize this app to communicate with your Twitch account.",
+        "DescriptionPart2": "Start by ",
+        "DescriptionPart3": " and approving this app on Twitch's website. <br/>Then paste the Approval Code to the textbox below:",
+        "ClickHere": "clicking here",
+        "ApprovalCodeTitle": "Approval Code",
+        "ApprovalPlaceholder": "Paste the entire code",
+        "NotePopup": "Note: After submitting, this window will close but will open up again if the code is invalid.",
+        "Submit": "Submit Code",
+        "Close": "Cancel"
+      },
+      "Result": {
+        "ValidateTitle": "Validating Code",
+        "ValidateDescription": "This may take up to one minute...",
+        "SuccessTitle": "Code Accepted",
+        "SuccessDescription": "You may now close this window and start using Twitch Pager",
+        "FailTitle": "VALIDATION FAILED",
+        "FailDescription": "We failed to validate the code. Please try again with a new code. Make sure to copy-paste the code entirely",
+        "FailRetry": "Try Again",
+        "Close": "Close",
+        "Cancel": "Cancel",
+        "Save": "Done"
+      }
+    }
+  }
+}

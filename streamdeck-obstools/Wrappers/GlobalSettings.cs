@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ChatPager.Twitch;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,9 @@ namespace BarRaider.ObsTools.Wrappers
         [JsonProperty(PropertyName = "hideReplaySeconds")]
         public int HideReplaySeconds { get; set; }
 
+        [JsonProperty(PropertyName = "delayReplaySeconds")]
+        public int DelayReplaySeconds { get; set; }
+
         [JsonProperty(PropertyName = "sourceName")]
         public String SourceName { get; set; }
 
@@ -26,5 +30,8 @@ namespace BarRaider.ObsTools.Wrappers
 
         [JsonProperty(PropertyName = "serverInfo")]
         public ServerInfo ServerInfo { get; set; }
+
+        [JsonProperty(PropertyName = "token")]
+        public TwitchToken TwitchToken { get; set; }
     }
 }
