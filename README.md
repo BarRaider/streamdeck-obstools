@@ -22,3 +22,17 @@
 OBS must be streaming for the majority of the features to work
 For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
 
+### Download
+
+* [Download plugin](https://github.com/BarRaider/streamdeck-obstools/releases/)
+
+## I found a bug, who do I contact?
+For support please contact the developer. Contact information is available at https://barraider.com
+
+## I have a feature request, who do I contact?
+Please contact the developer. Contact information is available at https://barraider.com
+
+## Dependencies
+* Uses StreamDeck-Tools by BarRaider: [![NuGet](https://img.shields.io/nuget/v/streamdeck-tools.svg?style=flat)](https://www.nuget.org/packages/streamdeck-tools)
+* Uses [Easy-PI](https://github.com/BarRaider/streamdeck-easypi) by BarRaider - Provides seamless integration with the Stream Deck PI (Property Inspector) 
+
