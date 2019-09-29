@@ -23,6 +23,7 @@ namespace ChatPager.Twitch
         private TwitchToken token = null;
         private int pageCooldown;
         private DateTime lastPage;
+        private bool allowReplayCommand = false;
         private List<string> allowedPagers;
         private DateTime lastConnectAttempt;
         private readonly object initLock = new object();
@@ -88,13 +89,14 @@ namespace ChatPager.Twitch
 
         #region Public Methods
 
-        public void Initialize(int pageCooldown, List<string> allowedPagers)
+        public void Initialize(int pageCooldown, bool allowReplayCommand, List<string> allowedPagers)
         {
             lock (initLock)
             {
                 try
                 {
                     Logger.Instance.LogMessage(TracingLevel.INFO, "TwitchChat: Initalizing");
+                    this.allowReplayCommand = allowReplayCommand;
                     if (allowedPagers != null)
                     {
                         this.allowedPagers = allowedPagers.Select(x => x.ToLowerInvariant()).ToList();
@@ -116,6 +118,24 @@ namespace ChatPager.Twitch
         public void SetChatMessage(string message)
         {
             ChatMessage = message;
+        }
+
+        public async void CreateClip()
+        {
+            try
+            {
+                TwitchComm comm = new TwitchComm();
+                var clip = await comm.CreateClip();
+                if (clip != null)
+                {
+                    string clipUrl = clip.EditURL.Replace("/edit", "");
+                    client.SendMessage(TwitchTokenManager.Instance.User.UserName, clipUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Could not create Twitch Clip: {ex}");
+            }
         }
 
         #endregion
@@ -184,7 +204,8 @@ namespace ChatPager.Twitch
                     if ((DateTime.Now - lastPage).TotalSeconds > pageCooldown)
                     {
                         // Is this person allowed to replay?
-                        if (allowedPagers == null || allowedPagers.Count == 0 || allowedPagers.Contains(msg.DisplayName.ToLowerInvariant()))
+                        if (allowReplayCommand && 
+                            (allowedPagers == null || allowedPagers.Count == 0 || allowedPagers.Contains(msg.DisplayName.ToLowerInvariant())))
                         {
                             lastPage = DateTime.Now;
                             PageRaised?.Invoke(this, new PageRaisedEventArgs(cmd.ArgumentsAsString));
@@ -198,7 +219,7 @@ namespace ChatPager.Twitch
                         }
                         else
                         {
-                            Logger.Instance.LogMessage(TracingLevel.INFO, $"Cannot replay, user {msg.DisplayName} is not allowed to replay");
+                            Logger.Instance.LogMessage(TracingLevel.INFO, $"Cannot replay, user {msg.DisplayName} is not allowed to replay. AllowReplay: {allowReplayCommand}");
                         }
                     }
                     else

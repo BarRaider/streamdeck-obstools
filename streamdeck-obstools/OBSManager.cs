@@ -1,6 +1,7 @@
 ﻿using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +17,7 @@ namespace BarRaider.ObsTools
         #region Private Members
 
         private const string CONNECTION_STRING = "ws://{0}:{1}";
+        private const string REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE = "replay buffer already active";
 
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
@@ -80,9 +82,11 @@ namespace BarRaider.ObsTools
 
         public OutputState InstantReplyStatus { get; private set; }
 
-        public bool IsReplayBuffer { get; private set; }
+        public bool IsReplayBufferActive { get; private set; }
 
         public bool IsStreaming { get; private set; }
+
+        public bool IsRecording { get; private set; }
 
         public void Connect()
         {
@@ -155,6 +159,10 @@ namespace BarRaider.ObsTools
                 catch (Exception ex)
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"StartInstantReplay Exception: {ex}");
+                    if (ex.Message == REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE)
+                    {
+                        InstantReplyStatus = OutputState.Started;
+                    }
                 }
             }
             return false;
@@ -262,6 +270,7 @@ namespace BarRaider.ObsTools
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
             Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {obs.GetVersion().OBSStudioVersion}");
             IsStreaming = obs.GetStreamingStatus().IsStreaming;
+            IsRecording = obs.GetStreamingStatus().IsRecording;
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -275,7 +284,8 @@ namespace BarRaider.ObsTools
         private void Obs_StreamStatus(OBSWebsocket sender, StreamStatus status)
         {
             IsStreaming = status.Streaming;
-            IsReplayBuffer = status.ReplayBufferActive;
+            IsRecording = status.Recording;
+            IsReplayBufferActive = status.ReplayBufferActive;
             StreamStatusChanged?.Invoke(this, new StreamStatusEventArgs(status));
         }
 

@@ -3,6 +3,7 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -18,6 +19,8 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
     //          BarRaider's Hall Of Fame
     // 100 Bits: siliconart
+    // Subscriber: ELGNTV
+    // 100 Bits: Nachtmeister666
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.instantreply")]
@@ -41,6 +44,8 @@ namespace BarRaider.ObsTools.Actions
                     HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString(),
                     DelayReplaySeconds = DELAY_REPLAY_SECONDS.ToString(),
                     TwitchIntegration = false,
+                    TwitchClip = false,
+                    ChatReplay = false,
                     ReplayCooldown = "30",
                     AllowedUsers = String.Empty
                 };
@@ -67,6 +72,12 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "twitchIntegration")]
             public bool TwitchIntegration { get; set; }
+
+            [JsonProperty(PropertyName = "twitchClip")]
+            public bool TwitchClip { get; set; }
+
+            [JsonProperty(PropertyName = "chatReplay")]
+            public bool ChatReplay { get; set; }
 
             [JsonProperty(PropertyName = "replayCooldown")]
             public string ReplayCooldown { get; set; }
@@ -153,23 +164,7 @@ namespace BarRaider.ObsTools.Actions
             if (!baseHandledKeypress && !longKeyPressed) // Short keypress
             {
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Instant Replay Short KeyPress");
-                if (OBSManager.Instance.InstantReplyStatus == OutputState.Started) // Actively running Instant Replay
-                {
-                    if (await OBSManager.Instance.SaveInstantReplay())
-                    {
-                        await Connection.ShowOk();
-                    }
-                    else
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Instant Replay SaveInstantReplay Failed");
-                        await Connection.ShowAlert();
-                    }
-                }
-                else
-                {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot Save Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
-                    await Connection.ShowAlert();
-                }
+                await HandleInstantReplayRequest();
             }
         }
 
@@ -189,7 +184,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync($"Replay:\n{(OBSManager.Instance.IsReplayBuffer || OBSManager.Instance.InstantReplyStatus == OutputState.Started ? "On" : "Off")}");
+                await Connection.SetTitleAsync($"Replay:\n{(IsReplayBufferActive() ? "On" : "Off")}");
             }
         }
 
@@ -219,7 +214,6 @@ namespace BarRaider.ObsTools.Actions
                 global = new GlobalSettings();
                 SetGlobalSettings();
             }
-
         }
 
         public override Task SaveSettings()
@@ -237,20 +231,8 @@ namespace BarRaider.ObsTools.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Instant Replay LongKeyPressed");
             try
             {
-                if (OBSManager.Instance.IsStreaming && OBSManager.Instance.InstantReplyStatus == OutputState.Stopped) 
-                {
-                    // Enable Instant Reply Buffer
-                    if (OBSManager.Instance.StartInstantReplay())
-                    {
-                        Connection.ShowOk();
-                    }
-                    else
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Instant Replay StartInstantReplay Failed");
-                        Connection.ShowAlert();
-                    }
-                }
-                else if (OBSManager.Instance.IsStreaming && OBSManager.Instance.InstantReplyStatus == OutputState.Started) 
+                bool isActive = OBSManager.Instance.IsRecording || OBSManager.Instance.IsStreaming;
+                if (isActive && IsReplayBufferActive())
                 {
                     // Disable Instant Reply Buffer
                     if (OBSManager.Instance.StopInstantReplay())
@@ -263,9 +245,22 @@ namespace BarRaider.ObsTools.Actions
                         Connection.ShowAlert();
                     }
                 }
+                else if (isActive && OBSManager.Instance.InstantReplyStatus == OutputState.Stopped) 
+                {
+                    // Enable Instant Reply Buffer
+                    if (OBSManager.Instance.StartInstantReplay())
+                    {
+                        Connection.ShowOk();
+                    }
+                    else
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Instant Replay StartInstantReplay Failed");
+                        Connection.ShowAlert();
+                    }
+                }
                 else // Not streaming or maybe the buffer is not in a stable state
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot change mode: IsStreaming {OBSManager.Instance.IsStreaming} Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot change mode: IsStreaming {OBSManager.Instance.IsStreaming} IsRecording: {OBSManager.Instance.IsRecording} Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
                     Connection.ShowAlert();
                 }
             }
@@ -321,13 +316,33 @@ namespace BarRaider.ObsTools.Actions
             {
                 allowedPagers = Settings.AllowedUsers?.Replace("\r\n", "\n").Split('\n').ToList();
             }
-            ChatPager.Twitch.TwitchChat.Instance.Initialize(replayCooldown, allowedPagers);
+            ChatPager.Twitch.TwitchChat.Instance.Initialize(replayCooldown, Settings.ChatReplay, allowedPagers);
         }
 
         private async void Instance_PageRaised(object sender, ChatPager.Twitch.PageRaisedEventArgs e)
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Replay requested by chat");
-            if (OBSManager.Instance.InstantReplyStatus == OutputState.Started) // Actively running Instant Replay
+            await HandleInstantReplayRequest();
+        }
+
+        private void Instance_TokenStatusChanged(object sender, EventArgs e)
+        {
+            Settings.TwitchTokenExists = ChatPager.Twitch.TwitchTokenManager.Instance.TokenExists;
+        }
+
+        private bool IsReplayBufferActive()
+        {
+            return OBSManager.Instance.IsReplayBufferActive || OBSManager.Instance.InstantReplyStatus == OutputState.Started;
+        }
+
+        private async Task HandleInstantReplayRequest()
+        {
+            if (Settings.TwitchClip)
+            {
+                ChatPager.Twitch.TwitchChat.Instance.CreateClip();
+            }
+
+            if (IsReplayBufferActive()) // Actively running Instant Replay
             {
                 if (await OBSManager.Instance.SaveInstantReplay())
                 {
@@ -342,12 +357,8 @@ namespace BarRaider.ObsTools.Actions
             else
             {
                 Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot Save Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
+                await Connection.ShowAlert();
             }
-        }
-
-        private void Instance_TokenStatusChanged(object sender, EventArgs e)
-        {
-            Settings.TwitchTokenExists = ChatPager.Twitch.TwitchTokenManager.Instance.TokenExists;
         }
 
 

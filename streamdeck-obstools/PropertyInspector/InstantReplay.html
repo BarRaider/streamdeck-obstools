@@ -17,6 +17,46 @@
         <details class="message">
             <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
         </details>
+        <div type="checkbox" class="sdpi-item" id="dvChatIntegration">
+            <div class="sdpi-item-label">Twitch</div>
+            <div class="sdpi-item-value">
+                <input id="twitchIntegration" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="twitchIntegration" class="sdpi-item-label"><span></span>Enable Twitch Chat Integration</label>
+            </div>
+        </div>
+        <div id="dvTwitchSettings">
+            <div type="checkbox" class="sdpi-item" id="dvChatIntegration">
+                <div class="sdpi-item-label">Twitch Clip</div>
+                <div class="sdpi-item-value">
+                    <input id="twitchClip" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                    <label for="twitchClip" class="sdpi-item-label"><span></span>Automatically create twitch clip</label>
+                </div>
+            </div>
+            <div type="checkbox" class="sdpi-item" id="dvChatIntegration">
+                <div class="sdpi-item-label">!replay</div>
+                <div class="sdpi-item-value">
+                    <input id="chatReplay" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                    <label for="chatReplay" class="sdpi-item-label"><span></span>Users in chat can generate replays</label>
+                </div>
+            </div>
+            <div id="dvTwitchReplaySettings">
+                <div class="sdpi-item" id="anumber">
+                    <div class="sdpi-item-label">Replay Cooldown (seconds)</div>
+                    <input class="sdpi-item-value sdProperty" id="replayCooldown" inputmode="numeric" pattern="[0-9]*" type="number" oninput="setSettings()">
+                </div>
+                <div type="range" class="sdpi-item">
+                    <details class="message">
+                        <summary>Leave Allowed Users blank to allow anyone in chat to request a !replay</summary>
+                    </details>
+                </div>
+                <div type="textarea" class="sdpi-item" id="inputText_div">
+                    <div class="sdpi-item-label">Allowed Users (optional)</div>
+                    <span class="sdpi-item-value textarea">
+                        <textarea type="textarea" oninput="setSettings()" class="sdProperty" id="allowedUsers" placeholder="One username per line"></textarea>
+                    </span>
+                </div>
+            </div>
+        </div>
         <div type="checkbox" class="sdpi-item" id="dvAutoReplay">
             <div class="sdpi-item-label">Auto Replay</div>
             <div class="sdpi-item-value">
@@ -49,33 +89,6 @@
                 <div class="sdpi-item-label">Auto Hide Source (seconds)</div>
                 <input class="sdpi-item-value sdProperty" placeholder="20" value="" pattern="^[0-9]*$" id="hideReplaySeconds" oninput="setSettings()">
             </div>
-            <div type="checkbox" class="sdpi-item" id="dvChatIntegration">
-                <div class="sdpi-item-label">Twitch</div>
-                <div class="sdpi-item-value">
-                    <input id="twitchIntegration" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
-                    <label for="twitchIntegration" class="sdpi-item-label"><span></span>Enable Twitch Chat Integration</label>
-                </div>
-            </div>
-            <div id="dvChatIntegrationSettings">
-                <div class="sdpi-item" id="anumber">
-                    <div class="sdpi-item-label">Replay Cooldown (seconds)</div>
-                    <input class="sdpi-item-value sdProperty" id="replayCooldown" inputmode="numeric" pattern="[0-9]*" type="number" oninput="setSettings()">
-                </div>
-                <div type="range" class="sdpi-item">
-                    <details class="message">
-                        <summary>Leave Allowed Users blank to allow anyone in chat to request a !replay</summary>
-                    </details>
-                </div>
-                <div type="textarea" class="sdpi-item" id="inputText_div">
-                    <div class="sdpi-item-label">Allowed Users (optional)</div>
-                    <span class="sdpi-item-value textarea">
-                        <textarea type="textarea" oninput="setSettings()" class="sdProperty" id="allowedUsers" placeholder="One username per line"></textarea>
-                    </span>
-                </div>
-            </div>
-            <details class="message" id="dvChatDesc">
-                <summary>Chat integration allows showing a replay when users type !replay in chat</summary>
-            </details>
         </div>
         <hr />
         <div class="sdpi-item" id="dvReset">

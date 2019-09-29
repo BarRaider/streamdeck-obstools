@@ -71,7 +71,7 @@
         }
       ],
       "SupportedInMultiActions": true,
-      "Tooltip": "Configure videos to play on a Media soure",
+      "Tooltip": "Configure different videos to play on a single Media source",
       "UUID": "com.barraider.obstools.videoplayer",
       "PropertyInspectorPath": "PropertyInspector/VideoPlayer.html"
     }
@@ -81,7 +81,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.3",
+  "Version": "1.4",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",

@@ -95,7 +95,7 @@ namespace ChatPager.Twitch
         {
             if (token != null && (this.token == null || token.TokenLastRefresh > this.token.TokenLastRefresh))
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, "New token set");
+                Logger.Instance.LogMessage(TracingLevel.INFO, "TwitchTokenManager: New token set");
                 this.token = token;
                 if (ValidateToken())
                 {
@@ -103,7 +103,7 @@ namespace ChatPager.Twitch
                 }
                 else
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, "Could not validate token with twitch");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "TwitchTokenManager: Could not validate token with twitch");
                     this.token = null;
                 }
             }
@@ -121,7 +121,7 @@ namespace ChatPager.Twitch
 
         public void RevokeToken()
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "RevokeToken Called");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "TwitchTokenManager: RevokeToken Called");
             this.token = null;
             SaveToken();
             RaiseTokenChanged();
@@ -137,7 +137,7 @@ namespace ChatPager.Twitch
             {
                 if (globalToken == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to load tokens, deserialized globalToken is null");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "TwitchTokenManager: Failed to load tokens, deserialized globalToken is null");
                     return;
                 }
 
@@ -152,12 +152,12 @@ namespace ChatPager.Twitch
                     TokenLastRefresh = globalToken.TokenLastRefresh
                 };
 
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Token initialized. Last refresh date was: {token.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"TwitchTokenManager: Token initialized. Last refresh date was: {token.TokenLastRefresh}");
                 RaiseTokenChanged();
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Exception loading tokens: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"TwitchTokenManager: Exception loading tokens: {ex}");
             }
         }
 
@@ -167,14 +167,14 @@ namespace ChatPager.Twitch
             {
                 if (global == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to save token, Global Settings is null");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "TwitchTokenManager: Failed to save token, Global Settings is null");
                     return;
                 }
 
                 // Set token in Global Settings
                 if (token == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, "Saving null token to Global Settings");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "TwitchTokenManager: Saving null token to Global Settings");
                     global.TwitchToken = null;
                 }
                 else
@@ -187,11 +187,11 @@ namespace ChatPager.Twitch
                 }
 
                 GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(global));
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"New token saved. Last refresh date was: {token.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"TwitchTokenManager: New token saved. Last refresh date was: {token?.TokenLastRefresh}");
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Exception saving tokens: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"TwitchTokenManager: Exception saving tokens: {ex}");
             }
         }
 

@@ -23,12 +23,18 @@ function checkSettings(payload) {
     console.log("Checking Settings");
     setAutoReplayWrapper("none");
     setTwitchSettings("none");
+    setTwitchReplaySettings("none");
+
     if (payload['autoReplay']) {
         setAutoReplayWrapper("");
     }
 
     if (payload['twitchIntegration']) {
         setTwitchSettings("");
+    }
+
+    if (payload['chatReplay']) {
+        setTwitchReplaySettings("");
     }
 }
 
@@ -38,6 +44,11 @@ function setAutoReplayWrapper(displayValue) {
 }
 
 function setTwitchSettings(displayValue) {
-    var dvChatIntegrationSettings = document.getElementById('dvChatIntegrationSettings');
-    dvChatIntegrationSettings.style.display = displayValue;
+    var dvTwitchSettings = document.getElementById('dvTwitchSettings');
+    dvTwitchSettings.style.display = displayValue;
+}
+
+function setTwitchReplaySettings(displayValue) {
+    var dvTwitchReplaySettings = document.getElementById('dvTwitchReplaySettings');
+    dvTwitchReplaySettings.style.display = displayValue;
 }

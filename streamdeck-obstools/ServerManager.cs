@@ -81,12 +81,16 @@ namespace BarRaider.ObsTools
 
         internal void InitTokens(string ip, string port, string password, DateTime tokenCreateDate)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "InitTokens");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "ServerManager: InitTokens");
             if (token == null || token.TokenLastRefresh < tokenCreateDate)
             {
                 if (String.IsNullOrWhiteSpace(ip) || String.IsNullOrWhiteSpace(port))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, "InitTokens: Token revocation!");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "ServerManager InitTokens: Token revocation!");
+                    if (global != null)
+                    {
+                        global.TwitchToken = null;
+                    }
                 }
                 token = new ServerInfo() { Ip = ip, Port = port, Password = password, TokenLastRefresh = tokenCreateDate };
                 SaveToken();
@@ -105,7 +109,7 @@ namespace BarRaider.ObsTools
                 if (serverInfo == null)
                 {
 
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to load tokens, deserialized serverInfo is null");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "ServerManager: Failed to load tokens, deserialized serverInfo is null");
                     return;
                 }
 
@@ -117,12 +121,12 @@ namespace BarRaider.ObsTools
                     TokenLastRefresh = serverInfo.TokenLastRefresh
 
                 };
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Token initialized. Last refresh date was: {token.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: Token initialized. Last refresh date was: {token.TokenLastRefresh}");
                 TokensChanged?.Invoke(this, new ServerInfoEventArgs(new ServerInfo() { Ip = token.Ip, Port = token.Port, Password = token.Password, TokenLastRefresh = token.TokenLastRefresh }));
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Exception loading tokens: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ServerManager: Exception loading tokens: {ex}");
             }
         }
 
@@ -132,14 +136,14 @@ namespace BarRaider.ObsTools
             {
                 if (global == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to save token, Global Settings is null");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "ServerManager: Failed to save token, Global Settings is null");
                     return;
                 }
 
                 // Set token in Global Settings
                 if (token == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, "Saving null token to Global Settings");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "ServerManager: Saving null token to Global Settings");
                     global.ServerInfo = null;
                 }
                 else
@@ -153,11 +157,11 @@ namespace BarRaider.ObsTools
                     };
                 }
                 GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(global));
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"New token saved. Last refresh date was: {token.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: New token saved. Last refresh date was: {token.TokenLastRefresh}");
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Exception saving tokens: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ServerManager: Exception saving tokens: {ex}");
             }
         }
 
