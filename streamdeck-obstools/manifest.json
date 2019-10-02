@@ -81,7 +81,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.4",
+  "Version": "1.4.1",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",

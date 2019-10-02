@@ -59,6 +59,7 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+TwitchSecret.cs
 
 # StyleCop
 StyleCopReport.xml
