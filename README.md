@@ -19,6 +19,8 @@
 3. For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
 
 ## Usage
+**Demo for Instant Replay**: https://www.youtube.com/watch?v=7mioa-hnndw
+
 OBS must be streaming for the majority of the features to work
 For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
 
