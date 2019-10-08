@@ -1,6 +1,12 @@
 # streamdeck-obstools
  Advanced OBS commands and tools to use on your Elgato Stream Deck
 
+## New in v1.4.1
+- Twitch Integration
+	- Let your chat to type !replay and trigger an instant replay which is shown on stream
+    - Instant Replay can now also create a Twitch Clip for you, and post it on chat
+    - Instant Replay can now create a Twitch Clip even if the replay buffer is off
+
 ## Features:
 - Instant Replay Action - Click to save the last seconds of your stream to your OBS "Recordings" folder.
   - Long-Press the button to toggle whether the Instant Replay buffer is recording or not
