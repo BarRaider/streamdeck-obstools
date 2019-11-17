@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>BarRaider's OBS Tools</title>
+    <link rel="stylesheet" href="sdpi.css">
+    <script src="sdtools.common.js"></script>
+    <script src="setup.js"></script>
+    <script src="BrowserSource.js"></script>
+    <script src="OBSTools.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <details class="message">
+            <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
+        </details>
+        <div type="checkbox" class="sdpi-item" id="dvLocalCheckbox">
+            <div class="sdpi-item-label">Local</div>
+            <div class="sdpi-item-value">
+                <input id="localFile" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="localFile" class="sdpi-item-label"><span></span>Load local file</label>
+            </div>
+        </div>
+        <div class="sdpi-item" id="dvSourceURL">
+            <div class="sdpi-item-label">URL</div>
+            <input class="sdpi-item-value sdProperty" placeholder="http://www.google.com" value="" id="sourceURL" oninput="setSettings()">
+        </div>
+        <div class="sdpi-wrapper" id="dvLocalFile">
+            <div class="sdpi-item" id="dvVideoFilename">
+                <div class="sdpi-item-label">File Name</div>
+                <div class="sdpi-item-group file" id="filepickergroup">
+                    <input class="sdpi-item-value sdProperty sdFile" type="file" id="videoFileName" accept=" .mp4 .ts .mov .flv .mkv .avi .gif .webm" oninput="setSettings()">
+                    <label class="sdpi-file-info " for="videoFileName" id="videoFileNameFilename">No file...</label>
+                    <label class="sdpi-file-label" for="videoFileName">Choose file...</label>
+                </div>
+            </div>
+        </div>
+        <div class="sdpi-item" id="dvSourceName">
+            <div class="sdpi-item-label">Media Source Name</div>
+            <input class="sdpi-item-value sdProperty" placeholder="Source name in OBS" value="" id="sourceName" oninput="setSettings()">
+        </div>
+        <div type="checkbox" class="sdpi-item" id="dvMute">
+            <div class="sdpi-item-label">Mute</div>
+            <div class="sdpi-item-value">
+                <input id="muteSound" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="muteSound" class="sdpi-item-label"><span></span>Mute browser source</label>
+            </div>
+        </div>
+        <div class="sdpi-item" id="dvAutoHide">
+            <div class="sdpi-item-label">Auto Hide Source (seconds)</div>
+            <input class="sdpi-item-value sdProperty" placeholder="20" value="" pattern="^[0-9]*$" id="hideReplaySeconds" oninput="setSettings()">
+        </div>
+    </div>
+    <hr />
+    <div class="sdpi-item" id="dvReset">
+        <div class="sdpi-item-label">Reset Settings</div>
+        <button class="sdpi-item-value max20" onclick="resetPlugin()">Reset</button>
+        <p>Plugin will no longer communicate with OBS and will ask for a new configuration</p>
+    </div>
+    <div class="sdpi-item" id="dvHdn">
+        <input value="" type="hidden" id="serverInfoExists" class="sdProperty" oninput="setSettings()">
+    </div>
+</body>
+</html>

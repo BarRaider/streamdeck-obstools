@@ -22,6 +22,8 @@ namespace BarRaider.ObsTools
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
         private readonly OBSWebsocket obs;
+        private DateTime lastStreamStatus;
+        private System.Timers.Timer tmrCheckStatus = new System.Timers.Timer();
 
         #endregion
 
@@ -58,6 +60,10 @@ namespace BarRaider.ObsTools
             obs.SceneChanged += Obs_SceneChanged;
             obs.ReplayBufferStateChanged += Obs_ReplayBufferStateChanged;
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
+
+            tmrCheckStatus.Interval = 5000;
+            tmrCheckStatus.Elapsed += TmrCheckStatus_Elapsed;
+            tmrCheckStatus.Start();
 
             InstantReplyStatus = OutputState.Stopped;
             Connect();
@@ -168,6 +174,141 @@ namespace BarRaider.ObsTools
             return false;
         }
 
+        public bool StartRecording()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.StartRecording();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StartRecording Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool StopRecording()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.StopRecording();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopRecording Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool StartStreaming()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.StartStreaming();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StartStreaming Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool StopStreaming()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.StopStreaming();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopStreaming Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool StartStudioMode()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.EnableStudioMode();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StartStudioMode Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool StopStudioMode()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.DisableStudioMode();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopStudioMode Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool ToggleStudioMode()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.ToggleStudioMode();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleStudioMode Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool IsStudioModeEnabled()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    return obs.GetStudioModeStatus();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsStudioModeEnabled Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
         public bool StopInstantReplay()
         {
             if (obs.IsConnected)
@@ -200,6 +341,55 @@ namespace BarRaider.ObsTools
                     {
                         Logger.Instance.LogMessage(TracingLevel.ERROR, $"SaveInstantReplay Exception: {ex}");
                     }
+                }
+                return false;
+            });
+        }
+
+        public Task<bool> ModifyBrowserSource(string urlOrFile, bool localFile, string sourceName, int delayReplaySeconds, int hideReplaySeconds, bool muteSound)
+        {
+            return Task.Run(() =>
+            {
+                if (String.IsNullOrEmpty(sourceName))
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyBrowserSource failed. Missing source name");
+                    return false;
+                }
+
+                if (obs.IsConnected)
+                {
+                    try
+                    {
+                        Thread.Sleep(delayReplaySeconds * 1000);
+                        obs.SetMute(sourceName, muteSound);
+                        obs.SetSourceRender(sourceName, false);
+                        var sourceSettings = obs.GetBrowserSourceProperties(sourceName);
+                        sourceSettings.URL = urlOrFile;
+                        sourceSettings.IsLocalFile = localFile;
+                        obs.SetBrowserSourceProperties(sourceName, sourceSettings);
+                        Thread.Sleep(200);
+                        obs.SetSourceRender(sourceName, true);
+
+                        if (hideReplaySeconds > 0)
+                        {
+                            Task.Run(() =>
+                            {
+                                Thread.Sleep(hideReplaySeconds * 1000);
+                                obs.SetSourceRender(sourceName, false);
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyBrowserSource AutoHid source {sourceName} after {hideReplaySeconds} seconds");
+                            });
+                        }
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyBrowserSource for url {urlOrFile} failed. Exception: {ex}");
+                    }
+                }
+                else
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyBrowserSource for url {urlOrFile} failed. OBS is not connected");
                 }
                 return false;
             });
@@ -283,6 +473,7 @@ namespace BarRaider.ObsTools
 
         private void Obs_StreamStatus(OBSWebsocket sender, StreamStatus status)
         {
+            lastStreamStatus = DateTime.Now;
             IsStreaming = status.Streaming;
             IsRecording = status.Recording;
             IsReplayBufferActive = status.ReplayBufferActive;
@@ -314,6 +505,22 @@ namespace BarRaider.ObsTools
             Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {type}");
             ReplayBufferStateChanged?.Invoke(this, type);
         }
+
+        private void CheckStatus()
+        {
+            if (obs.IsConnected && (DateTime.Now - lastStreamStatus).TotalMilliseconds > 5000)
+            {
+                var status = obs.GetStreamingStatus();
+                IsRecording = status.IsRecording;
+                IsStreaming = status.IsStreaming;
+            }            
+        }
+
+        private void TmrCheckStatus_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            CheckStatus();
+        }
+
 
         #endregion
 

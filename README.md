@@ -1,6 +1,12 @@
 # streamdeck-obstools
  Advanced OBS commands and tools to use on your Elgato Stream Deck
 
+## New in 1.4.5
+- `Browser Sources` can now be modified using the Stream Deck
+- `Instant Replay` is now support in Multi Actions (including the options to Enable/Disable/Take a replay)
+- New `Remote Recording Toggle` to toggle recording from a remote PC (if your Stream Deck is not connected to your Streaming PC)
+- New `Remote Streaming Toggle` to stop/start streaming from a remote PC (if your Stream Deck is not connected to your Streaming PC)
+
 ## New in v1.4.1
 - Twitch Integration
 	- Let your chat to type !replay and trigger an instant replay which is shown on stream

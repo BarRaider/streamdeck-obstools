@@ -2,6 +2,21 @@
   "Actions": [
     {
       "Icon": "Images/icon",
+      "Name": "Browser Source",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "10"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Configure different settings on a single Browser source",
+      "UUID": "com.barraider.obstools.browsersource",
+      "PropertyInspectorPath": "PropertyInspector/BrowserSource.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "CPU Usage",
       "States": [
         {
@@ -37,10 +52,21 @@
         {
           "Image": "Images/pluginAction",
           "TitleAlignment": "middle",
-          "FontSize": "14"
+          "FontSize": "14",
+          "Name": "Enable"
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Disable",
+          "OnlyForMultiAction": true
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Create Replay",
+          "OnlyForMultiAction": true
         }
       ],
-      "SupportedInMultiActions": false,
+      "SupportedInMultiActions": true,
       "Tooltip": "Saves your Instant Replay and allows to Toggle the Instant Replay On or Off",
       "UUID": "com.barraider.obstools.instantreply",
       "PropertyInspectorPath": "PropertyInspector/InstantReplay.html"
@@ -62,6 +88,48 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Remote Recording Start/Stop",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "18",
+          "Name": "Start"
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Stop",
+          "OnlyForMultiAction": true
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Allows you to start or stop recording in OBS",
+      "UUID": "com.barraider.obstools.recordingtoggle",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Remote Streaming Start/Stop",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "18",
+          "Name": "Start"
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Stop",
+          "OnlyForMultiAction": true
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Allows you to start or stop streaming in OBS",
+      "UUID": "com.barraider.obstools.streamtoggle",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Video Player",
       "States": [
         {
@@ -77,11 +145,11 @@
     }
   ],
   "Author": "BarRaider",
-  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck. Features include: Instant Replay (on stream), Dropped frames alarm, Quick scenes toggle, OBS CPU usage",
+  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck. Features include: Instant Replay (on stream), Dropped frames alarm, Modifying Browser and Video sources, Quick scenes toggle, OBS CPU usage",
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.4.1",
+  "Version": "1.4.5",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",

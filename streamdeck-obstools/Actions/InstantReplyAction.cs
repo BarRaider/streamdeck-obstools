@@ -87,7 +87,7 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "twitchTokenExists")]
             public bool TwitchTokenExists { get; set; }
-            
+
         }
 
         protected PluginSettings Settings
@@ -153,7 +153,7 @@ namespace BarRaider.ObsTools.Actions
             keyPressed = true;
             longKeyPressed = false;
             keyPressStart = DateTime.Now;
-            
+
             baseHandledKeypress = false;
             base.KeyPressed(payload);
         }
@@ -163,8 +163,15 @@ namespace BarRaider.ObsTools.Actions
             keyPressed = false;
             if (!baseHandledKeypress && !longKeyPressed) // Short keypress
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Instant Replay Short KeyPress");
-                await HandleInstantReplayRequest();
+                if (payload.IsInMultiAction)
+                {
+                    HandleMultiAction(payload);
+                }
+                else
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Instant Replay Short KeyPress");
+                    await HandleInstantReplayRequest();
+                }
             }
         }
 
@@ -225,6 +232,36 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
+        private async Task HandleMultiAction(KeyPayload payload)
+        {
+            bool isActive = OBSManager.Instance.IsRecording || OBSManager.Instance.IsStreaming;
+            switch (payload.UserDesiredState) // 0 = Enable, 1 = Disable, 2 = Create Replay
+            {
+                case 0:
+                    if (isActive && !IsReplayBufferActive())
+                    {
+                        OBSManager.Instance.StartInstantReplay();
+                    }
+                    break;
+                case 1:
+                    if (isActive && IsReplayBufferActive())
+                    {
+                        OBSManager.Instance.StopInstantReplay();
+                    }
+                    break;
+                case 2:
+                    if (isActive && IsReplayBufferActive())
+                    {
+                        await HandleInstantReplayRequest();
+                    }
+                    break;
+                default:
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid MultiAction State: {payload.UserDesiredState}");
+                    break;
+            }
+        }
+
+
         private void LongKeyPress()
         {
             longKeyPressed = true;
@@ -245,7 +282,7 @@ namespace BarRaider.ObsTools.Actions
                         Connection.ShowAlert();
                     }
                 }
-                else if (isActive && OBSManager.Instance.InstantReplyStatus == OutputState.Stopped) 
+                else if (isActive && OBSManager.Instance.InstantReplyStatus == OutputState.Stopped)
                 {
                     // Enable Instant Reply Buffer
                     if (OBSManager.Instance.StartInstantReplay())
@@ -290,7 +327,7 @@ namespace BarRaider.ObsTools.Actions
                 Settings.HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString();
                 SaveSettings();
             }
-         
+
             if (String.IsNullOrEmpty(Settings.ReplayCooldown) || !int.TryParse(Settings.ReplayCooldown, out replayCooldown))
             {
                 Settings.ReplayCooldown = DEFAULT_REPLAY_COOLDOWN.ToString();

@@ -99,7 +99,7 @@ namespace ChatPager.Twitch
             }
             else
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, "CreateClip Fetch Failed");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"CreateClip Fetch Failed. StatusCode: {response.StatusCode}");
             }
             return null;
         }
