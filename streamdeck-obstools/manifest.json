@@ -47,6 +47,27 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Filter Toggle",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "20",
+          "Name": "Enable"
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Disable",
+          "OnlyForMultiAction": true
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Enable/Disable a Filter on a specific source",
+      "UUID": "com.barraider.obstools.filtertoggle",
+      "PropertyInspectorPath": "PropertyInspector/FilterToggle.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Instant Replay",
       "States": [
         {
@@ -81,7 +102,7 @@
           "FontSize": "18"
         }
       ],
-      "SupportedInMultiActions": false,
+      "SupportedInMultiActions": true,
       "Tooltip": "Allows you to switch back to your previously used scene",
       "UUID": "com.barraider.obstools.previousscene",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
@@ -130,6 +151,21 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Set Transition",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "10"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Set the default transition in OBS",
+      "UUID": "com.barraider.obstools.settransition",
+      "PropertyInspectorPath": "PropertyInspector/Transition.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Video Player",
       "States": [
         {
@@ -149,7 +185,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.4.5",
+  "Version": "1.5",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",
@@ -161,6 +197,6 @@
   ],
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion": "4.3"
+    "MinimumVersion": "4.4.1"
   }
 }

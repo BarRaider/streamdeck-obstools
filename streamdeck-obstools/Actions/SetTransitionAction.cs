@@ -14,8 +14,8 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
-    [PluginActionId("com.barraider.obstools.cpuusage")]
-    public class CPUUsageAction : ActionBase
+    [PluginActionId("com.barraider.obstools.settransition")]
+    public class SetTransitionAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -23,10 +23,18 @@ namespace BarRaider.ObsTools.Actions
             {
                 PluginSettings instance = new PluginSettings
                 {
-                    ServerInfoExists = false
+                    ServerInfoExists = false,
+                    TransitionName = String.Empty,
+                    Transitions = null
                 };
                 return instance;
             }
+
+            [JsonProperty(PropertyName = "transitionName")]
+            public String TransitionName { get; set; }
+
+            [JsonProperty(PropertyName = "transitions")]
+            public List<TransitionInfo> Transitions { get; set; }
         }
 
         protected PluginSettings Settings
@@ -48,10 +56,8 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private StreamStatusEventArgs streamStatus;
-
         #endregion
-        public CPUUsageAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public SetTransitionAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -61,19 +67,34 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
-            OBSManager.Instance.StreamStatusChanged += Instance_StreamStatusChanged;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
+            InitializeSettings();
         }
 
         public override void Dispose()
         {
-            OBSManager.Instance.StreamStatusChanged -= Instance_StreamStatusChanged;
             base.Dispose();
         }
 
-        public override void KeyPressed(KeyPayload payload)
+        public async override void KeyPressed(KeyPayload payload)
         {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed");
+            if (OBSManager.Instance.IsConnected)
+            {
+                if (String.IsNullOrEmpty(Settings.TransitionName))
+                {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but TransitionName is empty");
+                    await Connection.ShowAlert();
+                    return;
+                }
+
+                OBSManager.Instance.SetTransition(Settings.TransitionName);
+            }
+            else
+            {
+                await Connection.ShowAlert();
+            }
         }
 
         public override void KeyReleased(KeyPayload payload) { }
@@ -83,12 +104,9 @@ namespace BarRaider.ObsTools.Actions
             baseHandledOnTick = false;
             base.OnTick();
 
-            if (!baseHandledOnTick)
+            if (!baseHandledOnTick && !String.IsNullOrEmpty(Settings.TransitionName))
             {
-                if (streamStatus != null)
-                {
-                    await Connection.SetTitleAsync($"{streamStatus.Status.CPU.ToString("#.#")}%");
-                }
+                await Connection.SetTitleAsync($"{Settings.TransitionName}");
             }
         }
 
@@ -102,14 +120,18 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
-        private void Instance_StreamStatusChanged(object sender, StreamStatusEventArgs e)
-        {
-            streamStatus = e;
-        }
-
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
+        }
+
+        private void InitializeSettings()
+        {
+            if (OBSManager.Instance.IsConnected)
+            {
+                Settings.Transitions = OBSManager.Instance.GetAllTransitions().Select(t => new TransitionInfo() { Name = t }).ToList();
+                SaveSettings();
+            }
         }
 
         #endregion

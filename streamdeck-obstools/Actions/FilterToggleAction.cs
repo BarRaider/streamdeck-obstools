@@ -14,8 +14,8 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
-    [PluginActionId("com.barraider.obstools.cpuusage")]
-    public class CPUUsageAction : ActionBase
+    [PluginActionId("com.barraider.obstools.filtertoggle")]
+    public class FilterToggleAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -23,10 +23,18 @@ namespace BarRaider.ObsTools.Actions
             {
                 PluginSettings instance = new PluginSettings
                 {
-                    ServerInfoExists = false
+                    ServerInfoExists = false,
+                    SourceName = String.Empty,
+                    FilterName = String.Empty
                 };
                 return instance;
             }
+
+            [JsonProperty(PropertyName = "sourceName")]
+            public String SourceName { get; set; }
+
+            [JsonProperty(PropertyName = "filterName")]
+            public String FilterName { get; set; }
         }
 
         protected PluginSettings Settings
@@ -48,10 +56,10 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private StreamStatusEventArgs streamStatus;
+        private bool enableFilter = true;
 
         #endregion
-        public CPUUsageAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public FilterToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -61,36 +69,39 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
-            OBSManager.Instance.StreamStatusChanged += Instance_StreamStatusChanged;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
         }
 
         public override void Dispose()
         {
-            OBSManager.Instance.StreamStatusChanged -= Instance_StreamStatusChanged;
             base.Dispose();
         }
 
-        public override void KeyPressed(KeyPayload payload)
+        public async override void KeyPressed(KeyPayload payload)
         {
+            if (OBSManager.Instance.IsConnected)
+            {
+                // Set enableFilter to a specific state if in a Mutli-Action
+                if (payload.IsInMultiAction && payload.UserDesiredState == 0) // 0 = Enable, 1 = Disable
+                {
+                    enableFilter = true;
+                }
+                else if (payload.IsInMultiAction && payload.UserDesiredState == 1)
+                {
+                    enableFilter = false;
+                }
+
+                OBSManager.Instance.ToggleFilterVisibility(Settings.SourceName, Settings.FilterName, enableFilter);
+                enableFilter = !enableFilter;
+            }
+            else
+            {
+                await Connection.ShowAlert();
+            }
         }
 
         public override void KeyReleased(KeyPayload payload) { }
-
-        public async override void OnTick()
-        {
-            baseHandledOnTick = false;
-            base.OnTick();
-
-            if (!baseHandledOnTick)
-            {
-                if (streamStatus != null)
-                {
-                    await Connection.SetTitleAsync($"{streamStatus.Status.CPU.ToString("#.#")}%");
-                }
-            }
-        }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
@@ -101,11 +112,6 @@ namespace BarRaider.ObsTools.Actions
         public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
 
         #region Private Methods
-
-        private void Instance_StreamStatusChanged(object sender, StreamStatusEventArgs e)
-        {
-            streamStatus = e;
-        }
 
         public override Task SaveSettings()
         {

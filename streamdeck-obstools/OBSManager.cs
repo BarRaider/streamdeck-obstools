@@ -1,5 +1,6 @@
 ﻿using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using System;
@@ -18,12 +19,13 @@ namespace BarRaider.ObsTools
 
         private const string CONNECTION_STRING = "ws://{0}:{1}";
         private const string REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE = "replay buffer already active";
+        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("4.7");
 
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
         private readonly OBSWebsocket obs;
         private DateTime lastStreamStatus;
-        private System.Timers.Timer tmrCheckStatus = new System.Timers.Timer();
+        private readonly System.Timers.Timer tmrCheckStatus = new System.Timers.Timer();
 
         #endregion
 
@@ -52,6 +54,7 @@ namespace BarRaider.ObsTools
         private OBSManager()
         {
             IsConnected = false;
+            IsValidVersion = true;
             obs = new OBSWebsocket();
 
             obs.Connected += Obs_Connected;
@@ -81,6 +84,8 @@ namespace BarRaider.ObsTools
         public event EventHandler<OutputState> ReplayBufferStateChanged;
 
         public bool IsConnected { get; private set; }
+
+        public bool IsValidVersion { get; private set; }
 
         public string CurrentSceneName { get; private set; }
 
@@ -458,10 +463,17 @@ namespace BarRaider.ObsTools
         {
             IsConnected = true;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {obs.GetVersion().OBSStudioVersion}");
+            var version = obs.GetVersion();
+            if (version != null)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {version.OBSStudioVersion}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"WebSocket Version: {version.PluginVersion}");
+            }
+
             IsStreaming = obs.GetStreamingStatus().IsStreaming;
             IsRecording = obs.GetStreamingStatus().IsRecording;
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+            VerifyValidVersion(version);
         }
 
         private void Obs_Disconnected(object sender, EventArgs e)
@@ -521,9 +533,52 @@ namespace BarRaider.ObsTools
             CheckStatus();
         }
 
+        public void ToggleFilterVisibility(string sourceName, string filterName, bool enableFilter)
+        {
+            if (IsConnected)
+            {
+                obs.SetSourceFilterVisibility(sourceName, filterName, enableFilter);
+            }
+        }
+
+        public List<String> GetAllTransitions()
+        {
+            if (IsConnected)
+            {
+                return obs.ListTransitions();
+            }
+            return null;
+        }
+
+        public void SetTransition(string transitionName)
+        {
+            if (IsConnected)
+            {
+                obs.SetCurrentTransition(transitionName);
+            }
+        }
+
+        private void VerifyValidVersion(OBSVersion obsVersion)
+        {
+            IsValidVersion = false;
+            if (obsVersion == null)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, "VerifyValidVersion - Version is null");
+                Disconnect();
+                return;
+            }
+
+            Version pluginVersion = new Version(obsVersion.PluginVersion);
+            if (pluginVersion < MINIMUM_SUPPORTED_WEBSOCKET_VERSION)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"VerifyValidVersion - obs-websocket version is not up to date: {pluginVersion.ToString()} expected {MINIMUM_SUPPORTED_WEBSOCKET_VERSION.ToString()}");
+                Disconnect();
+                return;
+            }
+
+            IsValidVersion = true;
+        }
 
         #endregion
-
-
     }
 }

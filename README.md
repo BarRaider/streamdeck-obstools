@@ -1,17 +1,14 @@
-# streamdeck-obstools
- Advanced OBS commands and tools to use on your Elgato Stream Deck
+# OBS Tools
+Advanced OBS commands and tools to use on your Elgato Stream Deck
 
-## New in 1.4.5
-- `Browser Sources` can now be modified using the Stream Deck
-- `Instant Replay` is now support in Multi Actions (including the options to Enable/Disable/Take a replay)
-- New `Remote Recording Toggle` to toggle recording from a remote PC (if your Stream Deck is not connected to your Streaming PC)
-- New `Remote Streaming Toggle` to stop/start streaming from a remote PC (if your Stream Deck is not connected to your Streaming PC)
+**Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
-## New in v1.4.1
-- Twitch Integration
-	- Let your chat to type !replay and trigger an instant replay which is shown on stream
-    - Instant Replay can now also create a Twitch Clip for you, and post it on chat
-    - Instant Replay can now create a Twitch Clip even if the replay buffer is off
+## New in v1.5
+- New Action: `Set Transition` allows you to modify the default scene transition from the Stream Deck
+- New Action `Filter Toggle` allows you to enable/disable filters on a source from the Stream Deck.
+- Added Multi-Action support for the `Previous Scene` action
+- Added checks to verify user is on the correct version of obs-websocket
+***Make sure to upgrade to obs-websocket v4.7 or above ***
 
 ## Features:
 - Instant Replay Action - Click to save the last seconds of your stream to your OBS "Recordings" folder.
@@ -21,6 +18,15 @@
   - You can now customize the color of the alert
 - OBS CPU Usage - Shows how much CPU is being utilized by OBS
 - Previous Scene Action - Allows you to switch back to your previously used scene. Writes the name of the scene on the key.
+- Twitch Integration
+	- Let your chat to type !replay and trigger an instant replay which is shown on stream
+    - Instant Replay can now also create a Twitch Clip for you, and post it on chat
+    - Instant Replay can now create a Twitch Clip even if the replay buffer is off
+- `Browser Sources` can now be modified using the Stream Deck
+- `Instant Replay` is now support in Multi Actions (including the options to Enable/Disable/Take a replay)
+- New `Remote Recording Toggle` to toggle recording from a remote PC (if your Stream Deck is not connected to your Streaming PC)
+- New `Remote Streaming Toggle` to stop/start streaming from a remote PC (if your Stream Deck is not connected to your Streaming PC)
+
 
 # INSTALLATION
 **Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/download/4.6.1/obs-websocket-4.6.1-Windows-Installer.exe

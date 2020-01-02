@@ -90,6 +90,11 @@ namespace BarRaider.ObsTools.Actions
             {
                 return Properties.Settings.Default.ImgNoToken;
             }
+
+            if (!OBSManager.Instance.IsValidVersion)
+            {
+                return Properties.Settings.Default.ImgUpdateWebsocket;
+            }
             return null;
         }
 
