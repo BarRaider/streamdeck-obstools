@@ -195,6 +195,9 @@
   <ItemGroup>
     <Compile Include="Actions\ActionBase.cs" />
     <Compile Include="Actions\BrowserSourceAction.cs" />
+    <Compile Include="Actions\SourceVolumeAdjusterAction.cs" />
+    <Compile Include="Actions\SmartSceneSwitcherAction.cs" />
+    <Compile Include="Actions\SourceVolumeSetterAction.cs" />
     <Compile Include="Actions\SetTransitionAction.cs" />
     <Compile Include="Actions\FilterToggleAction.cs" />
     <Compile Include="Actions\StudioModeToggleAction.cs" />
@@ -291,6 +294,15 @@
     <Content Include="PropertyInspector\DroppedFrames.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="PropertyInspector\SmartSceneSwitcher.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceVolumeAdjuster.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceVolumeAdjuster.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="PropertyInspector\Transition.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -334,6 +346,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\BrowserSource.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceVolume.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceVolume.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\VideoPlayer.js">

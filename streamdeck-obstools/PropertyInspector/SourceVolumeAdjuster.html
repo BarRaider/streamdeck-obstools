@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>BarRaider's OBS Tools</title>
+    <link rel="stylesheet" href="sdpi.css">
+    <script src="sdtools.common.js"></script>
+    <script src="setup.js"></script>
+    <script src="SourceVolumeAdjuster.js"></script>
+    <script src="OBSTools.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <details class="message">
+            <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
+        </details>
+        <div class="sdpi-item" id="dvSourceName">
+            <div class="sdpi-item-label">Source Name</div>
+            <input class="sdpi-item-value sdProperty" id="sourceName" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="select_single">
+            <div class="sdpi-item-label">Volume Step</div>
+            <select class="sdpi-item-value select sdProperty" id="volumeStep" oninput="setSettings()">
+                <option value="-25">-25</option>
+                <option value="-20">-20</option>
+                <option value="-15">-15</option>
+                <option value="-10">-10</option>
+                <option value="-5">-5</option>
+                <option value="5" selected>+5</option>
+                <option value="10">+10</option>
+                <option value="15">+15</option>
+                <option value="20">+20</option>
+                <option value="25">+25</option>
+            </select>
+        </div>
+    </div>
+    <hr />
+    <div class="sdpi-item" id="dvReset">
+        <div class="sdpi-item-label">Reset Settings</div>
+        <button class="sdpi-item-value max20" onclick="resetPlugin()">Reset</button>
+        <p>Plugin will no longer communicate with OBS and will ask for a new configuration</p>
+    </div>
+    <div class="sdpi-item" id="dvHdn">
+        <input value="" type="hidden" id="serverInfoExists" class="sdProperty" oninput="setSettings()">
+    </div>
+</body>
+</html>

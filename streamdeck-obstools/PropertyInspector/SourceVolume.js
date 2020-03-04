@@ -1,7 +1,7 @@
 ﻿document.addEventListener('websocketCreate', function () {
     console.log("Websocket created!");
     checkSettings(actionInfo.payload.settings);
-    window.setTimeout(updateSpeedLabel, 500);
+    window.setTimeout(updateVolumeLabel, 500);
 
     websocket.addEventListener('message', function (event) {
         console.log("Got message event!");
@@ -17,22 +17,22 @@
             var payload = jsonObj.payload;
             checkSettings(payload.settings);
         }
-        window.setTimeout(updateSpeedLabel, 500);
+        window.setTimeout(updateVolumeLabel, 500);
     });
 });
 
 document.addEventListener('settingsUpdated', function (event) {
     console.log("Got settingsUpdated event!");
-    window.setTimeout(updateSpeedLabel, 500);
+    window.setTimeout(updateVolumeLabel, 500);
 })
 
 function checkSettings(payload) {
     console.log("Checking Settings");
 }
 
-function updateSpeedLabel() {
-    var speedLabel = document.getElementById('speedLabel');
-    var playSpeed = document.getElementById('playSpeed');
+function updateVolumeLabel() {
+    var volumeLabel = document.getElementById('volumeLabel');
+    var volume = document.getElementById('volume');
 
-    speedLabel.innerText = "Speed: " + playSpeed.value + "%";
+    volumeLabel.innerText = "Volume: " + volume.value + "%";
 }

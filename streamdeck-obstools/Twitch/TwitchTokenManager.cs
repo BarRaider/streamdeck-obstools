@@ -167,8 +167,8 @@ namespace ChatPager.Twitch
             {
                 if (global == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "TwitchTokenManager: Failed to save token, Global Settings is null");
-                    return;
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "TwitchTokenManager: Global Settings is null, creating new instance");
+                    global = new GlobalSettings();
                 }
 
                 // Set token in Global Settings
@@ -184,10 +184,11 @@ namespace ChatPager.Twitch
                         Token = token.Token,
                         TokenLastRefresh = token.TokenLastRefresh
                     };
+                    Logger.Instance.LogMessage(TracingLevel.INFO, "TwitchTokenManager saving token to global");
                 }
 
                 GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(global));
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"TwitchTokenManager: New token saved. Last refresh date was: {token?.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"TwitchTokenManager: New token saved. Last refresh date was: {token?.TokenLastRefresh} Token Size: {token?.Token?.Length}");
             }
             catch (Exception ex)
             {

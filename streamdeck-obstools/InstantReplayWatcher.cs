@@ -10,6 +10,12 @@ using System.Threading.Tasks;
 
 namespace BarRaider.ObsTools
 {
+    //---------------------------------------------------
+    //          BarRaider's Hall Of Fame
+    // Subscriber: CyberlightGames x3
+    // 5001 Bits: nubby_ninja
+    // 1 Bits: inclaved
+    //---------------------------------------------------
     public class InstantReplayWatcher
     {
         #region Private Members
@@ -22,6 +28,7 @@ namespace BarRaider.ObsTools
         private string replayDirectory = null;
         private int hideReplaySeconds = 0;
         private int delayReplaySeconds = 0;
+        private int playSpeed = 100;
         private string sourceName = String.Empty;
         private GlobalSettings global;
         readonly FileSystemWatcher watcher;
@@ -85,6 +92,7 @@ namespace BarRaider.ObsTools
                 delayReplaySeconds = global.DelayReplaySeconds;
                 sourceName = global.SourceName;
                 muteSound = global.MuteSound;
+                playSpeed = global.PlaySpeed;
             }
 
             InitializeDirectoryWatcher();
@@ -114,7 +122,7 @@ namespace BarRaider.ObsTools
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher new file created: {e.Name}");
 
-            OBSManager.Instance.PlayInstantReplay(e.FullPath, sourceName, delayReplaySeconds, hideReplaySeconds, muteSound);            
+            OBSManager.Instance.PlayInstantReplay(e.FullPath, sourceName, delayReplaySeconds, hideReplaySeconds, muteSound, playSpeed);            
         }
 
         #endregion

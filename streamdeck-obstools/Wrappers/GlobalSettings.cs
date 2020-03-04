@@ -33,5 +33,16 @@ namespace BarRaider.ObsTools.Wrappers
 
         [JsonProperty(PropertyName = "token")]
         public TwitchToken TwitchToken { get; set; }
+
+        [JsonProperty(PropertyName = "playSpeed")]
+        public int PlaySpeed { get; set; }
+
+        [JsonProperty(PropertyName = "sceneSwitchPreviewColor")]
+        public string SceneSwitchPreviewColor { get; set; }
+
+        [JsonProperty(PropertyName = "sceneSwitchLiveColor")]
+        public string SceneSwitchLiveColor { get; set; }
+
+
     }
 }

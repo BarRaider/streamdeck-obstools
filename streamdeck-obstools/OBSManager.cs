@@ -62,6 +62,9 @@ namespace BarRaider.ObsTools
             obs.StreamStatus += Obs_StreamStatus;
             obs.SceneChanged += Obs_SceneChanged;
             obs.ReplayBufferStateChanged += Obs_ReplayBufferStateChanged;
+            obs.PreviewSceneChanged += Obs_PreviewSceneChanged;
+
+
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
 
             tmrCheckStatus.Interval = 5000;
@@ -88,6 +91,8 @@ namespace BarRaider.ObsTools
         public bool IsValidVersion { get; private set; }
 
         public string CurrentSceneName { get; private set; }
+
+        public string CurrentPreviewSceneName { get; private set; }
 
         public string PreviousSceneName { get; private set; }
 
@@ -400,7 +405,7 @@ namespace BarRaider.ObsTools
             });
         }
 
-        public Task<bool> PlayInstantReplay(string fileName, string sourceName, int delayReplaySeconds, int hideReplaySeconds, bool muteSound)
+        public Task<bool> PlayInstantReplay(string fileName, string sourceName, int delayReplaySeconds, int hideReplaySeconds, bool muteSound, int speedPercent)
         {
             return Task.Run(() =>
             {
@@ -426,6 +431,8 @@ namespace BarRaider.ObsTools
                         var sourceSettings = obs.GetMediaSourceSettings(sourceName);
                         sourceSettings.Media.IsLocalFile = true;
                         sourceSettings.Media.LocalFile = fileName;
+                        sourceSettings.Media.SpeedPercent = speedPercent;
+
                         obs.SetMediaSourceSettings(sourceSettings);
                         Thread.Sleep(200);
                         obs.SetSourceRender(sourceName, true);
@@ -455,6 +462,93 @@ namespace BarRaider.ObsTools
             });
         }
 
+        public VolumeInfo GetSourceVolume(string sourceName)
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    return obs.GetVolume(sourceName);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceVolume Exception: {ex}");
+                }
+            }
+            return null;
+        }
+
+        public bool SetSourceVolume(string sourceName, float volume)
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting volume for source {sourceName} to {volume}");
+                    obs.SetVolume(sourceName, volume);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSourceVolume Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool SetPreviewScene(string sceneName)
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting preview scene to {sceneName}");
+                    obs.SetPreviewScene(sceneName);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetPreviewScene Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool SetScene(string sceneName)
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting current scene to {sceneName}");
+                    obs.SetCurrentScene(sceneName);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetScene Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public SourceScreenshotResponse GetSourceSnapshot(string sourceName)
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    return obs.TakeSourceScreenshot(sourceName, "png", null, 144, 144);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceSnapshot Exception: {ex}");
+                }
+            }
+            return null;
+        }
+
+
         #endregion
 
         #region Private Methods
@@ -472,6 +566,12 @@ namespace BarRaider.ObsTools
 
             IsStreaming = obs.GetStreamingStatus().IsStreaming;
             IsRecording = obs.GetStreamingStatus().IsRecording;
+            CurrentSceneName = obs.GetCurrentScene()?.Name;
+
+            if (IsStudioModeEnabled())
+            {
+                CurrentPreviewSceneName = obs.GetPreviewScene()?.Name;
+            }
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
             VerifyValidVersion(version);
         }
@@ -499,6 +599,13 @@ namespace BarRaider.ObsTools
             Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {newSceneName}");
             SceneChanged?.Invoke(this, new SceneChangedEventArgs(newSceneName));
         }
+
+        private void Obs_PreviewSceneChanged(OBSWebsocket sender, string newSceneName)
+        {
+            CurrentPreviewSceneName = newSceneName;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New preview/studio scene received from OBS: {newSceneName}");
+        }
+
         private void Instance_TokensChanged(object sender, ServerInfoEventArgs e)
         {
             if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
@@ -520,12 +627,30 @@ namespace BarRaider.ObsTools
 
         private void CheckStatus()
         {
-            if (obs.IsConnected && (DateTime.Now - lastStreamStatus).TotalMilliseconds > 5000)
+            if (obs.IsConnected)
             {
-                var status = obs.GetStreamingStatus();
-                IsRecording = status.IsRecording;
-                IsStreaming = status.IsStreaming;
-            }            
+                CurrentSceneName = obs.GetCurrentScene()?.Name;
+
+
+                if (IsStudioModeEnabled())
+                {
+                    CurrentPreviewSceneName = obs.GetPreviewScene()?.Name;
+                }
+                else
+                {
+                    CurrentPreviewSceneName = String.Empty;
+                }
+
+                if ((DateTime.Now - lastStreamStatus).TotalMilliseconds > 5000)
+                {
+                    var status = obs.GetStreamingStatus();
+                    if (status != null)
+                    {
+                        IsRecording = status.IsRecording;
+                        IsStreaming = status.IsStreaming;
+                    }
+                }
+            }
         }
 
         private void TmrCheckStatus_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -550,12 +675,31 @@ namespace BarRaider.ObsTools
             return null;
         }
 
+        public GetSceneListInfo GetAllScenes()
+        {
+            if (IsConnected)
+            {
+                return obs.GetSceneList();
+            }
+            return null;
+        }
+
         public void SetTransition(string transitionName)
         {
             if (IsConnected)
             {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
                 obs.SetCurrentTransition(transitionName);
             }
+        }
+
+        public TransitionSettings GetTransition()
+        {
+            if (IsConnected)
+            {
+                return obs.GetCurrentTransition();
+            }
+            return null;
         }
 
         private void VerifyValidVersion(OBSVersion obsVersion)

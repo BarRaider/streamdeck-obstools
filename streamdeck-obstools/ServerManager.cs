@@ -136,8 +136,8 @@ namespace BarRaider.ObsTools
             {
                 if (global == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "ServerManager: Failed to save token, Global Settings is null");
-                    return;
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "ServerManager: Global Settings is null, creating new instance");
+                    global = new GlobalSettings();
                 }
 
                 // Set token in Global Settings
@@ -155,9 +155,10 @@ namespace BarRaider.ObsTools
                         Port = token.Port,
                         TokenLastRefresh = token.TokenLastRefresh
                     };
+                    Logger.Instance.LogMessage(TracingLevel.INFO, "ServerManager saving serverinfo to global");
                 }
                 GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(global));
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: New token saved. Last refresh date was: {token.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: New token saved. Last refresh date was: {token.TokenLastRefresh} IP: {token?.Ip}");
             }
             catch (Exception ex)
             {

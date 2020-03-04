@@ -21,6 +21,8 @@ namespace BarRaider.ObsTools.Actions
     // 100 Bits: siliconart
     // Subscriber: ELGNTV
     // 100 Bits: Nachtmeister666
+    // Subscriber: nubby_ninja x4
+    // Subscriber: nubby_ninja x5 Gifted Subs
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.instantreply")]
@@ -47,7 +49,8 @@ namespace BarRaider.ObsTools.Actions
                     TwitchClip = false,
                     ChatReplay = false,
                     ReplayCooldown = "30",
-                    AllowedUsers = String.Empty
+                    AllowedUsers = String.Empty,
+                    PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString()
                 };
                 return instance;
             }
@@ -88,6 +91,9 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "twitchTokenExists")]
             public bool TwitchTokenExists { get; set; }
 
+            [JsonProperty(PropertyName = "playSpeed")]
+            public String PlaySpeed { get; set; }
+
         }
 
         protected PluginSettings Settings
@@ -110,6 +116,7 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private const int LONG_KEYPRESS_LENGTH = 600;
+        private const int DEFAULT_PLAY_SPEED_PERCENTAGE = 100;
 
         private bool keyPressed = false;
         private bool longKeyPressed = false;
@@ -118,6 +125,7 @@ namespace BarRaider.ObsTools.Actions
         private int hideReplaySettings = HIDE_REPLAY_SECONDS;
         private int replayCooldown = DEFAULT_REPLAY_COOLDOWN;
         private int delayReplaySettings = DELAY_REPLAY_SECONDS;
+        private int speed = DEFAULT_PLAY_SPEED_PERCENTAGE;
 
         #endregion
         public InstantReplyAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -214,6 +222,8 @@ namespace BarRaider.ObsTools.Actions
                 Settings.HideReplaySeconds = global.HideReplaySeconds.ToString();
                 Settings.SourceName = global.SourceName;
                 Settings.MuteSound = global.MuteSound;
+                Settings.PlaySpeed = global.PlaySpeed.ToString();
+                InitializeSettings();
                 SaveSettings();
             }
             else // Global settings do not exist
@@ -316,6 +326,7 @@ namespace BarRaider.ObsTools.Actions
             global.MuteSound = Settings.MuteSound;
             global.SourceName = Settings.SourceName;
             global.DelayReplaySeconds = delayReplaySettings;
+            global.PlaySpeed = speed;
             Connection.SetGlobalSettingsAsync(JObject.FromObject(global));
         }
 
@@ -336,6 +347,12 @@ namespace BarRaider.ObsTools.Actions
             if (String.IsNullOrEmpty(Settings.DelayReplaySeconds) || !int.TryParse(Settings.DelayReplaySeconds, out delayReplaySettings))
             {
                 Settings.DelayReplaySeconds = DELAY_REPLAY_SECONDS.ToString();
+                SaveSettings();
+            }
+
+            if (!Int32.TryParse(Settings.PlaySpeed, out speed))
+            {
+                Settings.PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString();
                 SaveSettings();
             }
 
@@ -397,7 +414,6 @@ namespace BarRaider.ObsTools.Actions
                 await Connection.ShowAlert();
             }
         }
-
 
         #endregion
 

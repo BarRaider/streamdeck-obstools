@@ -30,7 +30,7 @@ namespace BarRaider.ObsTools.Actions
         public ActionBase(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
-            Connection.StreamDeckConnection.OnSendToPlugin += StreamDeckConnection_OnSendToPlugin;
+            Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         }
 
         #region Public Methods
@@ -38,7 +38,7 @@ namespace BarRaider.ObsTools.Actions
         public override void Dispose()
         {
             ServerManager.Instance.TokensChanged -= Instance_TokensChanged;
-            Connection.StreamDeckConnection.OnSendToPlugin -= StreamDeckConnection_OnSendToPlugin;
+            Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called");
         }
 
@@ -98,14 +98,10 @@ namespace BarRaider.ObsTools.Actions
             return null;
         }
 
-        private async void StreamDeckConnection_OnSendToPlugin(object sender, streamdeck_client_csharp.StreamDeckEventReceivedEventArgs<streamdeck_client_csharp.Events.SendToPluginEvent> e)
+        private async void Connection_OnSendToPlugin(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.SendToPlugin> e)
         {
             var payload = e.Event.Payload;
-            if (Connection.ContextId != e.Event.Context)
-            {
-                return;
-            }
-
+        
             if (payload["property_inspector"] != null)
             {
                 switch (payload["property_inspector"].ToString().ToLower())

@@ -14,6 +14,11 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
+
+    //---------------------------------------------------
+    //          BarRaider's Hall Of Fame
+    // Subscriber: iMackk x2
+    //---------------------------------------------------
     [PluginActionId("com.barraider.obstools.videoplayer")]
     public class VideoPlayerAction : ActionBase
     {
@@ -28,7 +33,8 @@ namespace BarRaider.ObsTools.Actions
                     VideoFileName = String.Empty,
                     MuteSound = false,
                     SourceName = String.Empty,
-                    HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString()
+                    HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString(),
+                    PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString()
                 };
                 return instance;
             }
@@ -45,6 +51,9 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "muteSound")]
             public bool MuteSound { get; set; }
+
+            [JsonProperty(PropertyName = "playSpeed")]
+            public String PlaySpeed { get; set; }
         }
 
         protected PluginSettings Settings
@@ -67,6 +76,9 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private int hideReplaySettings = HIDE_REPLAY_SECONDS;
+        private const int DEFAULT_PLAY_SPEED_PERCENTAGE = 100;
+
+        private int speed = DEFAULT_PLAY_SPEED_PERCENTAGE;
 
         #endregion
         public VideoPlayerAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -114,7 +126,7 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                await OBSManager.Instance.PlayInstantReplay(Settings.VideoFileName, Settings.SourceName, 0, hideReplaySettings, Settings.MuteSound);
+                await OBSManager.Instance.PlayInstantReplay(Settings.VideoFileName, Settings.SourceName, 0, hideReplaySettings, Settings.MuteSound, speed);
             }
         }
 
@@ -153,6 +165,12 @@ namespace BarRaider.ObsTools.Actions
             if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))
             {
                 Settings.HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString();
+                SaveSettings();
+            }
+
+            if (!Int32.TryParse(Settings.PlaySpeed, out speed))
+            {
+                Settings.PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString();
                 SaveSettings();
             }
         }

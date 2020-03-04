@@ -42,6 +42,17 @@
             <div class="sdpi-item-label">Auto Hide Source (seconds)</div>
             <input class="sdpi-item-value sdProperty" placeholder="20" value="" pattern="^[0-9]*$" id="hideReplaySeconds" oninput="setSettings()">
         </div>
+        <div type="range" class="sdpi-item" id="dvSpeed">
+            <div class="sdpi-item-label" id="speedLabel">Speed</div>
+            <div class="sdpi-item-value">
+                <span class="clickable" value="1">1</span>
+                <input type="range" min="1" max="200" value=100 list="numbers" class="sdProperty" id="playSpeed" oninput="setSettings()">
+                <span class="clickable" value="200">200</span>
+                <datalist id="numbers">
+                    <option>100</option>
+                </datalist>
+            </div>
+        </div>
     </div>
     <hr />
     <div class="sdpi-item" id="dvReset">

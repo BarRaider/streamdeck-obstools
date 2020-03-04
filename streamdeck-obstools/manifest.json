@@ -166,6 +166,51 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Smart Scene Switcher",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "10"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Transitions scenes between Studio and Live mode",
+      "UUID": "com.barraider.obstools.smartsceneswitcher",
+      "PropertyInspectorPath": "PropertyInspector/SmartSceneSwitcher.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Source Volume Adjust",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "14"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Adjusts the volume of a source in OBS",
+      "UUID": "com.barraider.obstools.sourcevolumeadjuster",
+      "PropertyInspectorPath": "PropertyInspector/SourceVolumeAdjuster.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Source Volume Set",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "14"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Set the volume of a source in OBS",
+      "UUID": "com.barraider.obstools.sourcevolumesetter",
+      "PropertyInspectorPath": "PropertyInspector/SourceVolume.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Video Player",
       "States": [
         {
@@ -181,11 +226,11 @@
     }
   ],
   "Author": "BarRaider",
-  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck. Features include: Instant Replay (on stream), Dropped frames alarm, Modifying Browser and Video sources, Quick scenes toggle, OBS CPU usage",
+  "Description": "Advanced OBS commands and tools to use on your Elgato Stream Deck. Features include: Instant Replay (on stream), Dropped frames alarm, Modifying Browser and Video sources, Modifying Transitions and Filters, Quick scenes toggle, OBS CPU usage, Source Volume modifications",
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.5",
+  "Version": "1.6",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",
@@ -197,6 +242,6 @@
   ],
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion": "4.4.1"
+    "MinimumVersion": "4.5.1"
   }
 }

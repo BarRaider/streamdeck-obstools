@@ -3,6 +3,13 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
+## New in v1.6
+- `Source Volume` allows increasing/decreasing/setting the volume of an audio source
+- Support for modifying the speed of Videos/Instant Replay (great when you want to do a slow mo)
+- :new: `Smart Scene Switcher`  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
+  - Shows a border on the scene indicating if it's in preview or live
+  - **See a Preview of how the scene will look on the Stream Deck key**
+
 ## New in v1.5
 - New Action: `Set Transition` allows you to modify the default scene transition from the Stream Deck
 - New Action `Filter Toggle` allows you to enable/disable filters on a source from the Stream Deck.
@@ -29,7 +36,7 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 
 # INSTALLATION
-**Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/download/4.6.1/obs-websocket-4.6.1-Windows-Installer.exe
+**Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/
 
 2. After installing, enable from inside OBS: Tools -> WebSockets Server Setting 
 [You can keep the port as is, but It is ***highly recommended you Enable authentication and set a password***]
