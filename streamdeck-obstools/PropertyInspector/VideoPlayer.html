@@ -7,10 +7,13 @@
     <meta name=apple-mobile-web-app-status-bar-style content=black>
     <title>BarRaider's OBS Tools</title>
     <link rel="stylesheet" href="sdpi.css">
+    <link rel="stylesheet" href="rangeTooltip.css">
     <script src="sdtools.common.js"></script>
     <script src="setup.js"></script>
     <script src="VideoPlayer.js"></script>
     <script src="OBSTools.js"></script>
+    <script src="rangeTooltip.js"></script>
+
 </head>
 <body>
     <div class="sdpi-wrapper">
@@ -42,17 +45,19 @@
             <div class="sdpi-item-label">Auto Hide Source (seconds)</div>
             <input class="sdpi-item-value sdProperty" placeholder="20" value="" pattern="^[0-9]*$" id="hideReplaySeconds" oninput="setSettings()">
         </div>
-        <div type="range" class="sdpi-item" id="dvSpeed">
+        <div type="range" class="sdpi-item sdShowTooltip" id="dvSpeed">
             <div class="sdpi-item-label" id="speedLabel">Speed</div>
             <div class="sdpi-item-value">
                 <span class="clickable" value="1">1</span>
-                <input type="range" min="1" max="200" value=100 list="numbers" class="sdProperty" id="playSpeed" oninput="setSettings()">
+                <input type="range" min="1" max="200" value=100 list="numbers" data-suffix=" %" class="sdProperty" id="playSpeed" oninput="setSettings()">
                 <span class="clickable" value="200">200</span>
                 <datalist id="numbers">
                     <option>100</option>
                 </datalist>
+                <label for="playSpeed" class="rangeLabel"></label>
             </div>
         </div>
+        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
     </div>
     <hr />
     <div class="sdpi-item" id="dvReset">

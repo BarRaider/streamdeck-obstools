@@ -7,10 +7,12 @@
     <meta name=apple-mobile-web-app-status-bar-style content=black>
     <title>BarRaider's OBS Tools</title>
     <link rel="stylesheet" href="sdpi.css">
+    <link rel="stylesheet" href="rangeTooltip.css">
     <script src="sdtools.common.js"></script>
     <script src="setup.js"></script>
     <script src="SourceVolume.js"></script>
     <script src="OBSTools.js"></script>
+    <script src="rangeTooltip.js"></script>
 </head>
 <body>
     <div class="sdpi-wrapper">
@@ -21,14 +23,16 @@
             <div class="sdpi-item-label">Source Name</div>
             <input class="sdpi-item-value sdProperty" id="sourceName" oninput="setSettings()">
         </div>
-        <div type="range" class="sdpi-item" id="dvVolume">
+        <div type="range" class="sdpi-item sdShowTooltip" id="dvVolume">
             <div class="sdpi-item-label" id="volumeLabel">Volume</div>
             <div class="sdpi-item-value">
                 <span class="clickable" value="0">0</span>
-                <input type="range" min="0" max="100" value=100 list="numbers" class="sdProperty" id="volume" oninput="setSettings()">
+                <input type="range" min="0" max="100" value=100 list="numbers" data-suffix="%" class="sdProperty" id="volume" oninput="setSettings()">
                 <span class="clickable" value="100">100</span>
+                <label for="volume" class="rangeLabel"></label>
             </div>
         </div>
+        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
     </div>
     <hr />
     <div class="sdpi-item" id="dvReset">

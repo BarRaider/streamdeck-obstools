@@ -83,11 +83,13 @@ namespace BarRaider.ObsTools.Actions
 
         private const int SCENE_BORDER_SIZE = 20;
         private const int STRING_SPLIT_SIZE = 7;
+        private const int MAX_EXPERIMENTAL_RETRIES = 5;
         private const string DEFAULT_PREVIEW_COLOR = "#FFA500";
         private const string DEFAULT_LIVE_COLOR = "#FF0000";
 
         private string revertTransition = String.Empty;
         private GlobalSettings global;
+        private int experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
 
 
         #endregion
@@ -126,6 +128,19 @@ namespace BarRaider.ObsTools.Actions
 
             if (OBSManager.Instance.IsConnected)
             {
+                if (payload.IsInMultiAction && payload.UserDesiredState > 0) // 0 = Standard, 1 = Force Studio, 2 = Force Live
+                {
+                    if (HandleMultiActionKeypress(payload.UserDesiredState))
+                    {
+                        await Connection.ShowOk();
+                    }
+                    else
+                    {
+                        await Connection.ShowAlert();
+                    }
+                    return;
+                }
+
                 // Check if should move to Studio mode
                 if (OBSManager.Instance.IsStudioModeEnabled() && OBSManager.Instance.CurrentPreviewSceneName != Settings.SceneName)
                 {
@@ -140,21 +155,13 @@ namespace BarRaider.ObsTools.Actions
                 }
                 else
                 {
-                    if (Settings.OverrideTransition && OBSManager.Instance.CurrentSceneName == Settings.SceneName && String.IsNullOrEmpty(revertTransition))
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.INFO, "Overriding transition");
-                        var transition = OBSManager.Instance.GetTransition();
-                        revertTransition = transition?.Name;
-                        OBSManager.Instance.SetTransition("Fade");
-                    }
-
-                    if (OBSManager.Instance.SetScene(Settings.SceneName))
+                    if (HandleTransitionToLive())
                     {
                         await Connection.ShowOk();
                     }
                     else
                     {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, "SetScene returned false");
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, "HandleTransitionToLive returned false");
                         await Connection.ShowAlert();
                     }
                 }
@@ -207,6 +214,7 @@ namespace BarRaider.ObsTools.Actions
             }
             else // Global settings do not exist
             {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"SmartSceneSwitcher received empty payload: {payload}");
                 global = new GlobalSettings();
                 SetGlobalSettings();
             }
@@ -254,15 +262,29 @@ namespace BarRaider.ObsTools.Actions
                         var snapshot = OBSManager.Instance.GetSourceSnapshot(Settings.SceneName);
                         if (snapshot != null && snapshot.ImageData != null)
                         {
+                            experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
                             using (Image background = Tools.Base64StringToImage(snapshot.ImageData))
                             {
                                 graphics.DrawImage(background, new Rectangle(0, 0, width, height));
                             }
                         }
+                        else if (snapshot == null)
+                        {
+                            Logger.Instance.LogMessage(TracingLevel.WARN, $"DrawSceneBorder GetSourceSnapshot returned null");
+                            experimentalScreenshotRetries--;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.LogMessage(TracingLevel.INFO, $"DrawSceneBorder GetSnapshot Exception {ex}");
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"DrawSceneBorder GetSnapshot Exception {ex}");
+                        experimentalScreenshotRetries--;
+                    }
+
+                    if (experimentalScreenshotRetries <= 0)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"experimentalScreenshotRetries limit hit - Disabling ShowPreview!");
+                        Settings.ShowPreview = false;
+                        await SaveSettings();
                     }
                 }
 
@@ -333,6 +355,40 @@ namespace BarRaider.ObsTools.Actions
                 }
                 await SaveSettings();
             });
+        }
+
+        private bool HandleTransitionToLive()
+        {
+            if (Settings.OverrideTransition && OBSManager.Instance.CurrentSceneName == Settings.SceneName && String.IsNullOrEmpty(revertTransition))
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, "Overriding transition");
+                var transition = OBSManager.Instance.GetTransition();
+                revertTransition = transition?.Name;
+                OBSManager.Instance.SetTransition("Fade");
+            }
+
+            return OBSManager.Instance.SetScene(Settings.SceneName);
+        }
+
+        private bool HandleMultiActionKeypress(uint desiredState)
+        {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"SmartSceneSwitcher HandleMultiActionKeypress received: {desiredState}");
+            switch (desiredState)
+            {
+                case 1: // Force Studio
+                    if (!OBSManager.Instance.IsStudioModeEnabled())
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"SmartSceneSwitcher HandleMultiActionKeypress - Force Studio requested but Studio mode is not enabled");
+                        return false;
+                    }
+                    return OBSManager.Instance.SetPreviewScene(Settings.SceneName);
+                case 2: // Force Live
+                    return HandleTransitionToLive();
+                default:
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SmartSceneSwitcher HandleMultiActionKeypress - Invalid state received: {desiredState}");
+                    break;
+            }
+            return false;
         }
 
         #endregion

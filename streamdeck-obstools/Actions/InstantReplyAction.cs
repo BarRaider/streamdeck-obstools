@@ -228,6 +228,7 @@ namespace BarRaider.ObsTools.Actions
             }
             else // Global settings do not exist
             {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"InstantReplayAction received empty payload: {payload}");
                 global = new GlobalSettings();
                 SetGlobalSettings();
             }
