@@ -20,7 +20,7 @@
       "Name": "CPU Usage",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/cpuAction",
           "TitleAlignment": "middle",
           "FontSize": "18"
         }
@@ -35,7 +35,7 @@
       "Name": "Dropped Frames",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/droppedAction",
           "TitleAlignment": "middle",
           "FontSize": "20"
         }
@@ -50,13 +50,13 @@
       "Name": "Filter Toggle",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/filterAction",
           "TitleAlignment": "middle",
           "FontSize": "20",
           "Name": "Enable"
         },
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/filterAction",
           "Name": "Disable",
           "OnlyForMultiAction": true
         }
@@ -71,18 +71,18 @@
       "Name": "Instant Replay",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/replayAction",
           "TitleAlignment": "middle",
           "FontSize": "14",
           "Name": "Enable"
         },
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/replayAction",
           "Name": "Disable",
           "OnlyForMultiAction": true
         },
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/replayAction",
           "Name": "Create Replay",
           "OnlyForMultiAction": true
         }
@@ -154,7 +154,7 @@
       "Name": "Set Transition",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/transitionAction",
           "TitleAlignment": "middle",
           "FontSize": "10"
         }
@@ -190,12 +190,27 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Source Animation",
+      "States": [
+        {
+          "Image": "Images/animationAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Creates animations by gradually modifying a property of a source",
+      "UUID": "com.barraider.obstools.sourceanimation",
+      "PropertyInspectorPath": "PropertyInspector/SourceAnimation.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Source Volume Adjust",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/volumeAction",
           "TitleAlignment": "middle",
-          "FontSize": "14"
+          "FontSize": "13"
         }
       ],
       "SupportedInMultiActions": true,
@@ -208,15 +223,39 @@
       "Name": "Source Volume Set",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/volumeAction",
           "TitleAlignment": "middle",
-          "FontSize": "14"
+          "FontSize": "13"
         }
       ],
       "SupportedInMultiActions": true,
       "Tooltip": "Set the volume of a source in OBS",
       "UUID": "com.barraider.obstools.sourcevolumesetter",
       "PropertyInspectorPath": "PropertyInspector/SourceVolume.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Studio Mode Toggle",
+      "States": [
+        {
+          "Image": "Images/studioAction",
+          "TitleAlignment": "middle",
+          "FontSize": "14",
+          "Name": "Toggle"
+        },
+        {
+          "Image": "Images/studioAction",
+          "Name": "Enable Studio"
+        },
+        {
+          "Image": "Images/studioAction",
+          "Name": "Disable Studio"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggles Studio Mode On or Off",
+      "UUID": "com.barraider.obstools.studiomodetoggle",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
     },
     {
       "Icon": "Images/icon",
@@ -239,9 +278,9 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.6.1",
+  "Version": "1.7",
   "CodePath": "com.barraider.obstools",
-  "Category": "OBS [BarRaider]",
+  "Category": "OBS Tools [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",
   "OS": [
     {
@@ -251,6 +290,6 @@
   ],
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion": "4.5.1"
+    "MinimumVersion": "4.8"
   }
 }

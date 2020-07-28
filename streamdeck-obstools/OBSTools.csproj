@@ -35,60 +35,66 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommandLine, Version=2.7.82.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\CommandLineParser.2.7.82\lib\net461\CommandLine.dll</HintPath>
+    <Reference Include="CommandLine, Version=2.8.0.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\CommandLineParser.2.8.0\lib\net461\CommandLine.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Configuration.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Bcl.AsyncInterfaces.1.1.1\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Configuration.Abstractions.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Configuration.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Configuration.Binder, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Configuration.Binder.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.Binder.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Configuration.Abstractions.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.DependencyInjection.3.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration.Binder, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Configuration.Binder.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Configuration.Binder.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.DependencyInjection.Abstractions.3.0.0\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.DependencyInjection.3.1.5\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Logging.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.DependencyInjection.Abstractions.3.1.5\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.Abstractions.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Options, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Options.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Options.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.Abstractions.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Primitives.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Options, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Options.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=3.1.5.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Primitives.3.1.5\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.6.8\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\NLog.4.7.2\lib\net45\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="PickersUtil">
+      <HintPath>..\..\PickersUtil\PickersUtil\bin\Release\PickersUtil.dll</HintPath>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\Serilog.2.8.0\lib\net46\Serilog.dll</HintPath>
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\Serilog.2.9.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
     <Reference Include="Serilog.Extensions.Logging, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\..\..\DotNet\StreamDeck\packages\Serilog.Extensions.Logging.3.0.1\lib\netstandard2.0\Serilog.Extensions.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="streamdeck-client-csharp, Version=4.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\streamdeck-client-csharp.4.1.1\lib\netstandard2.0\streamdeck-client-csharp.dll</HintPath>
+    <Reference Include="streamdeck-client-csharp, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\streamdeck-client-csharp.4.2.0\lib\netstandard2.0\streamdeck-client-csharp.dll</HintPath>
     </Reference>
-    <Reference Include="StreamDeckTools, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\StreamDeck-Tools.2.7.0\lib\net472\StreamDeckTools.dll</HintPath>
+    <Reference Include="StreamDeckTools, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\StreamDeck-Tools.2.9.0\lib\net472\StreamDeckTools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.ComponentModel.Annotations.4.6.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.ComponentModel.Annotations.4.7.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -105,7 +111,7 @@
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
@@ -121,8 +127,8 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Runtime.CompilerServices.Unsafe.4.6.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Runtime.CompilerServices.Unsafe.4.7.1\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -146,55 +152,57 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="TwitchLib.Api.Core, Version=3.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.3.0.2\lib\netstandard2.0\TwitchLib.Api.Core.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core, Version=3.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.3.1.3\lib\netstandard2.0\TwitchLib.Api.Core.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Core.Enums, Version=3.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.Enums.3.0.2\lib\netstandard2.0\TwitchLib.Api.Core.Enums.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core.Enums, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.Enums.3.1.2\lib\netstandard2.0\TwitchLib.Api.Core.Enums.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Core.Interfaces, Version=3.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.Interfaces.3.0.2\lib\netstandard2.0\TwitchLib.Api.Core.Interfaces.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core.Interfaces, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.Interfaces.3.1.2\lib\netstandard2.0\TwitchLib.Api.Core.Interfaces.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Core.Models, Version=3.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.Models.3.0.2\lib\netstandard2.0\TwitchLib.Api.Core.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core.Models, Version=3.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Core.Models.3.1.3\lib\netstandard2.0\TwitchLib.Api.Core.Models.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Helix, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Helix.1.1.0\lib\netstandard2.0\TwitchLib.Api.Helix.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Helix, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Helix.3.1.3\lib\netstandard2.0\TwitchLib.Api.Helix.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Helix.Models, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Helix.Models.1.1.0\lib\netstandard2.0\TwitchLib.Api.Helix.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Helix.Models, Version=3.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.Helix.Models.3.1.3\lib\netstandard2.0\TwitchLib.Api.Helix.Models.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.V5, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.V5.1.1.0\lib\netstandard2.0\TwitchLib.Api.V5.dll</HintPath>
+    <Reference Include="TwitchLib.Api.V5, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.V5.3.1.2\lib\netstandard2.0\TwitchLib.Api.V5.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.V5.Models, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.V5.Models.1.1.0\lib\netstandard2.0\TwitchLib.Api.V5.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Api.V5.Models, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Api.V5.Models.3.1.2\lib\netstandard2.0\TwitchLib.Api.V5.Models.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Client, Version=3.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.3.0.4\lib\netstandard2.0\TwitchLib.Client.dll</HintPath>
+    <Reference Include="TwitchLib.Client, Version=3.1.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.3.1.5\lib\netstandard2.0\TwitchLib.Client.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Client.Enums, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.Enums.1.1.0\lib\netstandard2.0\TwitchLib.Client.Enums.dll</HintPath>
+    <Reference Include="TwitchLib.Client.Enums, Version=3.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.Enums.3.1.4\lib\netstandard2.0\TwitchLib.Client.Enums.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Client.Models, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.Models.1.1.0\lib\netstandard2.0\TwitchLib.Client.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Client.Models, Version=3.1.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.Models.3.1.5\lib\netstandard2.0\TwitchLib.Client.Models.dll</HintPath>
     </Reference>
     <Reference Include="TwitchLib.Communication, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Communication.1.0.3\lib\netstandard2.0\TwitchLib.Communication.dll</HintPath>
-    </Reference>
-    <Reference Include="TwitchLib.PubSub, Version=3.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.PubSub.3.0.3\lib\netstandard2.0\TwitchLib.PubSub.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions\ActionBase.cs" />
     <Compile Include="Actions\BrowserSourceAction.cs" />
+    <Compile Include="Actions\SourceAnimationAction.cs" />
     <Compile Include="Actions\SourceVolumeAdjusterAction.cs" />
     <Compile Include="Actions\SmartSceneSwitcherAction.cs" />
     <Compile Include="Actions\SourceVolumeSetterAction.cs" />
@@ -252,10 +260,34 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Images\animationAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\animationAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\categoryIcon%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\categoryIcon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\cpuAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\cpuAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\droppedAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\droppedAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\filterAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\filterAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\icon%402x.png">
@@ -276,31 +308,40 @@
     <Content Include="Images\pluginIcon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\caret.svg">
+    <Content Include="Images\replayAction%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\check.png">
+    <Content Include="Images\replayAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\check.svg">
+    <Content Include="Images\studioAction%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\elg_calendar.svg">
+    <Content Include="Images\studioAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\elg_calendar_inv.svg">
+    <Content Include="Images\transitionAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\transitionAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\volumeAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\volumeAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\DroppedFrames.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\rangeTooltip.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PropertyInspector\rangeTooltip.js">
+    <Content Include="PropertyInspector\SourceAnimation.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\SmartSceneSwitcher.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceAnimation.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\SourceVolumeAdjuster.js">
@@ -378,15 +419,6 @@
     <Content Include="PropertyInspector\OBSTools.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PropertyInspector\rcheck.svg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PropertyInspector\sdpi.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PropertyInspector\sdtools.common.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="PropertyInspector\setup.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -419,10 +451,15 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\DotNet\OTI.Shared\OTI.Shared.csproj">
+      <Project>{86096883-9575-4a6d-8b29-434d9d7b9601}</Project>
+      <Name>OTI.Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\obs-websocket-dotnet\obs-websocket-dotnet\obs-websocket-dotnet.csproj">
       <Project>{c8668815-f21e-49c0-8f1a-58bc698153af}</Project>
       <Name>obs-websocket-dotnet</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

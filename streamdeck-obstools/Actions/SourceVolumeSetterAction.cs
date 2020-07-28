@@ -100,8 +100,7 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                float volumeFloat = volume / 100f;
-                OBSManager.Instance.SetSourceVolume(Settings.SourceName, volumeFloat);
+                OBSManager.Instance.SetSourceVolume(Settings.SourceName, volume);
             }
             else
             {
@@ -129,8 +128,7 @@ namespace BarRaider.ObsTools.Actions
                         }
                         else
                         {
-                            int volume = (int)(volumeInfo.Volume * 100);
-                            await Connection.SetTitleAsync($"{volume}%");
+                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume,1)} db");
                         }
                     }
                 }

@@ -22,3 +22,17 @@
 function checkSettings(payload) {
     console.log("Checking Settings");
 }
+
+function exportSettings() {
+    console.log("Export settings...");
+    var payload = {};
+    payload.property_inspector = 'exportSettings';
+    sendPayloadToPlugin(payload);
+}
+
+function importSettings() {
+    console.log("Import settings...");
+    var payload = {};
+    payload.property_inspector = 'importSettings';
+    sendPayloadToPlugin(payload);
+}

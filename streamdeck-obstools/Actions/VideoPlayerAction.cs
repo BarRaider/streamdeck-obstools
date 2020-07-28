@@ -3,6 +3,7 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OTI.Shared;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -91,13 +92,65 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
+
+            Connection.OnSendToPlugin += Connection_OnSendToPlugin;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             InitializeSettings();
         }
 
+        private async void Connection_OnSendToPlugin(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.SendToPlugin> e)
+        {
+            var payload = e.Event.Payload;
+
+            if (payload["property_inspector"] != null)
+            {
+                string fileName = String.Empty;
+                switch (payload["property_inspector"].ToString().ToLowerInvariant())
+                {
+                    case "exportsettings":
+                        fileName = PickersUtil.Pickers.SaveFilePicker("Export Video Player Settings", null, "OBS Video Player files (*.obsvplay)|*.obsvplay|All files (*.*)|*.*");
+                        if (!string.IsNullOrEmpty(fileName))
+                        {
+                            Logger.Instance.LogMessage(TracingLevel.INFO, $"Exporting settings to {fileName}");
+                            File.WriteAllText(fileName, JsonConvert.SerializeObject(settings));
+                            await Connection.ShowOk();
+                        }
+                        break;
+                    case "importsettings":
+                        fileName = PickersUtil.Pickers.OpenFilePicker("Import Video Player Settings", null, "OBS Video Player files (*.obsvplay)|*.obsvplay|All files (*.*)|*.*");
+                        if (!string.IsNullOrEmpty(fileName))
+                        {
+                            if (!File.Exists(fileName))
+                            {
+                                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ImportSettings called but file does not exist {fileName}");
+                                await Connection.ShowAlert();
+                                return;
+                            }
+
+                            try
+                            {
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"Importing settings from {fileName}");
+                                string json = File.ReadAllText(fileName);
+                                settings = JsonConvert.DeserializeObject<PluginSettings>(json);
+                                await SaveSettings();
+                                await Connection.ShowOk();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ImportSettings exception:\n\t{ex}");
+                                await Connection.ShowAlert();
+                                return;
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+
         public override void Dispose()
         {
+            Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             base.Dispose();
         }
 
@@ -126,7 +179,15 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                await OBSManager.Instance.PlayInstantReplay(Settings.VideoFileName, Settings.SourceName, 0, hideReplaySettings, Settings.MuteSound, speed);
+                await OBSManager.Instance.PlayInstantReplay(new SourcePropertyVideoPlayer()
+                {
+                    VideoFileName = Settings.VideoFileName,
+                    SourceName = Settings.SourceName,
+                    DelayPlayStartSeconds = 0,
+                    HideReplaySeconds = hideReplaySettings,
+                    MuteSound = Settings.MuteSound,
+                    PlaySpeedPercent = speed
+                });
             }
         }
 
@@ -159,7 +220,7 @@ namespace BarRaider.ObsTools.Actions
         #endregion
 
         #region Private Methods
-        
+
         private void InitializeSettings()
         {
             if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))

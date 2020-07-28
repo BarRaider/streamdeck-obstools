@@ -3,6 +3,23 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
+## New in v1.7
+***NOTE: This version requires upgrading to OBS Websocket v4.8 (!!) see: https://barraider.com/obs***
+
+NOTE2: There is now a dedicated channel to speak about the OBS Animations. Reach out to @BarRaider to join.
+
+What's New:
+- Introducing `Source Animation` action! Create cool transitions and effects for your sources with one click!! :kreygasm10000: 
+    - Phases allow multi-phased animations, without the need of a multi-action
+	- Easily create animation with the `RECORD` feature: 1. Place source at starting position, then press 'Record'. 2. Move/Modify source to end result and then press 'End Recording' => The plugin will automatically calculate and input the changes.
+	- Import/Export Settings allows you to share your animations (or keep a backup)
+    - Options to hide source/remove filter at various stages
+- New Studio Mode Toggle action allows you to quickly toggle Studio/Preview mode on and off.
+- Multi-Action support for Smart Scene Switcher
+    - Behavior can now be customized when inside the multi-action (Standard, Force Studio, Force Live)
+- Upgraded to OBS Websocket 4.8
+- Refreshed the icons to better reflect each action
+
 ## New in v1.6
 - `Source Volume` allows increasing/decreasing/setting the volume of an audio source
 - Support for modifying the speed of Videos/Instant Replay (great when you want to do a slow mo)

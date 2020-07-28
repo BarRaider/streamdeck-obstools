@@ -173,7 +173,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (payload.IsInMultiAction)
                 {
-                    HandleMultiAction(payload);
+                    await HandleMultiAction(payload);
                 }
                 else
                 {
@@ -228,7 +228,7 @@ namespace BarRaider.ObsTools.Actions
             }
             else // Global settings do not exist
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"InstantReplayAction received empty payload: {payload}");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"InstantReplayAction received empty payload: {payload}, creating new instance");
                 global = new GlobalSettings();
                 SetGlobalSettings();
             }
@@ -308,7 +308,7 @@ namespace BarRaider.ObsTools.Actions
                 }
                 else // Not streaming or maybe the buffer is not in a stable state
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot change mode: IsStreaming {OBSManager.Instance.IsStreaming} IsRecording: {OBSManager.Instance.IsRecording} Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot change mode: IsStreaming {OBSManager.Instance.IsStreaming} IsRecording: {OBSManager.Instance.IsRecording} Status: {OBSManager.Instance.InstantReplyStatus}");
                     Connection.ShowAlert();
                 }
             }
@@ -411,7 +411,7 @@ namespace BarRaider.ObsTools.Actions
             }
             else
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot Save Status: {OBSManager.Instance.InstantReplyStatus.ToString()}");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay not enabled. Status: {OBSManager.Instance.InstantReplyStatus}");
                 await Connection.ShowAlert();
             }
         }

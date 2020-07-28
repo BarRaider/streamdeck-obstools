@@ -5,14 +5,14 @@
     <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
     <meta name=apple-mobile-web-app-capable content=yes>
     <meta name=apple-mobile-web-app-status-bar-style content=black>
-    <title>BarRaider's OBS Tools</title>
-    <link rel="stylesheet" href="sdpi.css">
-    <link rel="stylesheet" href="rangeTooltip.css">
-    <script src="sdtools.common.js"></script>
+    <title>OBS Tools Instant Replay</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.css">
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
     <script src="setup.js"></script>
     <script src="InstantReplay.js"></script>
     <script src="OBSTools.js"></script>
-    <script src="rangeTooltip.js"></script>
 </head>
 <body>
     <div class="sdpi-wrapper">
@@ -70,7 +70,7 @@
             <div class="sdpi-item" id="dvDirectory">
                 <div class="sdpi-item-label">Replays Directory</div>
                 <input class="sdpi-item-value sdProperty" placeholder="c:\obs\recordings" value="" id="replayDirectory">
-                <button class="sdpi-item-value max20 leftMargin10" onclick="setSettings()">Save</button>
+                <button class="sdpi-item-value max20 leftMargin0" onclick="setSettings()">Save</button>
             </div>
             <div class="sdpi-item" id="dvSourceName">
                 <div class="sdpi-item-label">Media Source Name</div>

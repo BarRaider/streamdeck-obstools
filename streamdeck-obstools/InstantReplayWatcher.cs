@@ -122,7 +122,17 @@ namespace BarRaider.ObsTools
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher new file created: {e.Name}");
 
-            OBSManager.Instance.PlayInstantReplay(e.FullPath, sourceName, delayReplaySeconds, hideReplaySeconds, muteSound, playSpeed);            
+
+
+            OBSManager.Instance.PlayInstantReplay(new OTI.Shared.SourcePropertyVideoPlayer()
+            {
+                VideoFileName = e.FullPath,
+                SourceName = sourceName,
+                DelayPlayStartSeconds = delayReplaySeconds,
+                HideReplaySeconds = hideReplaySeconds,
+                MuteSound = muteSound,
+                PlaySpeedPercent = playSpeed
+            });
         }
 
         #endregion

@@ -19,6 +19,14 @@ namespace BarRaider.ObsTools.Actions
     //          BarRaider's Hall Of Fame
     // Subscriber: Pokidj (Gifted by Flewp)
     // Flewp - Tip: $10
+    // Subscriber: justgiggz
+    // 1 Bits: nubby_ninja
+    // 30.69 Bits: drewwatchyou
+    // Subscriber: Nachtmeister666
+    // 29 Bits: LlamaCadu
+    //---------------------------------------------------
+    //          Honorary Mention
+    //  Marbles On Stream Winner: TheRickBlack
     //---------------------------------------------------
     [PluginActionId("com.barraider.obstools.studiomodetoggle")]
     public class StudioModeToggleAction : ActionBase
@@ -71,26 +79,19 @@ namespace BarRaider.ObsTools.Actions
             base.Dispose();
         }
 
-        public async override void KeyPressed(KeyPayload payload)
+        public override void KeyPressed(KeyPayload payload)
         {
             baseHandledKeypress = false;
             base.KeyPressed(payload);
 
             if (!baseHandledKeypress)
             {
-                OBSManager.Instance.ToggleStudioMode();
-                return;
-
-                if (payload.IsInMultiAction && payload.UserDesiredState == 0 && !OBSManager.Instance.IsStudioModeEnabled()) // Multiaction mode, check if desired state is 0 (0==On, 1==Off, 2==Toggle) 
+                if (payload.IsInMultiAction)
                 {
-                    OBSManager.Instance.StartStudioMode();
+                    HandleMultiAction(payload.UserDesiredState);
+                    return;
                 }
-                else if (payload.IsInMultiAction && payload.UserDesiredState == 1 && OBSManager.Instance.IsStudioModeEnabled()) // Multiaction mode, check if desired state is 1 (0==On, 1==Off, 2==Toggle)  
-                {
-                    OBSManager.Instance.StopStudioMode();
-                }
-                else if (!payload.IsInMultiAction || 
-                         (payload.IsInMultiAction && payload.UserDesiredState == 2)) // Not in a multi action or mode is "toggle"
+                else // Not a multi action, perform a normal toggle.
                 {
                     if (OBSManager.Instance.IsStudioModeEnabled())
                     {
@@ -113,7 +114,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync($"{(OBSManager.Instance.IsRecording ? "🔴" : "🔲")}");
+                await Connection.SetTitleAsync($"{(OBSManager.Instance.IsStudioModeEnabled() ? "🟢" : "🔲")}");
             }
         }
 
@@ -130,6 +131,19 @@ namespace BarRaider.ObsTools.Actions
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
+        }
+
+        private void HandleMultiAction(uint desiredState)
+        {
+            // MultiAction: (0==Toggle, 1==On, 2==Off) 
+            if ((desiredState == 1 || desiredState == 0) && !OBSManager.Instance.IsStudioModeEnabled()) // Desired state is on, and we're NOT in studio mode so Enable
+            {
+                OBSManager.Instance.StartStudioMode();
+            }
+            else if ((desiredState == 2 || desiredState == 0) && OBSManager.Instance.IsStudioModeEnabled()) // Desired state is off, and we ARE in studio mode so Disable
+            {
+                OBSManager.Instance.StopStudioMode();
+            }
         }
         #endregion
     }

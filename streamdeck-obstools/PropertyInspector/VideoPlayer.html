@@ -5,14 +5,14 @@
     <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
     <meta name=apple-mobile-web-app-capable content=yes>
     <meta name=apple-mobile-web-app-status-bar-style content=black>
-    <title>BarRaider's OBS Tools</title>
-    <link rel="stylesheet" href="sdpi.css">
-    <link rel="stylesheet" href="rangeTooltip.css">
-    <script src="sdtools.common.js"></script>
+    <title>OBS Tools Video Player</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.css">
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
     <script src="setup.js"></script>
     <script src="VideoPlayer.js"></script>
     <script src="OBSTools.js"></script>
-    <script src="rangeTooltip.js"></script>
 
 </head>
 <body>
@@ -59,6 +59,21 @@
         </div>
         <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
     </div>
+    <hr />
+    <div class="sdpi-item" id="dvExport">
+        <div class="sdpi-item-label">Export</div>
+        <button class="sdpi-item-value" onclick="exportSettings()">Export Settings</button>
+    </div>
+    <div class="sdpi-item" id="dvImport">
+        <div class="sdpi-item-label">Import</div>
+        <button class="sdpi-item-value" onclick="importSettings()">Import Settings</button>
+    </div>
+    <div class="sdpi-item">
+        <details class="message">
+            <summary>Note: Importing will overwrite all existing settings</summary>
+        </details>
+    </div>
+    <hr />
     <hr />
     <div class="sdpi-item" id="dvReset">
         <div class="sdpi-item-label">Reset Settings</div>

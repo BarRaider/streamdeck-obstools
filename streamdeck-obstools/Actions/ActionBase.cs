@@ -50,6 +50,10 @@ namespace BarRaider.ObsTools.Actions
         protected void CheckServerInfoExists()
         {
             settings.ServerInfoExists = ServerManager.Instance.ServerInfoExists;
+            if (!settings.ServerInfoExists)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"No server info for action {GetType()}");
+            }
             SaveSettings();
         }
 
@@ -104,7 +108,7 @@ namespace BarRaider.ObsTools.Actions
         
             if (payload["property_inspector"] != null)
             {
-                switch (payload["property_inspector"].ToString().ToLower())
+                switch (payload["property_inspector"].ToString().ToLowerInvariant())
                 {
                     case "setserverinfo":
                         string ip = ((string)payload["ip"]).Trim();
@@ -135,6 +139,7 @@ namespace BarRaider.ObsTools.Actions
             bool serverInfoExists = ServerManager.Instance.ServerInfoExists;
             if (settings.ServerInfoExists != serverInfoExists)
             {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Server info is now {serverInfoExists} for action {GetType()}");
                 serverSettingsChanged = true;
                 settings.ServerInfoExists = serverInfoExists;
                 SaveSettings();

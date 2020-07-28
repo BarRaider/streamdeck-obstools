@@ -121,7 +121,7 @@ namespace BarRaider.ObsTools
                     TokenLastRefresh = serverInfo.TokenLastRefresh
 
                 };
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: Token initialized. Last refresh date was: {token.TokenLastRefresh}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: Token initialized. Last refresh date was: {token.TokenLastRefresh}. Server: {token?.Ip}:{token?.Port}");
                 TokensChanged?.Invoke(this, new ServerInfoEventArgs(new ServerInfo() { Ip = token.Ip, Port = token.Port, Password = token.Password, TokenLastRefresh = token.TokenLastRefresh }));
             }
             catch (Exception ex)
@@ -158,7 +158,7 @@ namespace BarRaider.ObsTools
                     Logger.Instance.LogMessage(TracingLevel.INFO, "ServerManager saving serverinfo to global");
                 }
                 GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(global));
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: New token saved. Last refresh date was: {token.TokenLastRefresh} IP: {token?.Ip}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"ServerManager: New token saved. Last refresh date was: {token.TokenLastRefresh} Server: {token?.Ip}:{token?.Port}");
             }
             catch (Exception ex)
             {

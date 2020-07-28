@@ -118,8 +118,8 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledKeypress)
             {
-                string urlOrFile = String.Empty;
-                
+                string urlOrFile;
+
                 // Validate parameters based on is this a local file or a URL
                 if (Settings.LocalFile)
                 {

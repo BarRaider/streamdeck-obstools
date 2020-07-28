@@ -1,7 +1,9 @@
 ﻿using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog.Fluent;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using System;
@@ -82,15 +84,18 @@ namespace BarRaider.ObsTools.Actions
         private static readonly object objRevertTransition = new object();
 
         private const int SCENE_BORDER_SIZE = 20;
-        private const int STRING_SPLIT_SIZE = 7;
         private const int MAX_EXPERIMENTAL_RETRIES = 5;
         private const string DEFAULT_PREVIEW_COLOR = "#FFA500";
         private const string DEFAULT_LIVE_COLOR = "#FF0000";
+        private const int SNAPSHOT_COOLDOWN_TIME_MS = 5000;
 
         private string revertTransition = String.Empty;
         private GlobalSettings global;
+        private TitleParameters titleParameters;
         private int experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
-
+        private bool isFetchingScreenshot = false;
+        private string lastSnapshotImageData = null;
+        private DateTime lastSnapshotTime = DateTime.MinValue;
 
         #endregion
         public SmartSceneSwitcherAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -103,6 +108,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
+            Connection.OnTitleParametersDidChange += Connection_OnTitleParametersDidChange;
             GlobalSettingsManager.Instance.RequestGlobalSettings();
             OBSManager.Instance.Connect();
             OBSManager.Instance.SceneChanged += SceneChanged_RevertTransition;
@@ -112,6 +118,7 @@ namespace BarRaider.ObsTools.Actions
 
         public override void Dispose()
         {
+            Connection.OnTitleParametersDidChange -= Connection_OnTitleParametersDidChange;
             OBSManager.Instance.SceneChanged -= SceneChanged_RevertTransition;
             base.Dispose();
         }
@@ -126,50 +133,54 @@ namespace BarRaider.ObsTools.Actions
                 return;
             }
 
-            if (OBSManager.Instance.IsConnected)
+            if (!OBSManager.Instance.IsConnected)
             {
-                if (payload.IsInMultiAction && payload.UserDesiredState > 0) // 0 = Standard, 1 = Force Studio, 2 = Force Live
-                {
-                    if (HandleMultiActionKeypress(payload.UserDesiredState))
-                    {
-                        await Connection.ShowOk();
-                    }
-                    else
-                    {
-                        await Connection.ShowAlert();
-                    }
-                    return;
-                }
+                Logger.Instance.LogMessage(TracingLevel.WARN, "Key pressed but OBS is not connected");
+                await Connection.ShowAlert();
+                return;
+            }
 
-                // Check if should move to Studio mode
-                if (OBSManager.Instance.IsStudioModeEnabled() && OBSManager.Instance.CurrentPreviewSceneName != Settings.SceneName)
+            if (payload.IsInMultiAction && payload.UserDesiredState > 0) // 0 = Standard, 1 = Force Studio, 2 = Force Live
+            {
+                if (HandleMultiActionKeypress(payload.UserDesiredState))
                 {
-                    if (OBSManager.Instance.SetPreviewScene(Settings.SceneName))
-                    {
-                        await Connection.ShowOk();
-                    }
-                    else
-                    {
-                        await Connection.ShowAlert();
-                    }
+                    await Connection.ShowOk();
                 }
                 else
                 {
-                    if (HandleTransitionToLive())
-                    {
-                        await Connection.ShowOk();
-                    }
-                    else
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, "HandleTransitionToLive returned false");
-                        await Connection.ShowAlert();
-                    }
+                    await Connection.ShowAlert();
                 }
-
+                return;
             }
+
+            // Check if should move to Studio mode
+            if (OBSManager.Instance.IsStudioModeEnabled() && OBSManager.Instance.CurrentPreviewSceneName != Settings.SceneName)
+            {
+                if (OBSManager.Instance.SetPreviewScene(Settings.SceneName))
+                {
+                    await Connection.ShowOk();
+                }
+                else
+                {
+                    await Connection.ShowAlert();
+                }
+            }
+            else
+            {
+                if (HandleTransitionToLive())
+                {
+                    await Connection.ShowOk();
+                }
+                else
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "HandleTransitionToLive returned false");
+                    await Connection.ShowAlert();
+                }
+            }
+
         }
 
-        public override void KeyReleased(KeyPayload payload)  { }
+        public override void KeyReleased(KeyPayload payload) { }
 
         public async override void OnTick()
         {
@@ -178,10 +189,30 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync(SplitLongWord(Settings.SceneName));
-                if (!String.IsNullOrEmpty(Settings.SceneName))
+                if (String.IsNullOrEmpty(Settings.SceneName) || titleParameters == null)
                 {
-                    await DrawSceneBorder();
+                    return;
+                }
+                await Connection.SetTitleAsync(GraphicsTools.WrapStringToFitImage(Settings.SceneName, titleParameters)); 
+                if (!String.IsNullOrEmpty(Settings.SceneName) && !isFetchingScreenshot)
+                {
+                    // Run in task due to possible long wait times
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            isFetchingScreenshot = true;
+                            _ = DrawSceneBorder();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"SmartSceneSwitcherAction OnTick Exception: {ex}");
+                        }
+                        finally
+                        {
+                            isFetchingScreenshot = false;
+                        }
+                    });
                 }
             }
         }
@@ -193,7 +224,7 @@ namespace BarRaider.ObsTools.Actions
             SaveSettings();
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) 
+        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
             // Global Settings exist
             if (payload?.Settings != null && payload.Settings.Count > 0)
@@ -214,7 +245,7 @@ namespace BarRaider.ObsTools.Actions
             }
             else // Global settings do not exist
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"SmartSceneSwitcher received empty payload: {payload}");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"SmartSceneSwitcher received empty payload: {payload}, creating new instance");
                 global = new GlobalSettings();
                 SetGlobalSettings();
             }
@@ -254,24 +285,37 @@ namespace BarRaider.ObsTools.Actions
                     borderColor = ColorTranslator.FromHtml(Settings.PreviewColor);
                 }
 
-                if (Settings.ShowPreview)
+                if (OBSManager.Instance.IsConnected && Settings.ShowPreview)
                 {
                     try
                     {
-                        // Draw image preview
-                        var snapshot = OBSManager.Instance.GetSourceSnapshot(Settings.SceneName);
-                        if (snapshot != null && snapshot.ImageData != null)
+                        if ((DateTime.Now - lastSnapshotTime).TotalMilliseconds <= SNAPSHOT_COOLDOWN_TIME_MS)
                         {
-                            experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
-                            using (Image background = Tools.Base64StringToImage(snapshot.ImageData))
+                            using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
                             {
                                 graphics.DrawImage(background, new Rectangle(0, 0, width, height));
                             }
                         }
-                        else if (snapshot == null)
+                        else
                         {
-                            Logger.Instance.LogMessage(TracingLevel.WARN, $"DrawSceneBorder GetSourceSnapshot returned null");
-                            experimentalScreenshotRetries--;
+                            // Get update snapshot of source
+                            var snapshot = OBSManager.Instance.GetSourceSnapshot(Settings.SceneName);
+                            if (snapshot == null)
+                            {
+                                Logger.Instance.LogMessage(TracingLevel.WARN, $"DrawSceneBorder GetSourceSnapshot returned null");
+                                experimentalScreenshotRetries--;
+                            }
+                            else if (snapshot != null && !String.IsNullOrEmpty(snapshot.ImageData))
+                            {
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"DrawSceneBorder Got updated snapshot for {Settings.SceneName}");
+                                lastSnapshotTime = DateTime.Now;
+                                lastSnapshotImageData = snapshot.ImageData;
+                                experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
+                                using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
+                                {
+                                    graphics.DrawImage(background, new Rectangle(0, 0, width, height));
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -289,30 +333,11 @@ namespace BarRaider.ObsTools.Actions
                 }
 
                 // Draw border
-                graphics.DrawRectangle(new Pen(borderColor, SCENE_BORDER_SIZE), new Rectangle(0, 0, width, height) );
+                graphics.DrawRectangle(new Pen(borderColor, SCENE_BORDER_SIZE), new Rectangle(0, 0, width, height));
 
                 await Connection.SetImageAsync(img);
                 graphics.Dispose();
             }
-        }
-
-        private string SplitLongWord(string word)
-        {
-            if (String.IsNullOrEmpty(word))
-            {
-                return word;
-            }
-
-            // Split up to 4 lines
-            for (int idx = 0; idx < 3; idx++)
-            {
-                int cutSize = STRING_SPLIT_SIZE * (idx + 1);
-                if (word.Length > cutSize)
-                {
-                    word = $"{word.Substring(0, cutSize)}\n{word.Substring(cutSize)}";
-                }
-            }
-            return word;
         }
 
         private void SceneChanged_RevertTransition(object sender, SceneChangedEventArgs e)
@@ -389,6 +414,11 @@ namespace BarRaider.ObsTools.Actions
                     break;
             }
             return false;
+        }
+
+        private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
+        {
+            titleParameters = e.Event.Payload.TitleParameters;
         }
 
         #endregion

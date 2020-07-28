@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>OBS Tools Source Animation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.css">
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
+    <script src="setup.js"></script>
+    <script src="OBSTools.js"></script>
+    <script src="SourceAnimation.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <details class="message">
+            <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
+        </details>
+        <div class="sdpi-item" id="dvSourceName">
+            <div class="sdpi-item-label">Source Name</div>
+            <input class="sdpi-item-value sdProperty" id="sourceName" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="select_single">
+            <div class="sdpi-item-label" id="stepsLabel">Phases</div>
+            <select class="sdpi-item-value select max40" id="phasesDropdown" oninput="updatePhase()" value="0">
+            </select>
+            <button class="sdpi-item-value max20" onclick="delAnimationPhase()">Delete</button>
+        </div>
+        <div class="sdpi-item" id="dvAddPhase">
+            <button class="sdpi-item-value max40" onclick="addAnimationPhaseAbove()">Add Phase Above</button>
+            <button class="sdpi-item-value max40" onclick="addAnimationPhaseBelow()">Add Phase Below</button>
+        </div>
+        <details class="message titleAlignedSmall">
+            <summary>All settings below are relevant to the above phase:</summary>
+        </details>
+        <div class="sdpi-item" id="dvPhaseName">
+            <div class="sdpi-item-label">Phase Name</div>
+            <input class="sdpi-item-value sdProperty" id="phaseName" oninput="setSettings()">
+        </div>
+        <div type="range" class="sdpi-item sdShowTooltip" id="dvAnimationLength">
+            <div class="sdpi-item-label" id="animationLabel">Aprox. Time</div>
+            <div class="sdpi-item-value">
+                <span class="clickable" value="0">100</span>
+                <input type="range" min="100" max="10000" value=1000 list="numbers" data-suffix=" ms" class="sdProperty" id="animationLength" oninput="setSettings()">
+                <span class="clickable" value="10000">10000</span>
+                <label for="animationLength" class="rangeLabel"></label>
+            </div>
+        </div>
+        <div type="range" class="sdpi-item sdShowTooltip" id="dvSteps">
+            <div class="sdpi-item-label" id="stepsLabel">Steps</div>
+            <div class="sdpi-item-value">
+                <span class="clickable" value="1">1</span>
+                <input type="range" min="1" max="600" value=100 list="numbers" data-suffix=" steps" class="sdProperty" id="steps" oninput="setSettings()">
+                <span class="clickable" value="600">600</span>
+                <label for="steps" class="rangeLabel"></label>
+            </div>
+        </div>
+        <details class="message titleAlignedSmall">
+            <summary>When modifying integer properties like Opacity/Crop, range of change divided by number of steps must be a whole number! <pre>(end value - start value) / steps</pre>^ The above must equal a whole number</summary>
+        </details>
+        <div class="sdpi-item-label empty"></div>
+        <div type="checkbox" class="sdpi-item" id="dvResetDefaults">
+            <div class="sdpi-item-label">Set Defaults</div>
+            <div class="sdpi-item-value">
+                <input id="resetDefaults" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="resetDefaults" class="sdpi-item-label"><span></span>Reset settings before animating</label>
+            </div>
+        </div>
+        <div type="checkbox" class="sdpi-item" id="dvHideSource">
+            <div class="sdpi-item-label">Start behaviour</div>
+            <div class="sdpi-item-value">
+                <input id="hideSourceAtStart" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="hideSourceAtStart" class="sdpi-item-label"><span></span>Hide source before phase starts</label>
+            </div>
+        </div>
+        <div type="checkbox" class="sdpi-item" id="dvHideSource">
+            <div class="sdpi-item-label">End behaviour</div>
+            <div class="sdpi-item-value">
+                <input id="hideSourceAtEnd" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="hideSourceAtEnd" class="sdpi-item-label"><span></span>Hide source at end of phase</label>
+            </div>
+        </div>
+        <div type="checkbox" class="sdpi-item" id="dvRemoveFilter">
+            <div class="sdpi-item-label empty"></div>
+            <div class="sdpi-item-value">
+                <input id="removeFilterAtEnd" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="removeFilterAtEnd" class="sdpi-item-label"><span></span>Remove filter at end of phase</label>
+            </div>
+        </div>
+        <hr />
+        <details class="message">
+            <summary>Record Animation: <button class="sdpi-item-value max40" id="btnStartRecording" onclick="startRecording()">Record</button><button class="sdpi-item-value max40" id="btnEndRecording" onclick="endRecording()">End Recording</button></summary>
+        </details>
+        <details class="message titleAlignedSmall">
+            <summary>1. Place source at starting position, then press 'Record'. 2. Move/Modify source to end result and then press 'End Recording'</summary>
+        </details>
+        <hr />
+        <details class="message">
+            <summary>Manual Animation:</summary>
+        </details>
+        <div class="sdpi-item" id="select_single">
+            <div class="sdpi-item-dvFirstPropertyName">Property Name</div>
+            <select class="sdpi-item-value select sdProperty" id="propertyName" oninput="setSettings()" value="position.x">
+                <option value="9">Alignment</option>
+                <option value="13">Brightness</option>
+                <option value="12">Contrast</option>
+                <option value="4">Crop Bottom</option>
+                <option value="5">Crop Left</option>
+                <option value="6">Crop Right</option>
+                <option value="7">Crop Top</option>
+                <option value="11">Gamma</option>
+                <option value="2">Height</option>
+                <option value="15">Hue</option>
+                <option value="10">Opacity</option>
+                <option value="8">Rotation</option>
+                <option value="14">Saturation</option>
+                <option value="3">Width</option>
+                <option value="0">X Position</option>
+                <option value="1">Y Position</option>
+            </select>
+        </div>
+        <details class="message info iconLeft">
+            <summary class="summaryIconPadding">For list of valid values <b>*click here*</b></summary>
+            <p>
+                <b>Alignment Values:</b>
+                Center: 0
+                Center-Left: 1
+                Center-Right: 2
+                Top-Center: 4
+                Top-Left: 5
+                Top-Right: 6
+                Bottom-Center: 8
+                Bottom-Left: 9
+                Bottom-Right: 10
+            </p>
+            <p>
+                <b>Brightness Range:</b> -1.0 to 1.0<br />
+                <b>Contrast Range:</b> -2.0 to 2.0<br />
+                <b>Gamma Range:</b> -3.0 to 3.0<br />
+                <b>Hue Range:</b> -180.0 to 180.0<br />
+                <b>Opacity Range:</b> 0 to 100<br />
+                <b>Saturation Range:</b> -1.0 to 5.0<br />
+            </p>
+            <p>
+                <b>Rotation Values:</b> One full rotation is 0 to 360, Two full rotations is 0 to 720 and so on...
+            </p>
+        </details>
+        <div class="sdpi-item" id="dvFirstPropertyValues">
+            <div class="sdpi-item-label">Start Value</div>
+            <input class="sdpi-item-value sdProperty" id="startValue" oninput="setSettings()">
+
+        </div>
+        <div class="sdpi-item" id="dvFirstPropertyValues">
+            <div class="sdpi-item-label">End Value</div>
+            <input class="sdpi-item-value sdProperty" id="endValue" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvAddAnimation">
+            <div class="sdpi-item-label">Save</div>
+            <button class="sdpi-item-value max40" onclick="addAnimation()">Add Animation</button>
+        </div>
+        <hr />
+        <div id="sdWrapper">
+            <div class="sdpi-item" id="dvAnimations">
+                <div class="sdpi-item-label">Animations</div>
+                <select class="sdpi-item-value select sdProperty sdList" id="animationActions" sdListTextProperty="display" sdListValueProperty="display" size="4"></select>
+            </div>
+        </div>
+        <div class="sdpi-item" id="dvRemoveAnimation">
+            <div class="sdpi-item-label">Remove</div>
+            <button class="sdpi-item-value max40" onclick="removeAnimation()">Remove Animation</button>
+        </div>
+        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
+    </div>
+    <hr />
+    <div class="sdpi-item" id="dvExport">
+        <div class="sdpi-item-label">Export</div>
+        <button class="sdpi-item-value" onclick="exportSettings()">Export Settings</button>
+    </div>
+    <div class="sdpi-item" id="dvImport">
+        <div class="sdpi-item-label">Import</div>
+        <button class="sdpi-item-value" onclick="importSettings()">Import Settings</button>
+    </div>
+    <div class="sdpi-item">
+        <details class="message">
+            <summary>Note: Importing will overwrite all existing settings</summary>
+        </details>
+    </div>
+    <hr />
+    <div class="sdpi-item" id="dvReset">
+        <div class="sdpi-item-label">Reset Settings</div>
+        <button class="sdpi-item-value max20" onclick="resetPlugin()">Reset</button>
+        <p>Plugin will no longer communicate with OBS and will ask for a new configuration</p>
+    </div>
+    <div class="sdpi-item" id="dvHdn">
+        <input value="" type="hidden" id="serverInfoExists" class="sdProperty" oninput="setSettings()">
+        <input value="" type="hidden" id="selectedPhase" class="sdProperty" oninput="setSettings()">
+    </div>
+</body>
+</html>

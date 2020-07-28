@@ -65,7 +65,7 @@ namespace BarRaider.ObsTools.Actions
             base.Dispose();
         }
 
-        public async override void KeyPressed(KeyPayload payload)
+        public override void KeyPressed(KeyPayload payload)
         {
             baseHandledKeypress = false;
             base.KeyPressed(payload);

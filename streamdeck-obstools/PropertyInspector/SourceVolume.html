@@ -5,14 +5,14 @@
     <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
     <meta name=apple-mobile-web-app-capable content=yes>
     <meta name=apple-mobile-web-app-status-bar-style content=black>
-    <title>BarRaider's OBS Tools</title>
-    <link rel="stylesheet" href="sdpi.css">
-    <link rel="stylesheet" href="rangeTooltip.css">
-    <script src="sdtools.common.js"></script>
+    <title>OBS Tools Source Volume</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.css">
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
     <script src="setup.js"></script>
     <script src="SourceVolume.js"></script>
     <script src="OBSTools.js"></script>
-    <script src="rangeTooltip.js"></script>
 </head>
 <body>
     <div class="sdpi-wrapper">
@@ -26,9 +26,9 @@
         <div type="range" class="sdpi-item sdShowTooltip" id="dvVolume">
             <div class="sdpi-item-label" id="volumeLabel">Volume</div>
             <div class="sdpi-item-value">
-                <span class="clickable" value="0">0</span>
-                <input type="range" min="0" max="100" value=100 list="numbers" data-suffix="%" class="sdProperty" id="volume" oninput="setSettings()">
-                <span class="clickable" value="100">100</span>
+                <span class="clickable" value="0">-100</span>
+                <input type="range" min="-100" max="0" value=0 list="numbers" data-suffix=" db" class="sdProperty" id="volume" oninput="setSettings()">
+                <span class="clickable" value="100">0</span>
                 <label for="volume" class="rangeLabel"></label>
             </div>
         </div>

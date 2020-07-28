@@ -1,13 +1,11 @@
 ﻿using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
-using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
+using OTI.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,13 +17,17 @@ namespace BarRaider.ObsTools
 
         private const string CONNECTION_STRING = "ws://{0}:{1}";
         private const string REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE = "replay buffer already active";
-        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("4.7");
+        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("4.8");
+        private const int CONNECT_COOLDOWN_MS = 10000;
 
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
+        private static readonly object connectLock = new object();
         private readonly OBSWebsocket obs;
         private DateTime lastStreamStatus;
         private readonly System.Timers.Timer tmrCheckStatus = new System.Timers.Timer();
+        private DateTime lastConnectAttempt = DateTime.MinValue;
+
 
         #endregion
 
@@ -108,21 +110,33 @@ namespace BarRaider.ObsTools
         {
             if (!obs.IsConnected)
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
-                var serverInfo = ServerManager.Instance.ServerInfo;
-
-                if (serverInfo == null)
+                lock (connectLock)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Cannot connect, Server info missing");
-                    return;
-                }
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
+                    if (obs.IsConnected)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Connect: Already connected");
+                        return;
+                    }
 
-                Task.Run(() =>
-                {
+                    if ((DateTime.Now - lastConnectAttempt).TotalMilliseconds < CONNECT_COOLDOWN_MS)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Connect: In cooldown");
+                        return;
+                    }
+
+                    var serverInfo = ServerManager.Instance.ServerInfo;
+                    if (serverInfo == null)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.WARN, $"Connect: Server info missing");
+                        return;
+                    }
+
                     try
                     {
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect to {serverInfo.Ip}:{serverInfo.Port}");
-                        obs.WSTimeout = new TimeSpan(0, 0, 10);
+                        lastConnectAttempt = DateTime.Now;
+                        obs.WSTimeout = new TimeSpan(0, 0, 3);
                         obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                     }
                     catch (AuthFailureException)
@@ -134,7 +148,8 @@ namespace BarRaider.ObsTools
                     {
                         Logger.Instance.LogMessage(TracingLevel.ERROR, $"Connection Exception: {ex}");
                     }
-                });
+
+                }
             }
         }
 
@@ -405,61 +420,9 @@ namespace BarRaider.ObsTools
             });
         }
 
-        public Task<bool> PlayInstantReplay(string fileName, string sourceName, int delayReplaySeconds, int hideReplaySeconds, bool muteSound, int speedPercent)
+        public Task<bool> PlayInstantReplay(SourcePropertyVideoPlayer settings)
         {
-            return Task.Run(() =>
-            {
-                if (String.IsNullOrEmpty(sourceName))
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"PlayInstantReplay for file {fileName} failed. Missing source name");
-                    return false;
-                }
-
-                if (!File.Exists(fileName))
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"PlayInstantReplay for file {fileName} failed. File does not exist");
-                    return false;
-                }
-
-                if (obs.IsConnected)
-                {
-                    try
-                    {
-                        Thread.Sleep(delayReplaySeconds * 1000);
-                        obs.SetMute(sourceName, muteSound);
-                        obs.SetSourceRender(sourceName, false);
-                        var sourceSettings = obs.GetMediaSourceSettings(sourceName);
-                        sourceSettings.Media.IsLocalFile = true;
-                        sourceSettings.Media.LocalFile = fileName;
-                        sourceSettings.Media.SpeedPercent = speedPercent;
-
-                        obs.SetMediaSourceSettings(sourceSettings);
-                        Thread.Sleep(200);
-                        obs.SetSourceRender(sourceName, true);
-
-                        if (hideReplaySeconds > 0)
-                        {
-                            Task.Run(() =>
-                            {
-                                Thread.Sleep(hideReplaySeconds * 1000);
-                                obs.SetSourceRender(sourceName, false);
-                                Logger.Instance.LogMessage(TracingLevel.INFO, $"PlayInstantReplay AutoHid source {sourceName} after {hideReplaySeconds} seconds");
-                            });
-                        }
-
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"PlayInstantReplay for file {fileName} failed. Exception: {ex}");
-                    }
-                }
-                else
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"PlayInstantReplay for file {fileName} failed. OBS is not connected");
-                }
-                return false;
-            });
+            return AnimationManager.Instance.HandleMediaPlayer(obs, settings);
         }
 
         public VolumeInfo GetSourceVolume(string sourceName)
@@ -468,7 +431,7 @@ namespace BarRaider.ObsTools
             {
                 try
                 {
-                    return obs.GetVolume(sourceName);
+                    return obs.GetVolume(sourceName, true);
                 }
                 catch (Exception ex)
                 {
@@ -485,7 +448,7 @@ namespace BarRaider.ObsTools
                 try
                 {
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting volume for source {sourceName} to {volume}");
-                    obs.SetVolume(sourceName, volume);
+                    obs.SetVolume(sourceName, volume, true);
                     return true;
                 }
                 catch (Exception ex)
@@ -538,14 +501,37 @@ namespace BarRaider.ObsTools
             {
                 try
                 {
-                    return obs.TakeSourceScreenshot(sourceName, "png", null, 144, 144);
+                    return obs.TakeSourceScreenshot(sourceName, "png", null, 144);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceSnapshot Exception: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceSnapshot Exception for source {sourceName}: {ex}");
                 }
             }
             return null;
+        }
+
+        public bool AnimateSource(List<SourcePropertyAnimation> animationPhases)
+        {
+            try
+            {
+                if (animationPhases == null)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"AnimateSource - animationPhases is null");
+                    return false;
+                }
+
+                if (obs.IsConnected)
+                {
+                    AnimationManager.Instance.HandleAnimation(obs, animationPhases);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"AnimateSource Exception: {ex}");
+            }
+            return false;
         }
 
 
@@ -610,11 +596,17 @@ namespace BarRaider.ObsTools
         {
             if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
             {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo Exists - Connecting");
                 Connect();
             }
             else if (!ServerManager.Instance.ServerInfoExists)
             {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo does not exist - Disconnecting");
                 Disconnect();
+            }
+            else
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: Tokens changed - connection remains open");
             }
         }
 
@@ -702,6 +694,18 @@ namespace BarRaider.ObsTools
             return null;
         }
 
+        public List<SourcePropertyAnimationConfiguration> GetSourceProperties(string sourceName, out string errorMessage)
+        {
+            errorMessage = null;
+            if (IsConnected)
+            {
+                return AnimationManager.Instance.GetSourceProperties(obs, sourceName, out errorMessage);
+            }
+            return null;
+        }
+
+
+
         private void VerifyValidVersion(OBSVersion obsVersion)
         {
             IsValidVersion = false;
@@ -715,7 +719,7 @@ namespace BarRaider.ObsTools
             Version pluginVersion = new Version(obsVersion.PluginVersion);
             if (pluginVersion < MINIMUM_SUPPORTED_WEBSOCKET_VERSION)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"VerifyValidVersion - obs-websocket version is not up to date: {pluginVersion.ToString()} expected {MINIMUM_SUPPORTED_WEBSOCKET_VERSION.ToString()}");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"VerifyValidVersion - obs-websocket version is not up to date: {pluginVersion} expected {MINIMUM_SUPPORTED_WEBSOCKET_VERSION}");
                 Disconnect();
                 return;
             }

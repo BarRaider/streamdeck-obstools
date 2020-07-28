@@ -62,6 +62,7 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private const int DEFAULT_VOLUME_STEP = 5;
+        private const float MINIMAL_DB_VALUE = -95.8f;
 
         private int volumeStep = DEFAULT_VOLUME_STEP;
 
@@ -103,15 +104,14 @@ namespace BarRaider.ObsTools.Actions
                 var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
                 if (volumeInfo != null)
                 {
-                    int volume = (int)(volumeInfo.Volume * 100);
-                    float outputVolume = (volume + volumeStep) / 100f;
-                    if (outputVolume > 1)
-                    {
-                        outputVolume = 1;
-                    }
-                    if (outputVolume < 0)
+                    float outputVolume = volumeInfo.Volume + volumeStep;
+                    if (outputVolume > 0)
                     {
                         outputVolume = 0;
+                    }
+                    if (outputVolume < MINIMAL_DB_VALUE)
+                    {
+                        outputVolume = MINIMAL_DB_VALUE;
                     }
                     OBSManager.Instance.SetSourceVolume(Settings.SourceName, outputVolume);
                 }
@@ -142,8 +142,7 @@ namespace BarRaider.ObsTools.Actions
                         }
                         else
                         {
-                            int volume = (int)(volumeInfo.Volume * 100);
-                            await Connection.SetTitleAsync($"{volume}%");
+                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume, 1)} db");
                         }
                     }
                 }
