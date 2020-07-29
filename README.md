@@ -14,9 +14,10 @@ What's New:
 	- Easily create animation with the `RECORD` feature: 1. Place source at starting position, then press 'Record'. 2. Move/Modify source to end result and then press 'End Recording' => The plugin will automatically calculate and input the changes.
 	- Import/Export Settings allows you to share your animations (or keep a backup)
     - Options to hide source/remove filter at various stages
-- New Studio Mode Toggle action allows you to quickly toggle Studio/Preview mode on and off.
+- New `Studio Mode Toggle` action allows you to quickly toggle Studio/Preview mode on and off.
 - Multi-Action support for Smart Scene Switcher
     - Behavior can now be customized when inside the multi-action (Standard, Force Studio, Force Live)
+- `Video Player` action now supports Export/Import of settings to share your animations (or keep a backup)
 - Upgraded to OBS Websocket 4.8
 - Refreshed the icons to better reflect each action
 
