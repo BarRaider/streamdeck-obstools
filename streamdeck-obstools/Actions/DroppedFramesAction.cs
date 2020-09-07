@@ -78,6 +78,7 @@ namespace BarRaider.ObsTools.Actions
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
                 this.settings = PluginSettings.CreateDefaultSettings();
+                SaveSettings();
             }
             else
             {
@@ -108,12 +109,7 @@ namespace BarRaider.ObsTools.Actions
 
             }
 
-            // for debug only:
-            if (!isAlerting)
-            {
-                lastCountOfDroppedFrames--;
-            }
-            else
+            if (isAlerting)
             {
                 isAlerting = false;
             }
@@ -231,29 +227,31 @@ namespace BarRaider.ObsTools.Actions
             return Color.FromArgb(a, (int)r, (int)g, (int)b);
         }
 
-        private void TmrAlert_Elapsed(object sender, ElapsedEventArgs e)
+        private async void TmrAlert_Elapsed(object sender, ElapsedEventArgs e)
         {
             String message = lastCountOfDroppedFrames.ToString();
-            Bitmap img = Tools.GenerateGenericKeyImage(out Graphics graphics);
-            int height = img.Height;
-            int width = img.Width;
-
-            // Background
-            var bgBrush = new SolidBrush(GenerateStageColor(Settings.AlertColor, alertStage, TOTAL_ALERT_STAGES));
-            graphics.FillRectangle(bgBrush, 0, 0, width, height);          
-
-            var font = new Font("Verdana", 34, FontStyle.Bold);
-            var fgBrush = Brushes.White;
-            SizeF stringSize = graphics.MeasureString(message, font);
-            float stringPos = 0;
-            float stringHeight = Math.Abs((height - stringSize.Height)) / 2;
-            if (stringSize.Width < width)
+            using (Bitmap img = Tools.GenerateGenericKeyImage(out Graphics graphics))
             {
-                stringPos = Math.Abs((width - stringSize.Width)) / 2;
-            }
-            graphics.DrawString(message, font, fgBrush, new PointF(stringPos, stringHeight));
-            Connection.SetImageAsync(img);
+                int height = img.Height;
+                int width = img.Width;
 
+                // Background
+                var bgBrush = new SolidBrush(GenerateStageColor(Settings.AlertColor, alertStage, TOTAL_ALERT_STAGES));
+                graphics.FillRectangle(bgBrush, 0, 0, width, height);
+
+                var font = new Font("Verdana", 34, FontStyle.Bold, GraphicsUnit.Pixel);
+                var fgBrush = Brushes.White;
+                SizeF stringSize = graphics.MeasureString(message, font);
+                float stringPos = 0;
+                float stringHeight = Math.Abs((height - stringSize.Height)) / 2;
+                if (stringSize.Width < width)
+                {
+                    stringPos = Math.Abs((width - stringSize.Width)) / 2;
+                }
+                graphics.DrawString(message, font, fgBrush, new PointF(stringPos, stringHeight));
+                await Connection.SetImageAsync(img);
+                graphics.Dispose();
+            }
             alertStage = (alertStage + 1) % TOTAL_ALERT_STAGES;
         }
 

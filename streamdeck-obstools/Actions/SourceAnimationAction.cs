@@ -58,7 +58,8 @@ namespace BarRaider.ObsTools.Actions
                     HideSourceAtStart = false,
                     HideSourceAtEnd = false,
                     RemoveFilterAtEnd = false,
-                    IsRecording = false
+                    IsRecording = false,
+                    RepeatAmount = DEFAULT_REPEAT_AMOUNT.ToString()
                 };
                 return instance;
             }
@@ -98,6 +99,9 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "isRecording")]
             public bool IsRecording { get; set; }
+
+            [JsonProperty(PropertyName = "repeatAmount")]
+            public String RepeatAmount { get; set; }
         }
 
         protected SourceAnimationActionSettings Settings
@@ -118,8 +122,10 @@ namespace BarRaider.ObsTools.Actions
         }
 
         #region Private Members
+        private const int DEFAULT_REPEAT_AMOUNT = 0;
         private const string CURRENT_VERSION = "1.0";
         private int selectedPhase = 0;
+        private int loopAmount = DEFAULT_REPEAT_AMOUNT;
         private List<SourcePropertyAnimationConfiguration> recordingProperties;
 
         #endregion
@@ -128,6 +134,7 @@ namespace BarRaider.ObsTools.Actions
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
                 this.settings = SourceAnimationActionSettings.CreateDefaultSettings();
+                SaveSettings();
             }
             else
             {
@@ -168,7 +175,7 @@ namespace BarRaider.ObsTools.Actions
                 try
                 {
                     List<SourcePropertyAnimation> animationPhases = AnimationManager.Instance.ConvertUserSettingsToAnimations(Settings.ToAnimationUserSettings());
-                    OBSManager.Instance.AnimateSource(animationPhases);
+                    OBSManager.Instance.AnimateSource(animationPhases, loopAmount);
                 }
                 catch (Exception ex)
                 {
@@ -218,6 +225,11 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
+            if (!Int32.TryParse(Settings.RepeatAmount, out loopAmount))
+            {
+                Settings.RepeatAmount = DEFAULT_REPEAT_AMOUNT.ToString();
+            }
+
             if (Settings.AnimationPhases == null)
             {
                 Settings.AnimationPhases = new List<AnimationPhaseSettings>();

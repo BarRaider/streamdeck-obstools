@@ -36,10 +36,12 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     SceneName = String.Empty,
+                    Scenes = null,
                     OverrideTransition = true,
                     PreviewColor = DEFAULT_PREVIEW_COLOR,
                     LiveColor = DEFAULT_LIVE_COLOR,
-                    ShowPreview = false
+                    ShowPreview = false,
+                    CustomImage = String.Empty
                 };
                 return instance;
             }
@@ -61,6 +63,10 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "scenes")]
             public List<OBSScene> Scenes { get; set; }
+            
+            [FilenameProperty]
+            [JsonProperty(PropertyName = "customImage")]
+            public String CustomImage { get; set; }
         }
 
         protected PluginSettings Settings
@@ -96,6 +102,7 @@ namespace BarRaider.ObsTools.Actions
         private bool isFetchingScreenshot = false;
         private string lastSnapshotImageData = null;
         private DateTime lastSnapshotTime = DateTime.MinValue;
+        private Image customImage;
 
         #endregion
         public SmartSceneSwitcherAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -103,6 +110,7 @@ namespace BarRaider.ObsTools.Actions
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
                 this.settings = PluginSettings.CreateDefaultSettings();
+                SaveSettings();
             }
             else
             {
@@ -113,6 +121,7 @@ namespace BarRaider.ObsTools.Actions
             OBSManager.Instance.Connect();
             OBSManager.Instance.SceneChanged += SceneChanged_RevertTransition;
             CheckServerInfoExists();
+            InitializeSettings();
             LoadScenes();
         }
 
@@ -221,6 +230,7 @@ namespace BarRaider.ObsTools.Actions
         {
             Tools.AutoPopulateSettings(Settings, payload.Settings);
             SetGlobalSettings();
+            InitializeSettings();
             SaveSettings();
         }
 
@@ -285,50 +295,16 @@ namespace BarRaider.ObsTools.Actions
                     borderColor = ColorTranslator.FromHtml(Settings.PreviewColor);
                 }
 
-                if (OBSManager.Instance.IsConnected && Settings.ShowPreview)
+                if (OBSManager.Instance.IsConnected)
                 {
-                    try
-                    {
-                        if ((DateTime.Now - lastSnapshotTime).TotalMilliseconds <= SNAPSHOT_COOLDOWN_TIME_MS)
-                        {
-                            using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
-                            {
-                                graphics.DrawImage(background, new Rectangle(0, 0, width, height));
-                            }
-                        }
-                        else
-                        {
-                            // Get update snapshot of source
-                            var snapshot = OBSManager.Instance.GetSourceSnapshot(Settings.SceneName);
-                            if (snapshot == null)
-                            {
-                                Logger.Instance.LogMessage(TracingLevel.WARN, $"DrawSceneBorder GetSourceSnapshot returned null");
-                                experimentalScreenshotRetries--;
-                            }
-                            else if (snapshot != null && !String.IsNullOrEmpty(snapshot.ImageData))
-                            {
-                                Logger.Instance.LogMessage(TracingLevel.INFO, $"DrawSceneBorder Got updated snapshot for {Settings.SceneName}");
-                                lastSnapshotTime = DateTime.Now;
-                                lastSnapshotImageData = snapshot.ImageData;
-                                experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
-                                using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
-                                {
-                                    graphics.DrawImage(background, new Rectangle(0, 0, width, height));
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"DrawSceneBorder GetSnapshot Exception {ex}");
-                        experimentalScreenshotRetries--;
-                    }
 
-                    if (experimentalScreenshotRetries <= 0)
+                    if (Settings.ShowPreview)
                     {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"experimentalScreenshotRetries limit hit - Disabling ShowPreview!");
-                        Settings.ShowPreview = false;
-                        await SaveSettings();
+                        await DrawPreviewImage(graphics, width, height);
+                    }
+                    else if (customImage != null)
+                    {
+                        graphics.DrawImage(customImage, new Rectangle(0, 0, width, height));
                     }
                 }
 
@@ -419,6 +395,82 @@ namespace BarRaider.ObsTools.Actions
         private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
         {
             titleParameters = e.Event.Payload.TitleParameters;
+        }
+
+        private void InitializeSettings()
+        {
+            if (customImage != null)
+            {
+                customImage.Dispose();
+                customImage = null;
+            }
+
+            if (IsValidFile(Settings.CustomImage))
+            {
+                customImage = Image.FromFile(Settings.CustomImage);
+            }
+        }
+
+        private bool IsValidFile(string fileName)
+        {
+            if (String.IsNullOrEmpty(fileName))
+            {
+                return false;
+            }
+
+            if (!File.Exists(fileName))
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"File not found: {fileName}");
+                return false;
+            }
+            return true;
+        }
+
+        private async Task DrawPreviewImage(Graphics graphics, int width, int height)
+        {
+            try
+            {
+                if ((DateTime.Now - lastSnapshotTime).TotalMilliseconds <= SNAPSHOT_COOLDOWN_TIME_MS)
+                {
+                    using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
+                    {
+                        graphics.DrawImage(background, new Rectangle(0, 0, width, height));
+                    }
+                }
+                else
+                {
+                    // Get update snapshot of source
+                    var snapshot = OBSManager.Instance.GetSourceSnapshot(Settings.SceneName);
+                    if (snapshot == null)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.WARN, $"DrawSceneBorder GetSourceSnapshot returned null");
+                        experimentalScreenshotRetries--;
+                    }
+                    else if (snapshot != null && !String.IsNullOrEmpty(snapshot.ImageData))
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"DrawSceneBorder Got updated snapshot for {Settings.SceneName}");
+                        lastSnapshotTime = DateTime.Now;
+                        lastSnapshotImageData = snapshot.ImageData;
+                        experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
+                        using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
+                        {
+                            graphics.DrawImage(background, new Rectangle(0, 0, width, height));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"DrawSceneBorder GetSnapshot Exception {ex}");
+                experimentalScreenshotRetries--;
+            }
+
+            if (experimentalScreenshotRetries <= 0)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"experimentalScreenshotRetries limit hit - Disabling ShowPreview!");
+                Settings.ShowPreview = false;
+                await SaveSettings();
+            }
         }
 
         #endregion

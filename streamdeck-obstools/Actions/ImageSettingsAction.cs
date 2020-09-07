@@ -15,15 +15,10 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
-
-    //---------------------------------------------------
-    //          BarRaider's Hall Of Fame
-    // Subscriber: iMackk x2
-    //---------------------------------------------------
-    [PluginActionId("com.barraider.obstools.videoplayer")]
-    public class VideoPlayerAction : ActionBase
+    [PluginActionId("com.barraider.obstools.imagesettings")]
+    public class ImageSettingsAction : ActionBase
     {
-        private const int HIDE_REPLAY_SECONDS = 20;
+        private const int AUTO_HIDE_SECONDS = 20;
         protected class PluginSettings : PluginSettingsBase
         {
             public static PluginSettings CreateDefaultSettings()
@@ -31,30 +26,22 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings
                 {
                     ServerInfoExists = false,
-                    VideoFileName = String.Empty,
-                    MuteSound = false,
+                    ImageFileName = String.Empty,
                     SourceName = String.Empty,
-                    HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString(),
-                    PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString()
+                    AutoHideSettings = AUTO_HIDE_SECONDS.ToString(),
                 };
                 return instance;
             }
 
             [FilenameProperty]
-            [JsonProperty(PropertyName = "videoFileName")]
-            public String VideoFileName { get; set; }
+            [JsonProperty(PropertyName = "imageFileName")]
+            public String ImageFileName { get; set; }
 
-            [JsonProperty(PropertyName = "hideReplaySeconds")]
-            public String HideReplaySeconds { get; set; }
+            [JsonProperty(PropertyName = "autoHideSeconds")]
+            public String AutoHideSettings { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
-
-            [JsonProperty(PropertyName = "muteSound")]
-            public bool MuteSound { get; set; }
-
-            [JsonProperty(PropertyName = "playSpeed")]
-            public String PlaySpeed { get; set; }
         }
 
         protected PluginSettings Settings
@@ -76,13 +63,10 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private int hideReplaySettings = HIDE_REPLAY_SECONDS;
-        private const int DEFAULT_PLAY_SPEED_PERCENTAGE = 100;
-
-        private int speed = DEFAULT_PLAY_SPEED_PERCENTAGE;
+        private int autoHideTime = AUTO_HIDE_SECONDS;
 
         #endregion
-        public VideoPlayerAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public ImageSettingsAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -110,7 +94,7 @@ namespace BarRaider.ObsTools.Actions
                 switch (payload["property_inspector"].ToString().ToLowerInvariant())
                 {
                     case "exportsettings":
-                        fileName = PickersUtil.Pickers.SaveFilePicker("Export Video Player Settings", null, "OBS Video Player files (*.obsvplay)|*.obsvplay|All files (*.*)|*.*");
+                        fileName = PickersUtil.Pickers.SaveFilePicker("Export Image Settings", null, "OBS Image Settings files (*.obsimg)|*.obsimg|All files (*.*)|*.*");
                         if (!string.IsNullOrEmpty(fileName))
                         {
                             Logger.Instance.LogMessage(TracingLevel.INFO, $"Exporting settings to {fileName}");
@@ -119,7 +103,7 @@ namespace BarRaider.ObsTools.Actions
                         }
                         break;
                     case "importsettings":
-                        fileName = PickersUtil.Pickers.OpenFilePicker("Import Video Player Settings", null, "OBS Video Player files (*.obsvplay)|*.obsvplay|All files (*.*)|*.*");
+                        fileName = PickersUtil.Pickers.OpenFilePicker("Import Image Settings", null, "OBS Image Settings files (*.obsimg)|*.obsimg|All files (*.*)|*.*");
                         if (!string.IsNullOrEmpty(fileName))
                         {
                             if (!File.Exists(fileName))
@@ -159,36 +143,28 @@ namespace BarRaider.ObsTools.Actions
 
         public async override void KeyPressed(KeyPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Video Player KeyPress");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Image Settings KeyPress");
 
             baseHandledKeypress = false;
             base.KeyPressed(payload);
 
             if (!baseHandledKeypress)
             {
-                if (String.IsNullOrEmpty(Settings.VideoFileName))
+                if (String.IsNullOrEmpty(Settings.ImageFileName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, "KeyPressed called, but no Video File configured");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "KeyPressed called, but no Image File configured");
                     await Connection.ShowAlert();
                     return;
                 }
 
-                if (!File.Exists(Settings.VideoFileName))
+                if (!File.Exists(Settings.ImageFileName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"KeyPressed called, but file does not exist: {Settings.VideoFileName}");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"KeyPressed called, but file does not exist: {Settings.ImageFileName}");
                     await Connection.ShowAlert();
                     return;
                 }
 
-                await OBSManager.Instance.PlayInstantReplay(new SourcePropertyVideoPlayer()
-                {
-                    VideoFileName = Settings.VideoFileName,
-                    SourceName = Settings.SourceName,
-                    DelayPlayStartSeconds = 0,
-                    HideReplaySeconds = hideReplaySettings,
-                    MuteSound = Settings.MuteSound,
-                    PlaySpeedPercent = speed
-                });
+                await OBSManager.Instance.ModifyImageSource(Settings.SourceName, Settings.ImageFileName, autoHideTime);
             }
         }
 
@@ -224,15 +200,9 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
-            if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))
+            if (String.IsNullOrEmpty(Settings.AutoHideSettings) || !int.TryParse(Settings.AutoHideSettings, out autoHideTime))
             {
-                Settings.HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString();
-                SaveSettings();
-            }
-
-            if (!Int32.TryParse(Settings.PlaySpeed, out speed))
-            {
-                Settings.PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString();
+                Settings.AutoHideSettings = AUTO_HIDE_SECONDS.ToString();
                 SaveSettings();
             }
         }

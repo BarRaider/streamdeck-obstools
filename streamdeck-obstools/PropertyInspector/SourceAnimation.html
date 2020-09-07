@@ -23,6 +23,10 @@
             <div class="sdpi-item-label">Source Name</div>
             <input class="sdpi-item-value sdProperty" id="sourceName" oninput="setSettings()">
         </div>
+        <div class="sdpi-item" id="dvRepeat">
+            <div class="sdpi-item-label">Repeat Animation (times)</div>
+            <input class="sdpi-item-value sdProperty" id="repeatAmount" inputmode="numeric" pattern="[0-9]*" type="number" oninput="setSettings()">
+        </div>
         <div class="sdpi-item" id="select_single">
             <div class="sdpi-item-label" id="stepsLabel">Phases</div>
             <select class="sdpi-item-value select max40" id="phasesDropdown" oninput="updatePhase()" value="0">

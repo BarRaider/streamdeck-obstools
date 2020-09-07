@@ -11,6 +11,12 @@ using System.Threading.Tasks;
 
 namespace BarRaider.ObsTools
 {
+
+    //---------------------------------------------------
+    //          BarRaider's Hall Of Fame
+    // CarstenPet - 1 Gifted Subs
+    // tobitege - 5 Gifted Subs
+    //---------------------------------------------------
     public class OBSManager
     {
         #region Private Members
@@ -199,6 +205,24 @@ namespace BarRaider.ObsTools
             return false;
         }
 
+        /*
+        public RecordingStatus GetRecordingStatus()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    // TODO: Uncomment in Websocket 4.9
+                    // return obs.GetRecordingStatus();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetRecordingStatus Exception: {ex}");
+                }
+            }
+            return null;
+        }*/
+
         public bool StartRecording()
         {
             if (obs.IsConnected)
@@ -228,6 +252,40 @@ namespace BarRaider.ObsTools
                 catch (Exception ex)
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"StopRecording Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool PauseRecording()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.PauseRecording();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"PauseRecording Exception: {ex}");
+                }
+            }
+            return false;
+        }
+
+        public bool ResumeRecording()
+        {
+            if (obs.IsConnected)
+            {
+                try
+                {
+                    obs.ResumeRecording();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ResumeRecording Exception: {ex}");
                 }
             }
             return false;
@@ -420,6 +478,64 @@ namespace BarRaider.ObsTools
             });
         }
 
+        public Task<bool> ModifyImageSource(string sourceName, string fileName, int autoHideSeconds)
+        {
+            return Task.Run(() =>
+            {
+                if (String.IsNullOrEmpty(sourceName))
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource failed. Missing source name");
+                    return false;
+                }
+
+                if (obs.IsConnected)
+                {
+                    try
+                    {
+                        obs.SetSourceRender(sourceName, false);
+                        SourceSettings sourceSettings = obs.GetSourceSettings(sourceName);
+                        if (sourceSettings == null)
+                        {
+                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: GetSourceSettings return null for source {sourceName}");
+                            return false;
+                        }
+
+                        if (sourceSettings.sourceType != "image_source")
+                        {
+                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: Source {sourceName} is not an image source: {sourceSettings.sourceType}");
+                            return false;
+                        }
+
+                        sourceSettings.sourceSettings["file"] = fileName;
+                        obs.SetSourceSettings(sourceName, sourceSettings.sourceSettings);
+                        Thread.Sleep(200);
+                        obs.SetSourceRender(sourceName, true);
+
+                        if (autoHideSeconds > 0)
+                        {
+                            Task.Run(() =>
+                            {
+                                Thread.Sleep(autoHideSeconds * 1000);
+                                obs.SetSourceRender(sourceName, false);
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyImageSource AutoHid source {sourceName} after {autoHideSeconds} seconds");
+                            });
+                        }
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource for image {fileName} failed. Exception: {ex}");
+                    }
+                }
+                else
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource for image {fileName} failed. OBS is not connected");
+                }
+                return false;
+            });
+        }
+
         public Task<bool> PlayInstantReplay(SourcePropertyVideoPlayer settings)
         {
             return AnimationManager.Instance.HandleMediaPlayer(obs, settings);
@@ -511,7 +627,7 @@ namespace BarRaider.ObsTools
             return null;
         }
 
-        public bool AnimateSource(List<SourcePropertyAnimation> animationPhases)
+        public bool AnimateSource(List<SourcePropertyAnimation> animationPhases, int repeatAmount)
         {
             try
             {
@@ -523,13 +639,58 @@ namespace BarRaider.ObsTools
 
                 if (obs.IsConnected)
                 {
-                    AnimationManager.Instance.HandleAnimation(obs, animationPhases);
+                    AnimationManager.Instance.HandleAnimation(obs, animationPhases, repeatAmount);
                     return true;
                 }
             }
             catch (Exception ex)
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"AnimateSource Exception: {ex}");
+            }
+            return false;
+        }
+
+        public bool ToggleSourceVisibility(string sceneName, string sourceName)
+        {
+            try
+            {
+                if (obs.IsConnected)
+                {
+                    var item = obs.GetSceneItemProperties(sourceName, sceneName);
+                    if (item != null)
+                    {
+                        // Toggle visibility
+                        item.Visible = !item.Visible;
+                    }
+                    obs.SetSceneItemProperties(item, sceneName);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleSceneVisibility Exception: {ex}");
+            }
+            return false;
+        }
+
+        public bool IsSourceVisible(string sceneName, string sourceName)
+        {
+            try
+            {
+                if (obs.IsConnected)
+                {
+                    var item = obs.GetSceneItemProperties(sourceName, sceneName);
+                    if (item == null)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceVisible Item is null for Source {sourceName}");
+                        return false;
+                    }
+                    return item.Visible;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceVisible Exception: {ex}");
             }
             return false;
         }
@@ -676,14 +837,34 @@ namespace BarRaider.ObsTools
             return null;
         }
 
-        public void SetTransition(string transitionName)
+       public List<String> GetAllSceneCollections()
         {
             if (IsConnected)
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
-                obs.SetCurrentTransition(transitionName);
+                return obs.ListSceneCollections();
+            }
+            return null;
+        }
+
+        public string GetSceneCollection()
+        {
+            if (IsConnected)
+            {
+                return obs.GetCurrentSceneCollection();
+            }
+            return null;
+        }
+
+        public void SetSceneCollection(string sceneCollectionName)
+        {
+            if (IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {sceneCollectionName}");
+                obs.SetCurrentSceneCollection(sceneCollectionName);
             }
         }
+
+
 
         public TransitionSettings GetTransition()
         {
@@ -694,6 +875,43 @@ namespace BarRaider.ObsTools
             return null;
         }
 
+        public void SetTransition(string transitionName)
+        {
+            if (IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
+                obs.SetCurrentTransition(transitionName);
+            }
+        }
+        public List<String> GetAllProfiles()
+        {
+            if (IsConnected)
+            {
+                return obs.ListProfiles();
+            }
+            return null;
+        }
+
+        public void SetProfile(string profileName)
+        {
+            if (IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Profile to: {profileName}");
+                obs.SetCurrentProfile(profileName);
+            }
+        }
+
+        public string GetProfile()
+        {
+            if (IsConnected)
+            {
+                return obs.GetCurrentProfile();
+            }
+            return null;
+        }
+
+       
+
         public List<SourcePropertyAnimationConfiguration> GetSourceProperties(string sourceName, out string errorMessage)
         {
             errorMessage = null;
@@ -703,8 +921,6 @@ namespace BarRaider.ObsTools
             }
             return null;
         }
-
-
 
         private void VerifyValidVersion(OBSVersion obsVersion)
         {

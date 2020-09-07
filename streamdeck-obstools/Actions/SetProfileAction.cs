@@ -14,8 +14,8 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
-    [PluginActionId("com.barraider.obstools.settransition")]
-    public class SetTransitionAction : ActionBase
+    [PluginActionId("com.barraider.obstools.setprofile")]
+    public class SetProfileAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -24,17 +24,17 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings
                 {
                     ServerInfoExists = false,
-                    TransitionName = String.Empty,
-                    Transitions = null
+                    ProfileName = String.Empty,
+                    Profiles = null
                 };
                 return instance;
             }
 
-            [JsonProperty(PropertyName = "transitionName")]
-            public String TransitionName { get; set; }
+            [JsonProperty(PropertyName = "profileName")]
+            public String ProfileName { get; set; }
 
-            [JsonProperty(PropertyName = "transitions")]
-            public List<TransitionInfo> Transitions { get; set; }
+            [JsonProperty(PropertyName = "profiles")]
+            public List<ProfileInfo> Profiles { get; set; }
         }
 
         protected PluginSettings Settings
@@ -61,7 +61,8 @@ namespace BarRaider.ObsTools.Actions
         private bool selectedImageShown = false;
 
         #endregion
-        public SetTransitionAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+
+        public SetProfileAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -87,14 +88,14 @@ namespace BarRaider.ObsTools.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed");
             if (OBSManager.Instance.IsConnected)
             {
-                if (String.IsNullOrEmpty(Settings.TransitionName))
+                if (String.IsNullOrEmpty(Settings.ProfileName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but TransitionName is empty");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but ProfileName is empty");
                     await Connection.ShowAlert();
                     return;
                 }
 
-                OBSManager.Instance.SetTransition(Settings.TransitionName);
+                OBSManager.Instance.SetProfile(Settings.ProfileName);
             }
             else
             {
@@ -109,10 +110,10 @@ namespace BarRaider.ObsTools.Actions
             baseHandledOnTick = false;
             base.OnTick();
 
-            if (!baseHandledOnTick && !String.IsNullOrEmpty(Settings.TransitionName))
+            if (!baseHandledOnTick && !String.IsNullOrEmpty(Settings.ProfileName))
             {
-                await Connection.SetTitleAsync($"{Settings.TransitionName}");
-                if (OBSManager.Instance.GetTransition()?.Name == Settings.TransitionName)
+                await Connection.SetTitleAsync($"{Settings.ProfileName}");
+                if (OBSManager.Instance.GetProfile() == Settings.ProfileName)
                 {
                     selectedImageShown = true;
                     await Connection.SetImageAsync(GetSelectedImage());
@@ -144,7 +145,7 @@ namespace BarRaider.ObsTools.Actions
         {
             if (OBSManager.Instance.IsConnected)
             {
-                Settings.Transitions = OBSManager.Instance.GetAllTransitions().Select(t => new TransitionInfo() { Name = t }).ToList();
+                Settings.Profiles = OBSManager.Instance.GetAllProfiles().Select(p => new ProfileInfo() { Name = p }).ToList();
                 SaveSettings();
             }
         }

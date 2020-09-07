@@ -3,6 +3,18 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
+## New in v1.8
+- New `Set Profile` action allows you to modify the OBS Profile
+- New `Set Scene Collection` action allows you to modify the Scene Collection
+- New `Source Visibility` action allows you to toggle sources on/off (+ multi-action support)
+- New `Image Settings` action allows to change the settings of an Image source (as an example - think changing your background image with one press)
+- `Set Transition`/`Set Profile`/`Set Scene Collection` all change color if the active Transition/Profile/Scene Collection matches the one set on the key.
+- Added support for custom images to both `Smart Scene Switcher` and `Source Visibility`
+- `Source Animation` action now supports looping the animation multiple times
+
+***NOTE: This version requires upgrading to OBS Websocket v4.8 (!!) see: https://barraider.com/obs***
+
+
 ## New in v1.7
 ***NOTE: This version requires upgrading to OBS Websocket v4.8 (!!) see: https://barraider.com/obs***
 

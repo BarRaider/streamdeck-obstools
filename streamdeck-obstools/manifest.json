@@ -68,6 +68,21 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Image Settings",
+      "States": [
+        {
+          "Image": "Images/replayAction",
+          "TitleAlignment": "middle",
+          "FontSize": "14"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Configure different images to show on a single Image source",
+      "UUID": "com.barraider.obstools.imagesettings",
+      "PropertyInspectorPath": "PropertyInspector/ImageSettings.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Instant Replay",
       "States": [
         {
@@ -151,6 +166,36 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Set Profile",
+      "States": [
+        {
+          "Image": "Images/transitionAction",
+          "TitleAlignment": "middle",
+          "FontSize": "10"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change the OBS profile you're on",
+      "UUID": "com.barraider.obstools.setprofile",
+      "PropertyInspectorPath": "PropertyInspector/SetProfile.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Set Scene Collection",
+      "States": [
+        {
+          "Image": "Images/transitionAction",
+          "TitleAlignment": "middle",
+          "FontSize": "10"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change the Scene Collections",
+      "UUID": "com.barraider.obstools.setscenecollection",
+      "PropertyInspectorPath": "PropertyInspector/SetSceneCollection.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Set Transition",
       "States": [
         {
@@ -176,11 +221,13 @@
         },
         {
           "Image": "Images/pluginAction",
-          "Name": "Force to Studio"
+          "Name": "Force to Studio",
+          "OnlyForMultiAction": true
         },
         {
           "Image": "Images/pluginAction",
-          "Name": "Force to Live"
+          "Name": "Force to Live",
+          "OnlyForMultiAction": true
         }
       ],
       "SupportedInMultiActions": true,
@@ -202,6 +249,32 @@
       "Tooltip": "Creates animations by gradually modifying a property of a source",
       "UUID": "com.barraider.obstools.sourceanimation",
       "PropertyInspectorPath": "PropertyInspector/SourceAnimation.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Source Visibility",
+      "States": [
+        {
+          "Image": "Images/sourceAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13",
+          "Name": "Toggle"
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Show",
+          "OnlyForMultiAction": true
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Hide",
+          "OnlyForMultiAction": true
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Toggle source on and off",
+      "UUID": "com.barraider.obstools.sourcetoggle",
+      "PropertyInspectorPath": "PropertyInspector/SourceToggle.html"
     },
     {
       "Icon": "Images/icon",
@@ -278,7 +351,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "1.7",
+  "Version": "1.8",
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",

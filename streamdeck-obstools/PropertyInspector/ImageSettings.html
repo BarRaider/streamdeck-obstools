@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
     <script src="setup.js"></script>
-    <script src="VideoPlayer.js"></script>
+    <script src="ImageSettings.js"></script>
     <script src="OBSTools.js"></script>
 
 </head>
@@ -21,41 +21,21 @@
             <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
         </details>
         <div class="sdpi-item" id="dvSourceName">
-            <div class="sdpi-item-label">Media Source Name</div>
+            <div class="sdpi-item-label">Source Name</div>
             <input class="sdpi-item-value sdProperty" placeholder="Source name in OBS" value="" id="sourceName" oninput="setSettings()">
         </div>
-        <div class="sdpi-item" id="dvVideoFilename">
+        <div class="sdpi-item" id="dvImageFilename">
             <div class="sdpi-item-label">File Name</div>
             <div class="sdpi-item-group file" id="filepickergroup">
-                <input class="sdpi-item-value sdProperty sdFile" type="file" id="videoFileName" accept=" .mp4 .ts .mov .flv .mkv .avi .gif .webm" oninput="setSettings()">
-                <label class="sdpi-file-info " for="videoFileName" id="videoFileNameFilename">No file...</label>
-                <label class="sdpi-file-label" for="videoFileName">Choose file...</label>
-            </div>
-        </div>
-        <div type="checkbox" class="sdpi-item" id="dvMute">
-            <div class="sdpi-item-label">Mute</div>
-            <div class="sdpi-item-value">
-                <input id="muteSound" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
-                <label for="muteSound" class="sdpi-item-label"><span></span>Mute replay video</label>
+                <input class="sdpi-item-value sdProperty sdFile" type="file" id="imageFileName" accept=" .mp4 .ts .mov .flv .mkv .avi .gif .webm" oninput="setSettings()">
+                <label class="sdpi-file-info " for="imageFileName" id="imageFileNameFilename">No file...</label>
+                <label class="sdpi-file-label" for="imageFileName">Choose file...</label>
             </div>
         </div>
         <div class="sdpi-item" id="dvAutoHide">
             <div class="sdpi-item-label">Auto Hide Source (seconds)</div>
-            <input class="sdpi-item-value sdProperty" placeholder="20" value="" pattern="^[0-9]*$" id="hideReplaySeconds" oninput="setSettings()">
+            <input class="sdpi-item-value sdProperty" placeholder="20" value="" pattern="^[0-9]*$" id="autoHideSeconds" oninput="setSettings()">
         </div>
-        <div type="range" class="sdpi-item sdShowTooltip" id="dvSpeed">
-            <div class="sdpi-item-label" id="speedLabel">Speed</div>
-            <div class="sdpi-item-value">
-                <span class="clickable" value="1">1</span>
-                <input type="range" min="1" max="200" value=100 list="numbers" data-suffix=" %" class="sdProperty" id="playSpeed" oninput="setSettings()">
-                <span class="clickable" value="200">200</span>
-                <datalist id="numbers">
-                    <option>100</option>
-                </datalist>
-                <label for="playSpeed" class="rangeLabel"></label>
-            </div>
-        </div>
-        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
         <hr />
         <div class="sdpi-item" id="dvExport">
             <div class="sdpi-item-label">Export</div>
