@@ -8,6 +8,7 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 - Improved load times of `SmartSceneSwitcher` and `Instant Replay` actions
 - Stability improvements
 
+
 ## New in v1.8
 - New `Set Profile` action allows you to modify the OBS Profile
 - New `Set Scene Collection` action allows you to modify the Scene Collection
