@@ -88,7 +88,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (streamStatus != null)
                 {
-                    await Connection.SetTitleAsync($"{streamStatus.Status.CPU.ToString("#.#")}%");
+                    await Connection.SetTitleAsync($"{streamStatus.Status.CPU:#.#}%");
                 }
             }
         }

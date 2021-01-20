@@ -1,4 +1,5 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
@@ -96,7 +97,6 @@ namespace BarRaider.ObsTools.Actions
         private const int SNAPSHOT_COOLDOWN_TIME_MS = 5000;
 
         private string revertTransition = String.Empty;
-        private GlobalSettings global;
         private TitleParameters titleParameters;
         private int experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
         private bool isFetchingScreenshot = false;
@@ -117,7 +117,6 @@ namespace BarRaider.ObsTools.Actions
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
             Connection.OnTitleParametersDidChange += Connection_OnTitleParametersDidChange;
-            GlobalSettingsManager.Instance.RequestGlobalSettings();
             OBSManager.Instance.Connect();
             OBSManager.Instance.SceneChanged += SceneChanged_RevertTransition;
             CheckServerInfoExists();
@@ -144,7 +143,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!OBSManager.Instance.IsConnected)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, "Key pressed but OBS is not connected");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key pressed but OBS is not connected");
                 await Connection.ShowAlert();
                 return;
             }
@@ -157,6 +156,7 @@ namespace BarRaider.ObsTools.Actions
                 }
                 else
                 {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"HandleMultiActionKeypress returned false");
                     await Connection.ShowAlert();
                 }
                 return;
@@ -171,6 +171,7 @@ namespace BarRaider.ObsTools.Actions
                 }
                 else
                 {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"SetPreviewScene returned false");
                     await Connection.ShowAlert();
                 }
             }
@@ -182,7 +183,7 @@ namespace BarRaider.ObsTools.Actions
                 }
                 else
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "HandleTransitionToLive returned false");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "HandleTransitionToLive returned false");
                     await Connection.ShowAlert();
                 }
             }
@@ -229,36 +230,13 @@ namespace BarRaider.ObsTools.Actions
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
             Tools.AutoPopulateSettings(Settings, payload.Settings);
-            SetGlobalSettings();
+            SetSceneSwitchColors();
             InitializeSettings();
             SaveSettings();
         }
 
         public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
-            // Global Settings exist
-            if (payload?.Settings != null && payload.Settings.Count > 0)
-            {
-                global = payload.Settings.ToObject<GlobalSettings>();
-                Settings.LiveColor = global.SceneSwitchLiveColor;
-                Settings.PreviewColor = global.SceneSwitchPreviewColor;
-
-                // First load
-                if (String.IsNullOrEmpty(Settings.LiveColor) || String.IsNullOrEmpty(Settings.PreviewColor))
-                {
-                    Settings.LiveColor = DEFAULT_LIVE_COLOR;
-                    Settings.PreviewColor = DEFAULT_PREVIEW_COLOR;
-                    SetGlobalSettings();
-                }
-
-                SaveSettings();
-            }
-            else // Global settings do not exist
-            {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"SmartSceneSwitcher received empty payload: {payload}, creating new instance");
-                global = new GlobalSettings();
-                SetGlobalSettings();
-            }
         }
 
         #region Private Methods
@@ -268,52 +246,48 @@ namespace BarRaider.ObsTools.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private void SetGlobalSettings()
+        private void SetSceneSwitchColors()
         {
-            global.SceneSwitchLiveColor = Settings.LiveColor;
-            global.SceneSwitchPreviewColor = Settings.PreviewColor;
-            Connection.SetGlobalSettingsAsync(JObject.FromObject(global));
+            SmartSceneSwitcherManager.Instance.SetColors(Settings.LiveColor, Settings.PreviewColor);
         }
 
         private async Task DrawSceneBorder()
         {
-            using (Image img = Tools.GenerateGenericKeyImage(out Graphics graphics))
+            using Image img = Tools.GenerateGenericKeyImage(out Graphics graphics);
+            int height = img.Height;
+            int width = img.Width;
+            Color borderColor = Color.Black;
+            graphics.PageUnit = GraphicsUnit.Pixel;
+
+            if (OBSManager.Instance.CurrentSceneName == Settings.SceneName)
             {
-                int height = img.Height;
-                int width = img.Width;
-                Color borderColor = Color.Black;
-                graphics.PageUnit = GraphicsUnit.Pixel;
-
-                if (OBSManager.Instance.CurrentSceneName == Settings.SceneName)
-                {
-                    // Draw Live Border
-                    borderColor = ColorTranslator.FromHtml(Settings.LiveColor);
-                }
-                else if (OBSManager.Instance.CurrentPreviewSceneName == Settings.SceneName)
-                {
-                    // Draw Preview Border
-                    borderColor = ColorTranslator.FromHtml(Settings.PreviewColor);
-                }
-
-                if (OBSManager.Instance.IsConnected)
-                {
-
-                    if (Settings.ShowPreview)
-                    {
-                        await DrawPreviewImage(graphics, width, height);
-                    }
-                    else if (customImage != null)
-                    {
-                        graphics.DrawImage(customImage, new Rectangle(0, 0, width, height));
-                    }
-                }
-
-                // Draw border
-                graphics.DrawRectangle(new Pen(borderColor, SCENE_BORDER_SIZE), new Rectangle(0, 0, width, height));
-
-                await Connection.SetImageAsync(img);
-                graphics.Dispose();
+                // Draw Live Border
+                borderColor = ColorTranslator.FromHtml(SmartSceneSwitcherManager.Instance.SceneSwitchLiveColor);
             }
+            else if (OBSManager.Instance.CurrentPreviewSceneName == Settings.SceneName)
+            {
+                // Draw Preview Border
+                borderColor = ColorTranslator.FromHtml(SmartSceneSwitcherManager.Instance.SceneSwitchPreviewColor);
+            }
+
+            if (OBSManager.Instance.IsConnected)
+            {
+
+                if (Settings.ShowPreview)
+                {
+                    await DrawPreviewImage(graphics, width, height);
+                }
+                else if (customImage != null)
+                {
+                    graphics.DrawImage(customImage, new Rectangle(0, 0, width, height));
+                }
+            }
+
+            // Draw border
+            graphics.DrawRectangle(new Pen(borderColor, SCENE_BORDER_SIZE), new Rectangle(0, 0, width, height));
+
+            await Connection.SetImageAsync(img);
+            graphics.Dispose();
         }
 
         private void SceneChanged_RevertTransition(object sender, SceneChangedEventArgs e)
@@ -409,6 +383,20 @@ namespace BarRaider.ObsTools.Actions
             {
                 customImage = Image.FromFile(Settings.CustomImage);
             }
+
+            Settings.LiveColor = SmartSceneSwitcherManager.Instance.SceneSwitchLiveColor;
+            Settings.PreviewColor = SmartSceneSwitcherManager.Instance.SceneSwitchPreviewColor;
+
+            // First load
+            if (String.IsNullOrEmpty(Settings.LiveColor) || String.IsNullOrEmpty(Settings.PreviewColor))
+            {
+                Settings.LiveColor = DEFAULT_LIVE_COLOR;
+                Settings.PreviewColor = DEFAULT_PREVIEW_COLOR;
+                SetSceneSwitchColors();
+            }
+
+            SaveSettings();
+
         }
 
         private bool IsValidFile(string fileName)
@@ -420,7 +408,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!File.Exists(fileName))
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"File not found: {fileName}");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} File not found: {fileName} in {Settings.SceneName}");
                 return false;
             }
             return true;
@@ -432,10 +420,8 @@ namespace BarRaider.ObsTools.Actions
             {
                 if ((DateTime.Now - lastSnapshotTime).TotalMilliseconds <= SNAPSHOT_COOLDOWN_TIME_MS)
                 {
-                    using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
-                    {
-                        graphics.DrawImage(background, new Rectangle(0, 0, width, height));
-                    }
+                    using Image background = Tools.Base64StringToImage(lastSnapshotImageData);
+                    graphics.DrawImage(background, new Rectangle(0, 0, width, height));
                 }
                 else
                 {
@@ -452,10 +438,8 @@ namespace BarRaider.ObsTools.Actions
                         lastSnapshotTime = DateTime.Now;
                         lastSnapshotImageData = snapshot.ImageData;
                         experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
-                        using (Image background = Tools.Base64StringToImage(lastSnapshotImageData))
-                        {
-                            graphics.DrawImage(background, new Rectangle(0, 0, width, height));
-                        }
+                        using Image background = Tools.Base64StringToImage(lastSnapshotImageData);
+                        graphics.DrawImage(background, new Rectangle(0, 0, width, height));
                     }
                 }
             }

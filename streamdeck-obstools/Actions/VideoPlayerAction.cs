@@ -106,7 +106,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (payload["property_inspector"] != null)
             {
-                string fileName = String.Empty;
+                string fileName;
                 switch (payload["property_inspector"].ToString().ToLowerInvariant())
                 {
                     case "exportsettings":

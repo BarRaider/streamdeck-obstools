@@ -79,17 +79,18 @@ namespace BarRaider.ObsTools.Actions
 
         public override void Dispose()
         {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Destructor Called {this.GetType()}");
             base.Dispose();
         }
 
         public async override void KeyPressed(KeyPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed");
             if (OBSManager.Instance.IsConnected)
             {
                 if (String.IsNullOrEmpty(Settings.TransitionName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but TransitionName is empty");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but TransitionName is empty");
                     await Connection.ShowAlert();
                     return;
                 }
@@ -111,16 +112,23 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick && !String.IsNullOrEmpty(Settings.TransitionName))
             {
-                await Connection.SetTitleAsync($"{Settings.TransitionName}");
-                if (OBSManager.Instance.GetTransition()?.Name == Settings.TransitionName)
+                try
                 {
-                    selectedImageShown = true;
-                    await Connection.SetImageAsync(GetSelectedImage());
+                    await Connection.SetTitleAsync($"{Settings.TransitionName}");
+                    if (OBSManager.Instance.GetTransition()?.Name == Settings.TransitionName)
+                    {
+                        selectedImageShown = true;
+                        await Connection.SetImageAsync(GetSelectedImage());
+                    }
+                    else if (selectedImageShown)
+                    {
+                        selectedImageShown = false;
+                        await Connection.SetImageAsync((String)null);
+                    }
                 }
-                else if (selectedImageShown)
+                catch (Exception ex)
                 {
-                    selectedImageShown = false;
-                    await Connection.SetImageAsync((String)null);
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} OnTick exception: {ex}");
                 }
             }
         }

@@ -155,17 +155,17 @@ namespace BarRaider.ObsTools.Actions
 
         public async override void KeyPressed(KeyPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed");
             if (String.IsNullOrEmpty(Settings.SourceName))
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but source name is null");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but source name is null");
                 await Connection.ShowAlert();
                 return;
             }
 
             if (Settings.AnimationPhases == null)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but AnimationPhases is null");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but AnimationPhases is null");
                 await Connection.ShowAlert();
                 return;
             }

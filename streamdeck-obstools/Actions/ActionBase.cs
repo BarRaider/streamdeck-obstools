@@ -1,4 +1,5 @@
-﻿using BarRaider.SdTools;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -39,7 +40,7 @@ namespace BarRaider.ObsTools.Actions
         {
             ServerManager.Instance.TokensChanged -= Instance_TokensChanged;
             Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called {this.GetType()}");
         }
 
         public virtual Task SaveSettings()

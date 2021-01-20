@@ -137,7 +137,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!OBSManager.Instance.IsConnected)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, "Key pressed but OBS is not connected");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key pressed but OBS is not connected");
                 await Connection.ShowAlert();
                 return;
             }
@@ -211,11 +211,13 @@ namespace BarRaider.ObsTools.Actions
         {
             Task.Run(async () =>
             {
-                Settings.Scenes = new List<OBSScene>();
-                Settings.Scenes.Add(new OBSScene
+                Settings.Scenes = new List<OBSScene>
                 {
-                    Name = ACTIVE_SCENE_NAME
-                });
+                    new OBSScene
+                    {
+                        Name = ACTIVE_SCENE_NAME
+                    }
+                };
                 int retries = 40;
 
                 while (!OBSManager.Instance.IsConnected && retries > 0)
@@ -235,7 +237,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
         {
-            titleParameters = e.Event.Payload.TitleParameters;
+            titleParameters = e?.Event?.Payload?.TitleParameters;
         }
 
         private async Task DrawImage(bool sourceVisible)
@@ -292,7 +294,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!File.Exists(fileName))
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"File not found: {fileName}");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} File not found: {fileName} in {Settings.SourceName}");
                 return false;
             }
             return true;

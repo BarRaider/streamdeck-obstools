@@ -9,7 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BarRaider.ObsTools
+namespace BarRaider.ObsTools.Backend
 {
     internal class ServerManager
     {
@@ -53,6 +53,9 @@ namespace BarRaider.ObsTools
         {
             GlobalSettingsManager.Instance.OnReceivedGlobalSettings += Instance_OnReceivedGlobalSettings;
             GlobalSettingsManager.Instance.RequestGlobalSettings();
+            
+            // Initialize other managers
+            SmartSceneSwitcherManager.Instance.Initialize();
         }
 
         #endregion

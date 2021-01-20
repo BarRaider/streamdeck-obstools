@@ -96,7 +96,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (String.IsNullOrEmpty(Settings.SourceName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but SourceName is empty");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but SourceName is empty");
                     await Connection.ShowAlert();
                     return;
                 }

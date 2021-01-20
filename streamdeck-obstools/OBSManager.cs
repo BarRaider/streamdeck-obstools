@@ -1,4 +1,5 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
@@ -161,7 +162,7 @@ namespace BarRaider.ObsTools
 
         public void Disconnect()
         {
-            if (!obs.IsConnected)
+            if (obs.IsConnected)
             {
                 obs.Disconnect();
             }
@@ -551,7 +552,7 @@ namespace BarRaider.ObsTools
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceVolume Exception: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceVolume Exception Source:{sourceName}: {ex}");
                 }
             }
             return null;
@@ -569,7 +570,7 @@ namespace BarRaider.ObsTools
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSourceVolume Exception: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSourceVolume Exception Source:{sourceName}: {ex}");
                 }
             }
             return false;
@@ -587,7 +588,7 @@ namespace BarRaider.ObsTools
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetPreviewScene Exception: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetPreviewScene Exception Scene: {sceneName}: {ex}");
                 }
             }
             return false;
@@ -668,7 +669,7 @@ namespace BarRaider.ObsTools
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleSceneVisibility Exception: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleSourceVisibility Exception Source: {sourceName} Scene: {sceneName}: {ex}");
             }
             return false;
         }
@@ -688,9 +689,10 @@ namespace BarRaider.ObsTools
                     return item.Visible;
                 }
             }
+            catch (OBSWebsocketDotNet.ErrorResponseException) { }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceVisible Exception: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceVisible Exception Source: {sourceName} Scene: {sceneName}: {ex}");
             }
             return false;
         }
@@ -813,9 +815,16 @@ namespace BarRaider.ObsTools
 
         public void ToggleFilterVisibility(string sourceName, string filterName, bool enableFilter)
         {
-            if (IsConnected)
+            try
             {
-                obs.SetSourceFilterVisibility(sourceName, filterName, enableFilter);
+                if (IsConnected)
+                {
+                    obs.SetSourceFilterVisibility(sourceName, filterName, enableFilter);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleFilterVisibility Exception {ex}");
             }
         }
 
@@ -857,14 +866,19 @@ namespace BarRaider.ObsTools
 
         public void SetSceneCollection(string sceneCollectionName)
         {
-            if (IsConnected)
+            try
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {sceneCollectionName}");
-                obs.SetCurrentSceneCollection(sceneCollectionName);
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Scene Collection to: {sceneCollectionName}");
+                    obs.SetCurrentSceneCollection(sceneCollectionName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSceneCollection Exception: {ex}");
             }
         }
-
-
 
         public TransitionSettings GetTransition()
         {
@@ -877,10 +891,17 @@ namespace BarRaider.ObsTools
 
         public void SetTransition(string transitionName)
         {
-            if (IsConnected)
+            try
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
-                obs.SetCurrentTransition(transitionName);
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
+                    obs.SetCurrentTransition(transitionName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetTransition Exception: {ex}");
             }
         }
         public List<String> GetAllProfiles()
@@ -894,10 +915,17 @@ namespace BarRaider.ObsTools
 
         public void SetProfile(string profileName)
         {
-            if (IsConnected)
+            try
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Profile to: {profileName}");
-                obs.SetCurrentProfile(profileName);
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Profile to: {profileName}");
+                    obs.SetCurrentProfile(profileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetProfile Exception: {ex}");
             }
         }
 
@@ -909,8 +937,6 @@ namespace BarRaider.ObsTools
             }
             return null;
         }
-
-       
 
         public List<SourcePropertyAnimationConfiguration> GetSourceProperties(string sourceName, out string errorMessage)
         {

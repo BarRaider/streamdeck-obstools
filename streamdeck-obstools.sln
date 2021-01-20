@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "obs-websocket-dotnet", "..\obs-websocket-dotnet\obs-websocket-dotnet\obs-websocket-dotnet.csproj", "{C8668815-F21E-49C0-8F1A-58BC698153AF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OBSTools", "streamdeck-obstools\OBSTools.csproj", "{D52AFB8F-650B-4000-8C41-5F99684933EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OTI.Shared", "..\..\DotNet\OTI.Shared\OTI.Shared.csproj", "{86096883-9575-4A6D-8B29-434D9D7B9601}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OTI.Shared", "..\..\DotNet\OTI.Shared\OTI.Shared.csproj", "{86096883-9575-4A6D-8B29-434D9D7B9601}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C8668815-F21E-49C0-8F1A-58BC698153AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C8668815-F21E-49C0-8F1A-58BC698153AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C8668815-F21E-49C0-8F1A-58BC698153AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C8668815-F21E-49C0-8F1A-58BC698153AF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Release|Any CPU.ActiveCfg = Release|Any CPU

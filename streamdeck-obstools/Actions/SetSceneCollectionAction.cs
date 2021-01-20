@@ -85,12 +85,12 @@ namespace BarRaider.ObsTools.Actions
 
         public async override void KeyPressed(KeyPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed");
             if (OBSManager.Instance.IsConnected)
             {
                 if (String.IsNullOrEmpty(Settings.SceneCollectionName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Key Pressed but SceneCollectionName is empty");
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but SceneCollectionName is empty");
                     await Connection.ShowAlert();
                     return;
                 }

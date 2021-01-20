@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BarRaider.ObsTools
+namespace BarRaider.ObsTools.Backend
 {
     //---------------------------------------------------
     //          BarRaider's Hall Of Fame
@@ -101,6 +101,11 @@ namespace BarRaider.ObsTools
         private void InitializeDirectoryWatcher()
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "InitializeDirectoryWatcher Called");
+            if (watcher.Path == replayDirectory)
+            {
+                watcher.EnableRaisingEvents = autoReplay;
+                return;
+            }
 
             // Stop watching.
             watcher.EnableRaisingEvents = false;
