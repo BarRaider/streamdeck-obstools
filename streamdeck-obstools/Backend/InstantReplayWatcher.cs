@@ -101,25 +101,36 @@ namespace BarRaider.ObsTools.Backend
         private void InitializeDirectoryWatcher()
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "InitializeDirectoryWatcher Called");
-            if (watcher.Path == replayDirectory)
+            try
             {
-                watcher.EnableRaisingEvents = autoReplay;
-                return;
-            }
+                if (watcher.Path == replayDirectory)
+                {
+                    if (watcher.EnableRaisingEvents != autoReplay)
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher mode changed to: {autoReplay}");
+                    }
+                    watcher.EnableRaisingEvents = autoReplay;
+                    return;
+                }
 
-            // Stop watching.
-            watcher.EnableRaisingEvents = false;
+                // Stop watching.
+                watcher.EnableRaisingEvents = false;
 
-            // Valid directory
-            if (autoReplay && Directory.Exists(replayDirectory))
-            {
-                watcher.Path = replayDirectory;
-                watcher.EnableRaisingEvents = true;
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher watching over directory {replayDirectory}");
+                // Valid directory
+                if (autoReplay && Directory.Exists(replayDirectory))
+                {
+                    watcher.Path = replayDirectory;
+                    watcher.EnableRaisingEvents = true;
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher watching over directory {replayDirectory}");
+                }
+                else
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher Disabled. AutoReplay: {autoReplay} Directory: {replayDirectory}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher Disabled. AutoReplay: {autoReplay} Directory: {replayDirectory}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"InitializeDirectoryWatcher Exception: {ex}");
             }
         }
 

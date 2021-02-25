@@ -214,24 +214,31 @@ namespace BarRaider.ObsTools.Actions
 
         public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
-            // Global Settings exist
-            if (payload?.Settings != null && payload.Settings.Count > 0)
+            try
             {
-                global = payload.Settings.ToObject<GlobalSettings>();
-                Settings.AutoReplay = global.AutoReplay;
-                Settings.ReplayDirectory = global.ReplayDirectory;
-                Settings.HideReplaySeconds = global.HideReplaySeconds.ToString();
-                Settings.SourceName = global.SourceName;
-                Settings.MuteSound = global.MuteSound;
-                Settings.PlaySpeed = global.PlaySpeed.ToString();
-                InitializeSettings();
-                SaveSettings();
+                // Global Settings exist
+                if (payload?.Settings != null && payload.Settings.Count > 0)
+                {
+                    global = payload.Settings.ToObject<GlobalSettings>();
+                    Settings.AutoReplay = global.AutoReplay;
+                    Settings.ReplayDirectory = global.ReplayDirectory;
+                    Settings.HideReplaySeconds = global.HideReplaySeconds.ToString();
+                    Settings.SourceName = global.SourceName;
+                    Settings.MuteSound = global.MuteSound;
+                    Settings.PlaySpeed = global.PlaySpeed.ToString();
+                    InitializeSettings();
+                    SaveSettings();
+                }
+                else // Global settings do not exist
+                {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"InstantReplayAction received empty payload: {payload}, creating new instance");
+                    global = new GlobalSettings();
+                    SetGlobalSettings();
+                }
             }
-            else // Global settings do not exist
+            catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"InstantReplayAction received empty payload: {payload}, creating new instance");
-                global = new GlobalSettings();
-                SetGlobalSettings();
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} ReceivedGlobalSettings Exception: {ex}");
             }
         }
 
@@ -368,6 +375,7 @@ namespace BarRaider.ObsTools.Actions
         {
             List<string> allowedPagers = null;
 
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Initializing Twitch Chat for instant replay");
             if (!String.IsNullOrWhiteSpace(Settings.AllowedUsers))
             {
                 allowedPagers = Settings.AllowedUsers?.Replace("\r\n", "\n").Split('\n').ToList();
@@ -393,6 +401,7 @@ namespace BarRaider.ObsTools.Actions
 
         private async Task HandleInstantReplayRequest()
         {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"HandleInstantReplayRequest called");
             if (Settings.TwitchClip)
             {
                 ChatPager.Twitch.TwitchChat.Instance.CreateClip();

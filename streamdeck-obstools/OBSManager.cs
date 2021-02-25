@@ -729,6 +729,7 @@ namespace BarRaider.ObsTools
         {
             IsConnected = false;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");
+            lastConnectAttempt = DateTime.MinValue;
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
         }
 
