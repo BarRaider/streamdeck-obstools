@@ -1,34 +1,37 @@
-{
+﻿{
   "Localization": {
     "Setup": {
+      "General": {
+        "title-intro": "Setup",
+        "title-pairing": "Server Info",
+        "title-result": "Finalize"
+      },
       "Intro": {
-        "Title": "Initial Setup",
-        "Description": "This wizard will help you link OBS with the plugin.<br/><B>IMPORTANT:</B> You must install the latest version of ",
+        "Title": "OBS Setup",
+        "Description": "<B>IMPORTANT:</B> You must install the latest version of ",
         "WebSocket": "obs-websocket",
-        "Description2":  " for this plugin to work. After installing, Enable the WebSockets server through the <i>Tools->\"WebSockets Server Settings\"</i> menu in OBS before continuing.",
-        "Start": "Continue",
+        "Description2": " for this plugin to work. <br/>After installing, <b><i>Enable</b></i> the WebSockets Server:<br/><i>Tools->\"WebSockets Server Settings\"</i> menu in OBS.",
+        "NextStep": "Enabled WebSockets Server? Press LINK to continue..",
+        "Start": "LINK",
         "Close": "Not Now"
       },
       "Pairing": {
-        "Title": "Link Account",
-        "Description": "Note: It is <b>HIGHLY RECOMMENDED</b> you also set a password when enabling the WebSockets server through OBS.<br/>The 'Ip' and 'Port' should be kept as is, unless you made changes through OBS. If you created a password, please input it below",
-        "IpTitle": "IP",
-        "IpPlaceholder": "127.0.0.1",
-        "PortTitle": "Port",
-        "PortPlaceholder": "4444",
-        "PassTitle": "Password",
+        "Title": "Server Info",
+        "Description": "The 'Ip' and 'Port' should be kept as is, unless you made changes in OBS. If you created a password, please input it below",
+        "IpPlaceholder": "IP [127.0.0.1]",
+        "PortPlaceholder": "Port [4444]",
         "PassPlaceholder": "Password",
-        "Submit": "Submit Settings",
+        "Submit": "SAVE",
         "Close": "Cancel"
       },
       "Result": {
         "ValidateTitle": "Saving Settings",
-        "ValidateDescription": "This should take up to 5 seconds...",
-        "SuccessTitle": "Settings Saved",
-        "SuccessDescription": "You may now close this window and start using the plugin",
-        "FailTitle": "VALIDATION FAILED",
-        "FailDescription": "We failed to save the settings. Please try again.",
-        "FailRetry": "Try Again",
+        "ValidateDescription": "This should take up to 5 seconds if all settings are correct...",
+        "SuccessTitle": "✔️ Plugin Configured",
+        "SuccessDescription": "Enjoy using OBS with your Stream Deck.<br/>You may <b><i>close</i></b> this window.",
+        "FailTitle": "SETUP FAILED",
+        "FailDescription": "We failed to save the settings. Validate the Ip/Port/Password are correct and try again. For support:",
+        "FailRetry": "TRY AGAIN",
         "Close": "Close",
         "Cancel": "Cancel",
         "Save": "Done"

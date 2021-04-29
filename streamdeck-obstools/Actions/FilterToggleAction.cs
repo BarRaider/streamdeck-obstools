@@ -56,7 +56,18 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
+        private const int CHECK_STATUS_COOLDOWN_MS = 3000;
+
         private bool enableFilter = true;
+        private DateTime lastStatusCheck = DateTime.MinValue;
+
+        private readonly string[] DEFAULT_IMAGES = new string[]
+        {
+            @"images\filterEnabled.png",
+            @"images\filterAction@2x.png"
+        };
+        private Image filterEnabledImage = null;
+        private Image filterDisabledImage = null;
 
         #endregion
         public FilterToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -72,7 +83,10 @@ namespace BarRaider.ObsTools.Actions
             }
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
+            PrefetchImages();
         }
+
+        #region Public Methods
 
         public override void Dispose()
         {
@@ -95,6 +109,7 @@ namespace BarRaider.ObsTools.Actions
 
                 OBSManager.Instance.ToggleFilterVisibility(Settings.SourceName, Settings.FilterName, enableFilter);
                 enableFilter = !enableFilter;
+                lastStatusCheck = DateTime.MinValue;
             }
             else
             {
@@ -102,21 +117,61 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        public override void KeyReleased(KeyPayload payload) { }
+        public async override void OnTick()
+        {
+            baseHandledOnTick = false;
+            base.OnTick();
+
+            if (!baseHandledOnTick)
+            {
+                if ((DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
+                {
+                    lastStatusCheck = DateTime.Now;
+                    var isEnabled = OBSManager.Instance.IsFilterEnabled(Settings.SourceName, Settings.FilterName);
+                    if (isEnabled.HasValue)
+                    {
+                        enableFilter = !isEnabled.Value;
+                        await Connection.SetImageAsync(isEnabled.Value ? filterEnabledImage : filterDisabledImage);
+                    }
+                }
+            }
+        }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
             Tools.AutoPopulateSettings(Settings, payload.Settings);
             SaveSettings();
+            lastStatusCheck = DateTime.MinValue;
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
-
-        #region Private Methods
+        public override void KeyReleased(KeyPayload payload) { }
+        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) {  }
 
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void PrefetchImages()
+        {
+            if (filterEnabledImage != null)
+            {
+                filterEnabledImage.Dispose();
+                filterEnabledImage = null;
+            }
+
+            if (filterDisabledImage != null)
+            {
+                filterDisabledImage.Dispose();
+                filterDisabledImage = null;
+            }
+
+            filterEnabledImage = Image.FromFile(DEFAULT_IMAGES[0]);
+            filterDisabledImage = Image.FromFile(DEFAULT_IMAGES[1]);
         }
 
         #endregion

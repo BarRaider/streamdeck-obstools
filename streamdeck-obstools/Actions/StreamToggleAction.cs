@@ -23,10 +23,18 @@ namespace BarRaider.ObsTools.Actions
             {
                 PluginSettings instance = new PluginSettings
                 {
-                    ServerInfoExists = false
+                    ServerInfoExists = false,
+                    StreamingIcon = DEFAULT_STREAMING_ICON,
+                    StoppedIcon = DEFAULT_STOPPED_ICON
                 };
                 return instance;
             }
+
+            [JsonProperty(PropertyName = "streamingIcon")]
+            public string StreamingIcon { get; set; }
+
+            [JsonProperty(PropertyName = "stoppedIcon")]
+            public string StoppedIcon { get; set; }
         }
 
         protected PluginSettings Settings
@@ -46,6 +54,13 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
+        #region Private Members
+
+        private const string DEFAULT_STREAMING_ICON = "📡";
+        private const string DEFAULT_STOPPED_ICON = "🔲";
+
+        #endregion
+
         public StreamToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
@@ -59,6 +74,7 @@ namespace BarRaider.ObsTools.Actions
             }
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
+            InitializeSettings();
         }
 
         public override void Dispose()
@@ -73,24 +89,13 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledKeypress)
             {
-                if (payload.IsInMultiAction && payload.UserDesiredState == 0 && !OBSManager.Instance.IsStreaming) // Multiaction mode, check if desired state is 0 (0==Start, 1==Stop) 
+                if (payload.IsInMultiAction)
                 {
-                    OBSManager.Instance.StartStreaming();
+                    HandleMultiActionKeyPress(payload.UserDesiredState);
                 }
-                else if (payload.IsInMultiAction && payload.UserDesiredState == 1 && OBSManager.Instance.IsStreaming) // Multiaction mode, check if desired state is 1 (0==Start, 1==Stop) 
+                else
                 {
-                    OBSManager.Instance.StopStreaming();
-                }
-                else if (!payload.IsInMultiAction) // Not in a multi action
-                {
-                    if (OBSManager.Instance.IsStreaming)
-                    {
-                        OBSManager.Instance.StopStreaming();
-                    }
-                    else
-                    {
-                        OBSManager.Instance.StartStreaming();
-                    }
+                    HandleKeyPress();
                 }
             }
         }
@@ -105,13 +110,14 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync($"{(OBSManager.Instance.IsStreaming ? "📡" : "🔲")}");
+                await Connection.SetTitleAsync($"{(OBSManager.Instance.IsStreaming ? Settings.StreamingIcon : Settings.StoppedIcon)}");
             }
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
-            Tools.AutoPopulateSettings(settings, payload.Settings);
+            Tools.AutoPopulateSettings(Settings, payload.Settings);
+            InitializeSettings();
             SaveSettings();
         }
 
@@ -122,6 +128,62 @@ namespace BarRaider.ObsTools.Actions
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
+        }
+
+        private void InitializeSettings()
+        {
+            bool saveSettings = false;
+
+            if (String.IsNullOrEmpty(Settings.StreamingIcon))
+            {
+                Settings.StreamingIcon = DEFAULT_STREAMING_ICON;
+                saveSettings = true;
+            }
+
+            if (String.IsNullOrEmpty(Settings.StoppedIcon))
+            {
+                Settings.StoppedIcon = DEFAULT_STOPPED_ICON;
+                saveSettings = true;
+            }
+
+            if (saveSettings)
+            {
+                SaveSettings();
+            }
+        }
+
+        private void HandleMultiActionKeyPress(uint state)
+        {
+            switch (state) // 0 = Start, 1 = Stop
+            {
+                case 0:
+                    if (!OBSManager.Instance.IsStreaming)
+                    {
+                        OBSManager.Instance.StartStreaming();
+                    }
+                    break;
+                case 1:
+                    if (OBSManager.Instance.IsStreaming)
+                    {
+                        OBSManager.Instance.StopStreaming();
+                    }
+                    break;
+                default:
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} HandleMultiActionKeyPress: Invalid state {state}");
+                    break;
+            }
+        }
+
+        private void HandleKeyPress()
+        {
+            if (OBSManager.Instance.IsStreaming)
+            {
+                OBSManager.Instance.StopStreaming();
+            }
+            else
+            {
+                OBSManager.Instance.StartStreaming();
+            }
         }
         #endregion
     }

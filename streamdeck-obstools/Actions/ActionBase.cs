@@ -24,6 +24,7 @@ namespace BarRaider.ObsTools.Actions
         protected PluginSettingsBase settings;
         protected bool baseHandledKeypress = false;
         protected bool baseHandledOnTick = false;
+        protected bool previousBaseHandledOnTick = false;
         private bool serverSettingsChanged = false;
 
         #endregion
@@ -75,12 +76,17 @@ namespace BarRaider.ObsTools.Actions
             string base64Image = GetBasicImage();
             if (!string.IsNullOrWhiteSpace(base64Image))
             {
-                baseHandledOnTick = true;
+                baseHandledOnTick = previousBaseHandledOnTick = true;
                 await Connection.SetImageAsync(base64Image);
             }
             else if (serverSettingsChanged)
             {
                 serverSettingsChanged = false;
+                await Connection.SetImageAsync((String)null); // Reset image
+            }
+            else if (previousBaseHandledOnTick)
+            {
+                previousBaseHandledOnTick = false;
                 await Connection.SetImageAsync((String)null); // Reset image
             }
         }
@@ -100,6 +106,12 @@ namespace BarRaider.ObsTools.Actions
             {
                 return Properties.Settings.Default.ImgUpdateWebsocket;
             }
+
+            if (!OBSManager.Instance.IsConnected)
+            {
+                return Properties.Settings.Default.ImgNoConnection;
+            }
+
             return null;
         }
 

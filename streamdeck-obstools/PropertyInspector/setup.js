@@ -36,10 +36,7 @@ function checkToken(payload) {
         }
     }
     else {
-        if (authWindow) {
-            authWindow.loadFailedView();
-        }
-        else {
+        if (!authWindow) {
             authWindow = window.open("Setup/index.html")
         }
     }
@@ -51,10 +48,7 @@ function checkToken(payload) {
         }
     }
     else if (payload['serverInfoExists'] && payload['twitchIntegration']) {
-        if (twitchWindow) {
-            twitchWindow.loadFailedView();
-        }
-        else {
+        if (!twitchWindow) {
             twitchWindow = window.open("TwitchSetup/index.html")
         }
     }
@@ -91,12 +85,60 @@ function updateServerInfo(ip, port, password) {
     console.log("Approving server info");
 }
 
+function openTwitter() {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'event': 'openUrl',
+            'payload': {
+                'url': 'https://buz.bz/barT'
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
+
+function openDiscord() {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'event': 'openUrl',
+            'payload': {
+                'url': 'https://buz.bz/d'
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
+
 function openTwitchAuth() {
     if (websocket && (websocket.readyState === 1)) {
         const json = {
             'event': 'openUrl',
             'payload': {
-                'url': 'https://id.twitch.tv/oauth2/authorize?client_id=ejt1rblr4jf0c1sar20dnkzpikh0g1&redirect_uri=https://BarRaider.com/twitchauth&response_type=token&scope=channel_feed_read%20chat:read%20chat:edit%20whispers:read%20whispers:edit%20clips:edit'
+                'url': 'https://id.twitch.tv/oauth2/authorize?client_id=ozz97p56mmn425wsd6nmv81zai1311&redirect_uri=https://barraider.com/obstwitchredir&response_type=token&scope=channel_feed_read%20chat:read%20chat:edit%20whispers:read%20whispers:edit%20clips:edit'
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
+
+function openTwitter() {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'event': 'openUrl',
+            'payload': {
+                'url': 'https://buz.bz/barT'
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
+
+function openDiscord() {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'event': 'openUrl',
+            'payload': {
+                'url': 'https://buz.bz/d'
             }
         };
         websocket.send(JSON.stringify(json));

@@ -37,8 +37,11 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     ShortPressAction = RecordingAction.START_STOP,
-                    LongPressAction = RecordingAction.START_STOP, // Websocket 4.9 -> Change to Pause/Resume
-                    LongKeypressTime = LONG_KEYPRESS_LENGTH_MS.ToString() 
+                    LongPressAction = RecordingAction.PAUSE_RESUME,
+                    LongKeypressTime = LONG_KEYPRESS_LENGTH_MS.ToString(),
+                    RecordingIcon = DEFAULT_RECORDING_ICON,
+                    StoppedIcon = DEFAULT_STOPPED_ICON,
+                    PausedIcon = DEFAULT_PAUSED_ICON
                 };
                 return instance;
             }
@@ -51,6 +54,15 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "longKeypressTime")]
             public string LongKeypressTime { get; set; }
+
+            [JsonProperty(PropertyName = "recordingIcon")]
+            public string RecordingIcon { get; set; }
+
+            [JsonProperty(PropertyName = "stoppedIcon")]
+            public string StoppedIcon { get; set; }
+
+            [JsonProperty(PropertyName = "pausedIcon")]
+            public string PausedIcon { get; set; }
         }
 
         protected PluginSettings Settings
@@ -60,7 +72,7 @@ namespace BarRaider.ObsTools.Actions
                 var result = settings as PluginSettings;
                 if (result == null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "Cannot convert PluginSettingsBase to PluginSettings");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} Cannot convert PluginSettingsBase to PluginSettings");
                 }
                 return result;
             }
@@ -73,6 +85,11 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private const int LONG_KEYPRESS_LENGTH_MS = 600;
+        private const string DEFAULT_RECORDING_ICON = "🔴";
+        private const string DEFAULT_STOPPED_ICON = "🔲";
+        private const string DEFAULT_PAUSED_ICON = "| |";
+
+
         private int longKeypressTime = LONG_KEYPRESS_LENGTH_MS;
         private readonly System.Timers.Timer tmrRunLongPress = new System.Timers.Timer();
 
@@ -119,7 +136,7 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        public override void KeyReleased(KeyPayload payload) 
+        public override void KeyReleased(KeyPayload payload)
         {
             tmrRunLongPress.Stop();
 
@@ -143,26 +160,24 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync($"{(OBSManager.Instance.IsRecording ? "🔴" : "🔲")}");
-                /*
                 var recordingInfo = OBSManager.Instance.GetRecordingStatus();
                 if (recordingInfo != null)
                 {
-                    string icon = "🔲";
+                    string icon = Settings.StoppedIcon;
                     if (recordingInfo.IsRecordingPaused)
                     {
-                        icon = "| |";
+                        icon = Settings.PausedIcon;
                     }
                     else if (recordingInfo.IsRecording)
                     {
-                        icon = "🔴";
-                    }                   
+                        icon = Settings.RecordingIcon;
+                    }
                     await Connection.SetTitleAsync(icon);
                 }
                 else
                 {
-                    await Connection.SetTitleAsync($"{(OBSManager.Instance.IsRecording ? "🔴" : "🔲")}");
-                }*/
+                    await Connection.SetTitleAsync("?");
+                }
             }
         }
 
@@ -196,40 +211,44 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
+            bool saveSettings = false;
             if (!Int32.TryParse(Settings.LongKeypressTime, out longKeypressTime))
             {
                 Settings.LongKeypressTime = LONG_KEYPRESS_LENGTH_MS.ToString();
+                saveSettings = true;
+            }
+
+            if (String.IsNullOrEmpty(Settings.RecordingIcon))
+            {
+                Settings.RecordingIcon = DEFAULT_RECORDING_ICON;
+                saveSettings = true;
+            }
+
+            if (String.IsNullOrEmpty(Settings.StoppedIcon))
+            {
+                Settings.StoppedIcon = DEFAULT_STOPPED_ICON;
+                saveSettings = true;
+            }
+
+            if (String.IsNullOrEmpty(Settings.PausedIcon))
+            {
+                Settings.PausedIcon = DEFAULT_PAUSED_ICON;
+                saveSettings = true;
+            }
+
+            if (saveSettings)
+            {
                 SaveSettings();
             }
         }
 
-        private void HandleAction(RecordingAction action)
+        private async void HandleAction(RecordingAction action)
         {
-            if (OBSManager.Instance.IsRecording)
-            {
-                OBSManager.Instance.StopRecording();
-            }
-            else
-            {
-                OBSManager.Instance.StartRecording();
-            }
-
-            /*
             var recordingInfo = OBSManager.Instance.GetRecordingStatus();
             if (recordingInfo == null)
             {
-                // TODO: Remove in Websocket 4.9
-                recordingInfo = new OBSWebsocketDotNet.Types.RecordingStatus
-                {
-                    IsRecording = OBSManager.Instance.IsRecording,
-                    IsRecordingPaused = false,
-                    RecordTimeCode = null
-                };
-                action = RecordingAction.START_STOP;
-
-                // TODO: Uncomment in Websocket 4.9
-                //Logger.Instance.LogMessage(TracingLevel.ERROR, $"HandleAction: GetRecordingStatus returned null");
-                //return;
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} HandleAction: GetRecordingStatus returned null");
+                return;
             }
             switch (action)
             {
@@ -246,7 +265,7 @@ namespace BarRaider.ObsTools.Actions
                 case RecordingAction.PAUSE_RESUME:
                     if (!recordingInfo.IsRecording)
                     {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"HandleAction: Pause/Resume called requested but is not recording");
+                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} HandleAction: Pause/Resume called requested but is not recording");
                         await Connection.ShowAlert();
                         return;
                     }
@@ -260,43 +279,21 @@ namespace BarRaider.ObsTools.Actions
                         OBSManager.Instance.PauseRecording();
                     }
                     break;
-            }*/
+                default:
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} HandleAction: Unsupported RecordingAction: {action}");
+                    break;
+            }
         }
 
         private void HandleMultiActionKeyPress(uint state)
         {
-            switch (state)
-            {
-                case 0:
-                    if (!OBSManager.Instance.IsRecording)
-                    {
-                        OBSManager.Instance.StartRecording();
-                    }
-                    break;
-                case 1:
-                    if (OBSManager.Instance.IsRecording)
-                    {
-                        OBSManager.Instance.StopRecording();
-                    }
-                    break;
-            }
-
-            /*
             var recordingInfo = OBSManager.Instance.GetRecordingStatus();
             if (recordingInfo == null)
             {
-                // TODO: Remove in Websocket 4.9
-                recordingInfo = new OBSWebsocketDotNet.Types.RecordingStatus
-                {
-                    IsRecording = OBSManager.Instance.IsRecording,
-                    IsRecordingPaused = false,
-                    RecordTimeCode = null
-                };
-                
-                // TODO: Uncomment in Websocket 4.9
-                //Logger.Instance.LogMessage(TracingLevel.ERROR, $"HandleMultiActionKeyPress: GetRecordingStatus returned null");
-                //return;
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} HandleMultiActionKeyPress: GetRecordingStatus returned null");
+                return;
             }
+
             switch (state) // 0 = Start, 1 = Stop, 2 = Pause, 3 = Resume
             {
                 case 0:
@@ -324,9 +321,9 @@ namespace BarRaider.ObsTools.Actions
                     }
                     break;
                 default:
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"HandleMultiActionKeyPress: Invalid state {state}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} HandleMultiActionKeyPress: Invalid state {state}");
                     break;
-            }*/
+            }
         }
 
         #endregion

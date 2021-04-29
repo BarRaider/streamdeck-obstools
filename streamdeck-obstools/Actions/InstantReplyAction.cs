@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
-
 namespace BarRaider.ObsTools.Actions
 {
 
@@ -28,9 +27,6 @@ namespace BarRaider.ObsTools.Actions
     [PluginActionId("com.barraider.obstools.instantreply")]
     public class InstantReplyAction : ActionBase
     {
-        private const int HIDE_REPLAY_SECONDS = 20;
-        private const int DEFAULT_REPLAY_COOLDOWN = 30;
-        private const int DELAY_REPLAY_SECONDS = 1;
         protected class PluginSettings : PluginSettingsBase
         {
             public static PluginSettings CreateDefaultSettings()
@@ -115,8 +111,18 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
+        private const int HIDE_REPLAY_SECONDS = 20;
+        private const int DEFAULT_REPLAY_COOLDOWN = 30;
+        private const int DELAY_REPLAY_SECONDS = 1;
         private const int LONG_KEYPRESS_LENGTH = 600;
         private const int DEFAULT_PLAY_SPEED_PERCENTAGE = 100;
+
+        private readonly string[] DEFAULT_IMAGES = new string[]
+        {
+            @"images\replayEnabled.png",
+            @"images\replayAction@2x.png"
+        };
+
 
         private bool keyPressed = false;
         private bool longKeyPressed = false;
@@ -126,6 +132,8 @@ namespace BarRaider.ObsTools.Actions
         private int replayCooldown = DEFAULT_REPLAY_COOLDOWN;
         private int delayReplaySettings = DELAY_REPLAY_SECONDS;
         private int speed = DEFAULT_PLAY_SPEED_PERCENTAGE;
+        private Image replayEnabledImage = null;
+        private Image replayDisabledImage = null;
 
         #endregion
         public InstantReplyAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -144,6 +152,7 @@ namespace BarRaider.ObsTools.Actions
             Connection.GetGlobalSettingsAsync();
             ChatPager.Twitch.TwitchChat.Instance.PageRaised += Instance_PageRaised;
             ChatPager.Twitch.TwitchTokenManager.Instance.TokenStatusChanged += Instance_TokenStatusChanged;
+            PrefetchImages();
             InitializeSettings();
         }
 
@@ -200,7 +209,8 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetTitleAsync($"Replay:\n{(IsReplayBufferActive() ? "On" : "Off")}");
+                await Connection.SetImageAsync(OBSManager.Instance.IsReplayBufferEnabled() ? replayEnabledImage : replayDisabledImage);
+                await Connection.SetTitleAsync($"Buffer\n{(OBSManager.Instance.IsReplayBufferEnabled() ? "On" : "Off")}");
             }
         }
 
@@ -253,23 +263,22 @@ namespace BarRaider.ObsTools.Actions
 
         private async Task HandleMultiAction(KeyPayload payload)
         {
-            bool isActive = OBSManager.Instance.IsRecording || OBSManager.Instance.IsStreaming;
             switch (payload.UserDesiredState) // 0 = Enable, 1 = Disable, 2 = Create Replay
             {
                 case 0:
-                    if (isActive && !IsReplayBufferActive())
+                    if (!OBSManager.Instance.IsReplayBufferEnabled())
                     {
                         OBSManager.Instance.StartInstantReplay();
                     }
                     break;
                 case 1:
-                    if (isActive && IsReplayBufferActive())
+                    if (OBSManager.Instance.IsReplayBufferEnabled())
                     {
                         OBSManager.Instance.StopInstantReplay();
                     }
                     break;
                 case 2:
-                    if (isActive && IsReplayBufferActive())
+                    if (OBSManager.Instance.IsReplayBufferEnabled())
                     {
                         await HandleInstantReplayRequest();
                     }
@@ -287,8 +296,7 @@ namespace BarRaider.ObsTools.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Instant Replay LongKeyPressed");
             try
             {
-                bool isActive = OBSManager.Instance.IsRecording || OBSManager.Instance.IsStreaming;
-                if (isActive && IsReplayBufferActive())
+                if (OBSManager.Instance.IsReplayBufferEnabled())
                 {
                     // Disable Instant Reply Buffer
                     if (OBSManager.Instance.StopInstantReplay())
@@ -301,7 +309,7 @@ namespace BarRaider.ObsTools.Actions
                         Connection.ShowAlert();
                     }
                 }
-                else if (isActive && OBSManager.Instance.InstantReplyStatus == OutputState.Stopped)
+                else
                 {
                     // Enable Instant Reply Buffer
                     if (OBSManager.Instance.StartInstantReplay())
@@ -314,11 +322,7 @@ namespace BarRaider.ObsTools.Actions
                         Connection.ShowAlert();
                     }
                 }
-                else // Not streaming or maybe the buffer is not in a stable state
-                {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay Cannot change mode: IsStreaming {OBSManager.Instance.IsStreaming} IsRecording: {OBSManager.Instance.IsRecording} Status: {OBSManager.Instance.InstantReplyStatus}");
-                    Connection.ShowAlert();
-                }
+                OnTick();
             }
             catch (Exception ex)
             {
@@ -394,11 +398,6 @@ namespace BarRaider.ObsTools.Actions
             Settings.TwitchTokenExists = ChatPager.Twitch.TwitchTokenManager.Instance.TokenExists;
         }
 
-        private bool IsReplayBufferActive()
-        {
-            return OBSManager.Instance.IsReplayBufferActive || OBSManager.Instance.InstantReplyStatus == OutputState.Started;
-        }
-
         private async Task HandleInstantReplayRequest()
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"HandleInstantReplayRequest called");
@@ -407,7 +406,7 @@ namespace BarRaider.ObsTools.Actions
                 ChatPager.Twitch.TwitchChat.Instance.CreateClip();
             }
 
-            if (IsReplayBufferActive()) // Actively running Instant Replay
+            if (OBSManager.Instance.IsReplayBufferEnabled()) // Actively running Instant Replay
             {
                 if (await OBSManager.Instance.SaveInstantReplay())
                 {
@@ -424,6 +423,24 @@ namespace BarRaider.ObsTools.Actions
                 Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay not enabled. Status: {OBSManager.Instance.InstantReplyStatus}");
                 await Connection.ShowAlert();
             }
+        }
+
+        private void PrefetchImages()
+        {
+            if (replayEnabledImage != null)
+            {
+                replayEnabledImage.Dispose();
+                replayEnabledImage = null;
+            }
+
+            if (replayDisabledImage != null)
+            {
+                replayDisabledImage.Dispose();
+                replayDisabledImage = null;
+            }
+
+            replayEnabledImage = Image.FromFile(DEFAULT_IMAGES[0]);
+            replayDisabledImage = Image.FromFile(DEFAULT_IMAGES[1]);
         }
 
         #endregion

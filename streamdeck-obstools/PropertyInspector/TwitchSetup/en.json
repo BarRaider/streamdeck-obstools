@@ -1,32 +1,30 @@
-{
+﻿{
   "Localization": {
     "Setup": {
-      "Intro": {
-        "Title" : "Initial Setup",
-        "Description": "This wizard will help you link your Twitch account with the plugin",
-        "Start": "Link Account",
-        "Close": "Not Now"
+      "General": {
+        "title-intro": "Setup",
+        "title-pairing": "Link",
+        "title-result": "Finalize"
       },
-      "Pairing": {
-        "Title": "Link Account",
-        "Description": "To use this plugin you need to authorize this app to communicate with your Twitch account.",
-        "DescriptionPart2": "Start by ",
-        "DescriptionPart3": " and approving this app on Twitch's website. <br/>Then paste the Approval Code to the textbox below:",
-        "ClickHere": "clicking here",
-        "ApprovalCodeTitle": "Approval Code",
-        "ApprovalPlaceholder": "Paste the entire code",
-        "NotePopup": "Note: After submitting, this window will close but will open up again if the code is invalid.",
-        "Submit": "Submit Code",
+      "Intro": {
+        "Title": "Twitch Connection Setup",
+        "Description": "This wizard will help you link your Twitch account with the plugin.",
+        "DescriptionPart2": "Press the 'Link' button and authorize the plugin in the newly opened browser tab. ",
+        "NotePopup": "Note: This window may close but will open up again if the link failed.",
+        "Submit": "LINK",
         "Close": "Cancel"
       },
+      "Pairing": {
+        "Title": "Linking account",
+        "Description": "Please follow instructions in your browser...",
+        "Cancel": "Cancel"
+      },
       "Result": {
-        "ValidateTitle": "Validating Code",
-        "ValidateDescription": "This may take up to one minute...",
-        "SuccessTitle": "Code Accepted",
-        "SuccessDescription": "You may now close this window and start using Twitch Pager",
+        "SuccessTitle": "✔️ Twitch Connected",
+        "SuccessDescription": "Enjoy using Twitch with your Stream Deck.<br/>You may <b><i>close</i></b> this window.",
         "FailTitle": "VALIDATION FAILED",
-        "FailDescription": "We failed to validate the code. Please try again with a new code. Make sure to copy-paste the code entirely",
-        "FailRetry": "Try Again",
+        "FailDescription": "We failed to link your account, please try again. For support:",
+        "FailRetry": "TRY AGAIN",
         "Close": "Close",
         "Cancel": "Cancel",
         "Save": "Done"

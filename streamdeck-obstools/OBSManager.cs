@@ -1,6 +1,7 @@
 ﻿using BarRaider.ObsTools.Backend;
 using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using NLog.Time;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using OTI.Shared;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BarRaider.ObsTools
 {
@@ -24,16 +26,20 @@ namespace BarRaider.ObsTools
 
         private const string CONNECTION_STRING = "ws://{0}:{1}";
         private const string REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE = "replay buffer already active";
-        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("4.8");
+        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("4.9");
+        private readonly SemaphoreSlim connectLock = new SemaphoreSlim(1, 1);
         private const int CONNECT_COOLDOWN_MS = 10000;
+        private const int AUTO_CONNECT_SLEEP_MS = 10000;
 
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
-        private static readonly object connectLock = new object();
         private readonly OBSWebsocket obs;
         private DateTime lastStreamStatus;
         private readonly System.Timers.Timer tmrCheckStatus = new System.Timers.Timer();
         private DateTime lastConnectAttempt = DateTime.MinValue;
+        private bool disconnectCalled = false;
+        private bool autoConnectRunning = false;
+        private static readonly object autoConnectLock = new object();
 
 
         #endregion
@@ -53,6 +59,7 @@ namespace BarRaider.ObsTools
                 {
                     if (instance == null)
                     {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Manager Created");
                         instance = new OBSManager();
                     }
                     return instance;
@@ -107,23 +114,31 @@ namespace BarRaider.ObsTools
 
         public OutputState InstantReplyStatus { get; private set; }
 
-        public bool IsReplayBufferActive { get; private set; }
-
         public bool IsStreaming { get; private set; }
 
         public bool IsRecording { get; private set; }
 
-        public void Connect()
+        public async void Connect(bool autoConnect = false)
         {
+            if (!autoConnect)
+            {
+                disconnectCalled = false;
+            }
+
             if (!obs.IsConnected)
             {
-                lock (connectLock)
+                await connectLock.WaitAsync();
+                try
                 {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
                     if (obs.IsConnected)
                     {
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Connect: Already connected");
                         return;
+                    }
+
+                    if (!autoConnect) // Don't spam log
+                    {
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
                     }
 
                     if ((DateTime.Now - lastConnectAttempt).TotalMilliseconds < CONNECT_COOLDOWN_MS)
@@ -139,29 +154,33 @@ namespace BarRaider.ObsTools
                         return;
                     }
 
-                    try
+                    if (!autoConnect)  // Don't spam log
                     {
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect to {serverInfo.Ip}:{serverInfo.Port}");
-                        lastConnectAttempt = DateTime.Now;
-                        obs.WSTimeout = new TimeSpan(0, 0, 3);
-                        obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                     }
-                    catch (AuthFailureException)
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
-                        ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"Connection Exception: {ex}");
-                    }
-
+                    lastConnectAttempt = DateTime.Now;
+                    obs.WSTimeout = new TimeSpan(0, 0, 3);
+                    obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
+                }
+                catch (AuthFailureException)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
+                    ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Connection Exception: {ex}");
+                }
+                finally
+                {
+                    connectLock.Release();
                 }
             }
         }
 
         public void Disconnect()
         {
+            disconnectCalled = true;
             if (obs.IsConnected)
             {
                 obs.Disconnect();
@@ -170,7 +189,7 @@ namespace BarRaider.ObsTools
 
         public bool ChangeScene(string sceneName)
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -187,7 +206,7 @@ namespace BarRaider.ObsTools
 
         public bool StartInstantReplay()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -206,27 +225,9 @@ namespace BarRaider.ObsTools
             return false;
         }
 
-        /*
-        public RecordingStatus GetRecordingStatus()
-        {
-            if (obs.IsConnected)
-            {
-                try
-                {
-                    // TODO: Uncomment in Websocket 4.9
-                    // return obs.GetRecordingStatus();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetRecordingStatus Exception: {ex}");
-                }
-            }
-            return null;
-        }*/
-
         public bool StartRecording()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -243,7 +244,7 @@ namespace BarRaider.ObsTools
 
         public bool StopRecording()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -260,7 +261,7 @@ namespace BarRaider.ObsTools
 
         public bool PauseRecording()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -277,7 +278,7 @@ namespace BarRaider.ObsTools
 
         public bool ResumeRecording()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -294,7 +295,7 @@ namespace BarRaider.ObsTools
 
         public bool StartStreaming()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -311,7 +312,7 @@ namespace BarRaider.ObsTools
 
         public bool StopStreaming()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -328,7 +329,7 @@ namespace BarRaider.ObsTools
 
         public bool StartStudioMode()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -345,7 +346,7 @@ namespace BarRaider.ObsTools
 
         public bool StopStudioMode()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -362,7 +363,7 @@ namespace BarRaider.ObsTools
 
         public bool ToggleStudioMode()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -379,7 +380,7 @@ namespace BarRaider.ObsTools
 
         public bool IsStudioModeEnabled()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -395,7 +396,7 @@ namespace BarRaider.ObsTools
 
         public bool StopInstantReplay()
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -414,7 +415,7 @@ namespace BarRaider.ObsTools
         {
             return Task.Run(() =>
             {
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
                     try
                     {
@@ -440,7 +441,7 @@ namespace BarRaider.ObsTools
                     return false;
                 }
 
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
                     try
                     {
@@ -489,7 +490,7 @@ namespace BarRaider.ObsTools
                     return false;
                 }
 
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
                     try
                     {
@@ -501,14 +502,14 @@ namespace BarRaider.ObsTools
                             return false;
                         }
 
-                        if (sourceSettings.sourceType != "image_source")
+                        if (sourceSettings.SourceType != "image_source")
                         {
-                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: Source {sourceName} is not an image source: {sourceSettings.sourceType}");
+                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: Source {sourceName} is not an image source: {sourceSettings.SourceType}");
                             return false;
                         }
 
-                        sourceSettings.sourceSettings["file"] = fileName;
-                        obs.SetSourceSettings(sourceName, sourceSettings.sourceSettings);
+                        sourceSettings.Settings["file"] = fileName;
+                        obs.SetSourceSettings(sourceName, sourceSettings.Settings);
                         Thread.Sleep(200);
                         obs.SetSourceRender(sourceName, true);
 
@@ -544,7 +545,7 @@ namespace BarRaider.ObsTools
 
         public VolumeInfo GetSourceVolume(string sourceName)
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -560,7 +561,7 @@ namespace BarRaider.ObsTools
 
         public bool SetSourceVolume(string sourceName, float volume)
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -578,7 +579,7 @@ namespace BarRaider.ObsTools
 
         public bool SetPreviewScene(string sceneName)
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -596,7 +597,7 @@ namespace BarRaider.ObsTools
 
         public bool SetScene(string sceneName)
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -614,7 +615,7 @@ namespace BarRaider.ObsTools
 
         public SourceScreenshotResponse GetSourceSnapshot(string sourceName)
         {
-            if (obs.IsConnected)
+            if (IsConnected)
             {
                 try
                 {
@@ -638,7 +639,7 @@ namespace BarRaider.ObsTools
                     return false;
                 }
 
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
                     AnimationManager.Instance.HandleAnimation(obs, animationPhases, repeatAmount);
                     return true;
@@ -655,7 +656,7 @@ namespace BarRaider.ObsTools
         {
             try
             {
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
                     var item = obs.GetSceneItemProperties(sourceName, sceneName);
                     if (item != null)
@@ -678,7 +679,7 @@ namespace BarRaider.ObsTools
         {
             try
             {
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
                     var item = obs.GetSceneItemProperties(sourceName, sceneName);
                     if (item == null)
@@ -697,6 +698,303 @@ namespace BarRaider.ObsTools
             return false;
         }
 
+
+        public void ToggleFilterVisibility(string sourceName, string filterName, bool enableFilter)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    obs.SetSourceFilterVisibility(sourceName, filterName, enableFilter);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleFilterVisibility Exception for Source {sourceName} and Filter {filterName} {ex}");
+            }
+        }
+
+        public bool? IsFilterEnabled(string sourceName, string filterName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    var filterInfo = obs.GetSourceFilterInfo(sourceName, filterName);
+                    if (filterInfo != null)
+                    {
+                        return filterInfo.IsEnabled;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsFilterEnabled Exception for Source {sourceName} and Filter {filterName} {ex}");
+            }
+            return null;
+        }
+
+        public List<String> GetAllTransitions()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.ListTransitions();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllTransitions Exception {ex}");
+            }
+            return null;
+        }
+
+        public GetSceneListInfo GetAllScenes()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetSceneList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllScenes Exception {ex}");
+            }
+            return null;
+        }
+
+        public List<String> GetAllSceneCollections()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.ListSceneCollections();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllSceneCollections Exception: {ex}");
+            }
+            return null;
+        }
+
+        public string GetSceneCollection()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetCurrentSceneCollection();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSceneCollection Exception: {ex}");
+            }
+            return null;
+        }
+
+        public void SetSceneCollection(string sceneCollectionName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Scene Collection to: {sceneCollectionName}");
+                    obs.SetCurrentSceneCollection(sceneCollectionName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSceneCollection Exception: {ex}");
+            }
+        }
+
+        public TransitionSettings GetTransition()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    var transition = obs.GetCurrentTransition();
+                    return transition;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetTransition Exception: {ex}");
+            }
+            return null;
+        }
+
+        public void SetTransition(string transitionName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
+                    obs.SetCurrentTransition(transitionName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetTransition Exception: {ex}");
+            }
+        }
+
+        public void SetCurrentTransitionDuration(int duration)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition Duration to: {duration}");
+                    obs.SetTransitionDuration(duration);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetTransition Exception: {ex}");
+            }
+        }
+
+        public List<String> GetAllProfiles()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.ListProfiles();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllProfiles Exception: {ex}");
+            }
+            return null;
+        }
+
+        public void SetProfile(string profileName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Profile to: {profileName}");
+                    obs.SetCurrentProfile(profileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetProfile Exception: {ex}");
+            }
+        }
+
+        public string GetProfile()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetCurrentProfile();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetProfile Exception: {ex}");
+            }
+            return null;
+        }
+
+        public List<SourcePropertyAnimationConfiguration> GetSourceProperties(string sourceName, out string errorMessage)
+        {
+            errorMessage = null;
+            try
+            {
+                if (IsConnected)
+                {
+                    return AnimationManager.Instance.GetSourceProperties(obs, sourceName, out errorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceProperties Exception: {ex}");
+            }
+            return null;
+        }
+
+        public bool IsReplayBufferEnabled()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetReplayBufferStatus();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsReplayBufferEnabled Exception: {ex}");
+            }
+            return false;
+        }
+
+        public RecordingStatus GetRecordingStatus()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetRecordingStatus();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetRecordingStatus Exception: {ex}");
+            }
+            return null;
+        }
+
+        public bool TriggerHotkey(string obsKeyCode, bool ctrl, bool alt, bool shift, bool win)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    KeyModifier keyModifier = KeyModifier.None;
+                    if (ctrl)
+                    {
+                        keyModifier |= KeyModifier.Control;
+                    }
+                    if (alt)
+                    {
+                        keyModifier |= KeyModifier.Alt;
+                    }
+                    if (shift)
+                    {
+                        keyModifier |= KeyModifier.Shift;
+                    }
+                    if (win)
+                    {
+                        keyModifier |= KeyModifier.Command;
+                    }
+
+                    OBSHotkey hotkey = (OBSHotkey)Enum.Parse(typeof(OBSHotkey), obsKeyCode, true);
+                    obs.TriggerHotkeyBySequence(hotkey, keyModifier);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"TriggerHotkey Exception: {ex}");
+            }
+            return false;
+        }
 
         #endregion
 
@@ -728,9 +1026,23 @@ namespace BarRaider.ObsTools
         private void Obs_Disconnected(object sender, EventArgs e)
         {
             IsConnected = false;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");
-            lastConnectAttempt = DateTime.MinValue;
+            if (!autoConnectRunning) // Don't spam logs
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");
+            }
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+            if (!disconnectCalled)
+            {
+                lock (autoConnectLock)
+                {
+                    if (!autoConnectRunning)
+                    {
+                        autoConnectRunning = true;
+                        Task.Run(() => AutoConnectBackgroundWorker());
+                    }
+                }
+
+            }
         }
 
         private void Obs_StreamStatus(OBSWebsocket sender, StreamStatus status)
@@ -738,7 +1050,6 @@ namespace BarRaider.ObsTools
             lastStreamStatus = DateTime.Now;
             IsStreaming = status.Streaming;
             IsRecording = status.Recording;
-            IsReplayBufferActive = status.ReplayBufferActive;
             StreamStatusChanged?.Invoke(this, new StreamStatusEventArgs(status));
         }
 
@@ -783,29 +1094,36 @@ namespace BarRaider.ObsTools
 
         private void CheckStatus()
         {
-            if (obs.IsConnected)
+            try
             {
-                CurrentSceneName = obs.GetCurrentScene()?.Name;
+                if (obs.IsConnected)
+                {
+                    CurrentSceneName = obs.GetCurrentScene()?.Name;
 
 
-                if (IsStudioModeEnabled())
-                {
-                    CurrentPreviewSceneName = obs.GetPreviewScene()?.Name;
-                }
-                else
-                {
-                    CurrentPreviewSceneName = String.Empty;
-                }
-
-                if ((DateTime.Now - lastStreamStatus).TotalMilliseconds > 5000)
-                {
-                    var status = obs.GetStreamingStatus();
-                    if (status != null)
+                    if (IsStudioModeEnabled())
                     {
-                        IsRecording = status.IsRecording;
-                        IsStreaming = status.IsStreaming;
+                        CurrentPreviewSceneName = obs.GetPreviewScene()?.Name;
+                    }
+                    else
+                    {
+                        CurrentPreviewSceneName = String.Empty;
+                    }
+
+                    if ((DateTime.Now - lastStreamStatus).TotalMilliseconds > 5000)
+                    {
+                        var status = obs.GetStreamingStatus();
+                        if (status != null)
+                        {
+                            IsRecording = status.IsRecording;
+                            IsStreaming = status.IsStreaming;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"CheckStatus Exception {ex}");
             }
         }
 
@@ -813,142 +1131,6 @@ namespace BarRaider.ObsTools
         {
             CheckStatus();
         }
-
-        public void ToggleFilterVisibility(string sourceName, string filterName, bool enableFilter)
-        {
-            try
-            {
-                if (IsConnected)
-                {
-                    obs.SetSourceFilterVisibility(sourceName, filterName, enableFilter);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleFilterVisibility Exception {ex}");
-            }
-        }
-
-        public List<String> GetAllTransitions()
-        {
-            if (IsConnected)
-            {
-                return obs.ListTransitions();
-            }
-            return null;
-        }
-
-        public GetSceneListInfo GetAllScenes()
-        {
-            if (IsConnected)
-            {
-                return obs.GetSceneList();
-            }
-            return null;
-        }
-
-       public List<String> GetAllSceneCollections()
-        {
-            if (IsConnected)
-            {
-                return obs.ListSceneCollections();
-            }
-            return null;
-        }
-
-        public string GetSceneCollection()
-        {
-            if (IsConnected)
-            {
-                return obs.GetCurrentSceneCollection();
-            }
-            return null;
-        }
-
-        public void SetSceneCollection(string sceneCollectionName)
-        {
-            try
-            {
-                if (IsConnected)
-                {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Scene Collection to: {sceneCollectionName}");
-                    obs.SetCurrentSceneCollection(sceneCollectionName);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSceneCollection Exception: {ex}");
-            }
-        }
-
-        public TransitionSettings GetTransition()
-        {
-            if (IsConnected)
-            {
-                return obs.GetCurrentTransition();
-            }
-            return null;
-        }
-
-        public void SetTransition(string transitionName)
-        {
-            try
-            {
-                if (IsConnected)
-                {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
-                    obs.SetCurrentTransition(transitionName);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetTransition Exception: {ex}");
-            }
-        }
-        public List<String> GetAllProfiles()
-        {
-            if (IsConnected)
-            {
-                return obs.ListProfiles();
-            }
-            return null;
-        }
-
-        public void SetProfile(string profileName)
-        {
-            try
-            {
-                if (IsConnected)
-                {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Profile to: {profileName}");
-                    obs.SetCurrentProfile(profileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetProfile Exception: {ex}");
-            }
-        }
-
-        public string GetProfile()
-        {
-            if (IsConnected)
-            {
-                return obs.GetCurrentProfile();
-            }
-            return null;
-        }
-
-        public List<SourcePropertyAnimationConfiguration> GetSourceProperties(string sourceName, out string errorMessage)
-        {
-            errorMessage = null;
-            if (IsConnected)
-            {
-                return AnimationManager.Instance.GetSourceProperties(obs, sourceName, out errorMessage);
-            }
-            return null;
-        }
-
         private void VerifyValidVersion(OBSVersion obsVersion)
         {
             IsValidVersion = false;
@@ -968,6 +1150,38 @@ namespace BarRaider.ObsTools
             }
 
             IsValidVersion = true;
+        }
+
+        private void AutoConnectBackgroundWorker()
+        {
+            try
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} AutoConnect enabled");
+                while (!obs.IsConnected && !disconnectCalled)
+                {
+                    Connect(true);
+                    Thread.Sleep(AUTO_CONNECT_SLEEP_MS);
+                }
+
+                if (obs.IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} AutoConnectBackgroundWorker stopped: OBS is connected!");
+                }
+
+                if (disconnectCalled)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} AutoConnectBackgroundWorker stopped: Disconnect was called!");
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} AutoConnectBackgroundWorker Exception: {ex}");
+            }
+            finally
+            {
+                autoConnectRunning = false;
+            }
         }
 
         #endregion

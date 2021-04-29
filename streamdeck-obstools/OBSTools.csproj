@@ -68,17 +68,17 @@
     <Reference Include="Microsoft.Extensions.Options, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\..\..\DotNet\OTI\packages\Microsoft.Extensions.Options.5.0.0\lib\net461\Microsoft.Extensions.Options.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\OTI\packages\Microsoft.Extensions.Primitives.5.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=5.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.5.0.1\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\..\DotNet\StreamDeck\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.7.8\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.7.9\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="obs-websocket-dotnet, Version=4.8.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\obs-websocket-dotnet.4.8.1\lib\netstandard2.0\obs-websocket-dotnet.dll</HintPath>
+    <Reference Include="obs-websocket-dotnet, Version=4.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\obs-websocket-dotnet.4.9.0\lib\netstandard2.0\obs-websocket-dotnet.dll</HintPath>
     </Reference>
     <Reference Include="PickersUtil">
       <HintPath>..\..\PickersUtil\PickersUtil\bin\Release\PickersUtil.dll</HintPath>
@@ -174,44 +174,44 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="TwitchLib.Api.Core, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.Core.3.2.2\lib\netstandard2.0\TwitchLib.Api.Core.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.Core.3.2.3\lib\netstandard2.0\TwitchLib.Api.Core.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Core.Enums, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.Core.Enums.3.2.2\lib\netstandard2.0\TwitchLib.Api.Core.Enums.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core.Enums, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.Core.Enums.3.2.3\lib\netstandard2.0\TwitchLib.Api.Core.Enums.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Core.Interfaces, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.Core.Interfaces.3.2.2\lib\netstandard2.0\TwitchLib.Api.Core.Interfaces.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core.Interfaces, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.Core.Interfaces.3.2.3\lib\netstandard2.0\TwitchLib.Api.Core.Interfaces.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Core.Models, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.Core.Models.3.2.2\lib\netstandard2.0\TwitchLib.Api.Core.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Core.Models, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.Core.Models.3.2.3\lib\netstandard2.0\TwitchLib.Api.Core.Models.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Helix, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.Helix.3.2.2\lib\netstandard2.0\TwitchLib.Api.Helix.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Helix, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.Helix.3.2.3\lib\netstandard2.0\TwitchLib.Api.Helix.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.Helix.Models, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.Helix.Models.3.2.2\lib\netstandard2.0\TwitchLib.Api.Helix.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Api.Helix.Models, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.Helix.Models.3.2.3\lib\netstandard2.0\TwitchLib.Api.Helix.Models.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.V5, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.V5.3.2.2\lib\netstandard2.0\TwitchLib.Api.V5.dll</HintPath>
+    <Reference Include="TwitchLib.Api.V5, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.V5.3.2.3\lib\netstandard2.0\TwitchLib.Api.V5.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Api.V5.Models, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TwitchLib.Api.V5.Models.3.2.2\lib\netstandard2.0\TwitchLib.Api.V5.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Api.V5.Models, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Api.V5.Models.3.2.3\lib\netstandard2.0\TwitchLib.Api.V5.Models.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Client, Version=3.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.3.2.1\lib\netstandard2.0\TwitchLib.Client.dll</HintPath>
+    <Reference Include="TwitchLib.Client, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Client.3.2.2\lib\netstandard2.0\TwitchLib.Client.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Client.Enums, Version=3.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.Enums.3.2.1\lib\netstandard2.0\TwitchLib.Client.Enums.dll</HintPath>
+    <Reference Include="TwitchLib.Client.Enums, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Client.Enums.3.2.2\lib\netstandard2.0\TwitchLib.Client.Enums.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.Client.Models, Version=3.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Client.Models.3.2.1\lib\netstandard2.0\TwitchLib.Client.Models.dll</HintPath>
+    <Reference Include="TwitchLib.Client.Models, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.Client.Models.3.2.2\lib\netstandard2.0\TwitchLib.Client.Models.dll</HintPath>
     </Reference>
     <Reference Include="TwitchLib.Communication, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.Communication.1.0.3\lib\netstandard2.0\TwitchLib.Communication.dll</HintPath>
     </Reference>
-    <Reference Include="TwitchLib.PubSub, Version=3.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\DotNet\StreamDeck\packages\TwitchLib.PubSub.3.2.1\lib\netstandard2.0\TwitchLib.PubSub.dll</HintPath>
+    <Reference Include="TwitchLib.PubSub, Version=3.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TwitchLib.PubSub.3.2.2\lib\netstandard2.0\TwitchLib.PubSub.dll</HintPath>
     </Reference>
     <Reference Include="websocket-sharp, Version=1.0.1.0, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
       <HintPath>..\packages\WebSocketSharp-netstandard.1.0.1\lib\net45\websocket-sharp.dll</HintPath>
@@ -229,6 +229,7 @@
     <Compile Include="Actions\SourceVolumeSetterAction.cs" />
     <Compile Include="Actions\SetTransitionAction.cs" />
     <Compile Include="Actions\FilterToggleAction.cs" />
+    <Compile Include="Actions\HotkeyTriggerAction.cs" />
     <Compile Include="Actions\StudioModeToggleAction.cs" />
     <Compile Include="Actions\StreamToggleAction.cs" />
     <Compile Include="Actions\RecordToggleAction.cs" />
@@ -238,8 +239,11 @@
     <Compile Include="Actions\PreviousSceneAction.cs" />
     <Compile Include="Actions\CPUUsageAction.cs" />
     <Compile Include="Actions\DroppedFramesAction.cs" />
+    <Compile Include="Backend\Constants.cs" />
+    <Compile Include="Backend\OAuthTokenListener.cs" />
     <Compile Include="Backend\SmartSceneSwitcherManager.cs" />
     <Compile Include="Backend\InstantReplayWatcher.cs" />
+    <Compile Include="Backend\VirtualKeyCode.cs" />
     <Compile Include="OBSManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -259,6 +263,7 @@
     <Compile Include="Twitch\ClipDetails.cs" />
     <Compile Include="Twitch\TwitchUserDetails.cs" />
     <Compile Include="Wrappers\GlobalSettings.cs" />
+    <Compile Include="Wrappers\HotkeySequence.cs" />
     <Compile Include="Wrappers\SceneChangedEventArgs.cs" />
     <Compile Include="Wrappers\ServerInfo.cs" />
     <Compile Include="Wrappers\ServerInfoEventArgs.cs" />
@@ -292,6 +297,12 @@
     <Content Include="Images\animationAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\browserAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\browserAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\categoryIcon%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -316,10 +327,25 @@
     <Content Include="Images\filterAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\filterEnabled.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\hotkeyAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\hotkeyAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\icon%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\imageAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\imageAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\pluginAction%402x.png">
@@ -334,16 +360,31 @@
     <Content Include="Images\pluginIcon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\recordingAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\recordingAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\replayAction%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\replayAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\replayEnabled.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\sourceAction%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\sourceAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\streamAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\streamAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\studioAction%402x.png">
@@ -367,7 +408,37 @@
     <Content Include="Images\volumeAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="PropertyInspector\Capture.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="PropertyInspector\DroppedFrames.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\HotkeyTrigger.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\appLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\brLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\brLogoSmall.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\discord.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\ellipse.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\ellipseFail.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Setup\images\twitter.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\Streaming.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\Recording.html">
@@ -412,6 +483,24 @@
     <Content Include="PropertyInspector\TwitchSetup\css\main.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\appLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\brLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\brLogoSmall.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\discord.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\ellipse.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\ellipseFail.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="PropertyInspector\TwitchSetup\images\fail.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -419,6 +508,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\TwitchSetup\images\twitchPage.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\TwitchSetup\images\twitter.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\TwitchSetup\index.html">

@@ -5,12 +5,13 @@
       "Name": "Browser Source",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/browserAction",
           "TitleAlignment": "middle",
           "FontSize": "10"
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Configure different settings on a single Browser source",
       "UUID": "com.barraider.obstools.browsersource",
       "PropertyInspectorPath": "PropertyInspector/BrowserSource.html"
@@ -26,6 +27,7 @@
         }
       ],
       "SupportedInMultiActions": false,
+      "DisableCaching": true,
       "Tooltip": "Shows the current OBS CPU usage",
       "UUID": "com.barraider.obstools.cpuusage",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
@@ -41,6 +43,7 @@
         }
       ],
       "SupportedInMultiActions": false,
+      "DisableCaching": true,
       "Tooltip": "Shows the number of dropped frames on your Stream Deck and alerts if it increases",
       "UUID": "com.barraider.obstools.droppedframes",
       "PropertyInspectorPath": "PropertyInspector/DroppedFrames.html"
@@ -62,21 +65,39 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Enable/Disable a Filter on a specific source",
       "UUID": "com.barraider.obstools.filtertoggle",
       "PropertyInspectorPath": "PropertyInspector/FilterToggle.html"
     },
     {
       "Icon": "Images/icon",
+      "Name": "Hotkey Trigger",
+      "States": [
+        {
+          "Image": "Images/hotkeyAction",
+          "TitleAlignment": "top",
+          "FontSize": "11"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Sends a hotkey directly to OBS",
+      "UUID": "com.barraider.obstools.hotkeytrigger",
+      "PropertyInspectorPath": "PropertyInspector/HotkeyTrigger.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Image Settings",
       "States": [
         {
-          "Image": "Images/replayAction",
+          "Image": "Images/imageAction",
           "TitleAlignment": "middle",
           "FontSize": "14"
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Configure different images to show on a single Image source",
       "UUID": "com.barraider.obstools.imagesettings",
       "PropertyInspectorPath": "PropertyInspector/ImageSettings.html"
@@ -87,8 +108,8 @@
       "States": [
         {
           "Image": "Images/replayAction",
-          "TitleAlignment": "middle",
-          "FontSize": "14",
+          "TitleAlignment": "bottom",
+          "FontSize": "12",
           "Name": "Enable"
         },
         {
@@ -103,6 +124,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Saves your Instant Replay and allows to Toggle the Instant Replay On or Off",
       "UUID": "com.barraider.obstools.instantreply",
       "PropertyInspectorPath": "PropertyInspector/InstantReplay.html"
@@ -118,16 +140,17 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Allows you to switch back to your previously used scene",
       "UUID": "com.barraider.obstools.previousscene",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
     },
     {
       "Icon": "Images/icon",
-      "Name": "Remote Recording Start/Stop",
+      "Name": "Remote Recording Start/Stop/Pause",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/recordingAction",
           "TitleAlignment": "middle",
           "FontSize": "18",
           "Name": "Start"
@@ -136,19 +159,30 @@
           "Image": "Images/pluginAction",
           "Name": "Stop",
           "OnlyForMultiAction": true
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Pause",
+          "OnlyForMultiAction": true
+        },
+        {
+          "Image": "Images/pluginAction",
+          "Name": "Resume",
+          "OnlyForMultiAction": true
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Allows you to start or stop recording in OBS",
       "UUID": "com.barraider.obstools.recordingtoggle",
-      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+      "PropertyInspectorPath": "PropertyInspector/Recording.html"
     },
     {
       "Icon": "Images/icon",
       "Name": "Remote Streaming Start/Stop",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/streamAction",
           "TitleAlignment": "middle",
           "FontSize": "18",
           "Name": "Start"
@@ -160,21 +194,23 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Allows you to start or stop streaming in OBS",
       "UUID": "com.barraider.obstools.streamtoggle",
-      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+      "PropertyInspectorPath": "PropertyInspector/Streaming.html"
     },
     {
       "Icon": "Images/icon",
       "Name": "Set Profile",
       "States": [
         {
-          "Image": "Images/transitionAction",
+          "Image": "Images/pluginAction",
           "TitleAlignment": "middle",
           "FontSize": "10"
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Change the OBS profile you're on",
       "UUID": "com.barraider.obstools.setprofile",
       "PropertyInspectorPath": "PropertyInspector/SetProfile.html"
@@ -184,12 +220,13 @@
       "Name": "Set Scene Collection",
       "States": [
         {
-          "Image": "Images/transitionAction",
+          "Image": "Images/pluginAction",
           "TitleAlignment": "middle",
           "FontSize": "10"
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Change the Scene Collections",
       "UUID": "com.barraider.obstools.setscenecollection",
       "PropertyInspectorPath": "PropertyInspector/SetSceneCollection.html"
@@ -200,11 +237,12 @@
       "States": [
         {
           "Image": "Images/transitionAction",
-          "TitleAlignment": "middle",
+          "TitleAlignment": "bottom",
           "FontSize": "10"
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Set the default transition in OBS",
       "UUID": "com.barraider.obstools.settransition",
       "PropertyInspectorPath": "PropertyInspector/Transition.html"
@@ -231,6 +269,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Transitions scenes between Studio and Live mode",
       "UUID": "com.barraider.obstools.smartsceneswitcher",
       "PropertyInspectorPath": "PropertyInspector/SmartSceneSwitcher.html"
@@ -246,6 +285,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Creates animations by gradually modifying a property of a source",
       "UUID": "com.barraider.obstools.sourceanimation",
       "PropertyInspectorPath": "PropertyInspector/SourceAnimation.html"
@@ -272,6 +312,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Toggle source on and off",
       "UUID": "com.barraider.obstools.sourcetoggle",
       "PropertyInspectorPath": "PropertyInspector/SourceToggle.html"
@@ -287,6 +328,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Adjusts the volume of a source in OBS",
       "UUID": "com.barraider.obstools.sourcevolumeadjuster",
       "PropertyInspectorPath": "PropertyInspector/SourceVolumeAdjuster.html"
@@ -302,6 +344,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Set the volume of a source in OBS",
       "UUID": "com.barraider.obstools.sourcevolumesetter",
       "PropertyInspectorPath": "PropertyInspector/SourceVolume.html"
@@ -326,6 +369,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Toggles Studio Mode On or Off",
       "UUID": "com.barraider.obstools.studiomodetoggle",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
@@ -341,6 +385,7 @@
         }
       ],
       "SupportedInMultiActions": true,
+      "DisableCaching": true,
       "Tooltip": "Configure different videos to play on a single Media source",
       "UUID": "com.barraider.obstools.videoplayer",
       "PropertyInspectorPath": "PropertyInspector/VideoPlayer.html"
@@ -351,7 +396,8 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "2.0",
+  "Version": "2.1",
+  "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",
   "CategoryIcon": "Images/categoryIcon",

@@ -1,5 +1,6 @@
 // Global variable containting the localizations
 var localization = null;
+var timerPairingTimeout = null;
 
 // Global function to load the localizations
 function getLocalization(callback) {
@@ -31,19 +32,47 @@ function getLocalization(callback) {
     xhr.send();
 }
 
+var currentSetupPhase;
+function clearStatusBar() {
+    var statusCells = document.getElementsByClassName('status-cell');
+    Array.from(statusCells).forEach(function (cell) {
+        cell.className = "status-cell";
+    });
+}
 
 // Global function to set the status bar to the correct view
 function setStatusBar(view) {
+    currentSetupPhase = view;
+    setStatusBarTitles(view);
+
     // Remove active status from all status cells
+    var foundView = false;
     var statusCells = document.getElementsByClassName('status-cell');
-    Array.from(statusCells).forEach(function(cell) {
+    Array.from(statusCells).forEach(function (cell) {
+        if (cell.id === 'status-' + view) { // Set current one to active
+            foundView = true;
+            cell.classList.add("active");
+        }
+        else if (cell.classList.contains("active")) {
+            cell.classList.remove("active");
+        }
+        if (!foundView) {
+            cell.classList.add("completed");
+        }
+    });
+}
+
+function setStatusBarTitles(view) {
+    console.log("View", view);
+    var titleCells = document.getElementsByClassName('title-cell');
+    Array.from(titleCells).forEach(function (cell) {
         cell.classList.remove("active");
+        cell.innerHTML = localization['General'][cell.id];
     });
 
     // Set it only to the current one
-    document.getElementById('status-' + view).classList.add("active");
+    document.getElementById('title-' + view).classList.add("active");
 }
-
 
 // Main function run after the page is fully loaded
 window.onload = function() {

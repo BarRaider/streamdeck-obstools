@@ -21,6 +21,19 @@
             <div class="sdpi-item-label">Transition</div>
             <select class="sdpi-item-value select sdProperty sdList" id="transitions" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="transitionName"></select>
         </div>
+        <div type="checkbox" class="sdpi-item" id="dvChangeDuration">
+            <div class="sdpi-item-label">Duration</div>
+            <div class="sdpi-item-value">
+                <input id="changeDuration" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="changeDuration" class="sdpi-item-label"><span></span>Change transition duration</label>
+            </div>
+        </div>
+        <div id="dvChangeDurationSettings">
+            <div class="sdpi-item" id="dvDuration">
+                <div class="sdpi-item-label">Duration (ms)</div>
+                <input class="sdpi-item-value sdProperty" id="duration" inputmode="numeric" pattern="[0-9]*" type="number" oninput="setSettings()">
+            </div>
+        </div>
         <hr />
         <div class="sdpi-item" id="dvReset">
             <div class="sdpi-item-label">Reset Settings</div>

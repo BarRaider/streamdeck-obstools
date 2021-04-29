@@ -53,3 +53,15 @@ function setTwitchReplaySettings(displayValue) {
     var dvTwitchReplaySettings = document.getElementById('dvTwitchReplaySettings');
     dvTwitchReplaySettings.style.display = displayValue;
 }
+
+function openTutorial() {
+    if (websocket && (websocket.readyState === 1)) {
+        const json = {
+            'event': 'openUrl',
+            'payload': {
+                'url': 'https://buz.bz/oht2'
+            }
+        };
+        websocket.send(JSON.stringify(json));
+    }
+}
