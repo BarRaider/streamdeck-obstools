@@ -19,11 +19,11 @@
         </details>
         <div class="sdpi-item" id="dvSourceName">
             <div class="sdpi-item-label">Source Name</div>
-            <input class="sdpi-item-value sdProperty" id="sourceName" oninput="setSettings()">
+            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="sourceName"></select>
         </div>
         <div class="sdpi-item" id="dvFilterName">
             <div class="sdpi-item-label">Filter Name</div>
-            <input class="sdpi-item-value sdProperty" id="filterName" oninput="setSettings()">
+            <select class="sdpi-item-value select sdProperty sdList" id="filters" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="filterName"></select>
         </div>
         <hr />
         <div class="sdpi-item" id="dvReset">

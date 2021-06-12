@@ -75,7 +75,7 @@
       <HintPath>..\..\..\DotNet\StreamDeck\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.7.9\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\..\..\DotNet\StreamDeck\packages\NLog.4.7.10\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="obs-websocket-dotnet, Version=4.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\obs-websocket-dotnet.4.9.0\lib\netstandard2.0\obs-websocket-dotnet.dll</HintPath>
@@ -222,7 +222,7 @@
     <Compile Include="Actions\BrowserSourceAction.cs" />
     <Compile Include="Actions\SetSceneCollectionAction.cs" />
     <Compile Include="Actions\SetProfileAction.cs" />
-    <Compile Include="Actions\SourceToggleAction.cs" />
+    <Compile Include="Actions\SourceVisibilityToggleAction.cs" />
     <Compile Include="Actions\SourceAnimationAction.cs" />
     <Compile Include="Actions\SourceVolumeAdjusterAction.cs" />
     <Compile Include="Actions\SmartSceneSwitcherAction.cs" />
@@ -265,6 +265,7 @@
     <Compile Include="Wrappers\GlobalSettings.cs" />
     <Compile Include="Wrappers\HotkeySequence.cs" />
     <Compile Include="Wrappers\SceneChangedEventArgs.cs" />
+    <Compile Include="Wrappers\SceneSourceInfo.cs" />
     <Compile Include="Wrappers\ServerInfo.cs" />
     <Compile Include="Wrappers\ServerInfoEventArgs.cs" />
     <Compile Include="Wrappers\StreamStatusEventArgs.cs" />
@@ -436,6 +437,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\Setup\images\twitter.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceToggle.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\Streaming.html">

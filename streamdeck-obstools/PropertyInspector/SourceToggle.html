@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
     <script src="setup.js"></script>
     <script src="OBSTools.js"></script>
+    <script src="SourceToggle.js"></script>
 </head>
 <body>
     <div class="sdpi-wrapper">
@@ -20,7 +21,11 @@
             <div class="sdpi-item-label">Scene Name</div>
             <select class="sdpi-item-value select sdProperty sdList" id="scenes" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="sceneName"></select>
         </div>
-        <div class="sdpi-item" id="dvSourceName">
+        <div class="sdpi-item" id="dvSourceNameSelect">
+            <div class="sdpi-item-label">Source Name</div>
+            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSourceNameSetting()" sdListTextProperty="sourceName" sdListValueProperty="sourceName" sdValueField="sourceName"></select>
+        </div>
+        <div class="sdpi-item" id="dvSourceName" style="display:none;">
             <div class="sdpi-item-label">Source Name</div>
             <input class="sdpi-item-value sdProperty" id="sourceName" oninput="setSettings()">
         </div>

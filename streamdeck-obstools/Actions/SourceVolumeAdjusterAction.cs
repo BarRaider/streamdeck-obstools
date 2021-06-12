@@ -3,8 +3,10 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -29,6 +31,7 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings
                 {
                     ServerInfoExists = false,
+                    Sources = null,
                     VolumeStep = DEFAULT_VOLUME_STEP.ToString(),
                     SourceName = String.Empty
                 };
@@ -37,6 +40,9 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "volumeStep")]
             public String VolumeStep { get; set; }
+
+            [JsonProperty(PropertyName = "sources")]
+            public List<SceneSourceInfo> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }            
@@ -79,6 +85,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             InitializeSettings();
@@ -86,6 +93,7 @@ namespace BarRaider.ObsTools.Actions
 
         public override void Dispose()
         {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
             base.Dispose();
         }
 
@@ -174,6 +182,17 @@ namespace BarRaider.ObsTools.Actions
                 Settings.VolumeStep = DEFAULT_VOLUME_STEP.ToString();
                 SaveSettings();
             }
+        }
+
+        private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        {
+            LoadSourcesList();
+            SaveSettings();
+        }
+
+        private void LoadSourcesList()
+        {
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
         }
 
         #endregion

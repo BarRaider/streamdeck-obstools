@@ -2,6 +2,7 @@
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet.Types;
 using OTI.Shared;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,7 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     Version = CURRENT_VERSION,
+                    Sources = null,
                     SourceName = String.Empty,
                     AnimationPhases = null,
                     SelectedPhase = String.Empty,
@@ -66,6 +68,9 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "version")]
             public String Version { get; set; }
+
+            [JsonProperty(PropertyName = "sources")]
+            public List<SceneSourceInfo> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
@@ -142,13 +147,14 @@ namespace BarRaider.ObsTools.Actions
             }
             this.Settings.IsRecording = false;
             Connection.OnSendToPlugin += Connection_OnSendToPlugin;
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             InitializeSettings();
         }
-
         public override void Dispose()
         {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
             Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             base.Dispose();
         }
@@ -516,6 +522,18 @@ namespace BarRaider.ObsTools.Actions
 
             SaveSettings();
         }
+
+        private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        {
+            LoadSourcesList();
+            SaveSettings();
+        }
+
+        private void LoadSourcesList()
+        {
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+        }
+
 
 
         #endregion

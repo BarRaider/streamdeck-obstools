@@ -8,6 +8,7 @@ using OTI.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
@@ -714,8 +715,9 @@ namespace BarRaider.ObsTools
             }
         }
 
-        public bool? IsFilterEnabled(string sourceName, string filterName)
+        public bool? IsFilterEnabled(string sourceName, string filterName, out bool exceptionRaised)
         {
+            exceptionRaised = false;
             try
             {
                 if (IsConnected)
@@ -730,6 +732,23 @@ namespace BarRaider.ObsTools
             catch (Exception ex)
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsFilterEnabled Exception for Source {sourceName} and Filter {filterName} {ex}");
+                exceptionRaised = true;
+            }
+            return null;
+        }
+
+        public List<FilterSettings> GetSourceFilters(string sourceName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetSourceFilters(sourceName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceFilters Exception {ex}");
             }
             return null;
         }
@@ -765,6 +784,43 @@ namespace BarRaider.ObsTools
             }
             return null;
         }
+        public List<SourceInfo> GetAllSources()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetSourcesList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllSources Exception {ex}");
+            }
+            return null;
+        }
+
+        public List<SceneSourceInfo> GetAllSceneAndSourceNames()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    var sources = GetAllSources();
+                    var scenes = GetAllScenes();
+                    List<SceneSourceInfo> list = new List<SceneSourceInfo>();
+                    list.AddRange(sources?.Select(s => new SceneSourceInfo() { Name = s.Name }).ToList());
+                    list.AddRange(scenes?.Scenes?.Select(s => new SceneSourceInfo() { Name = s.Name }).ToList());
+
+                    return list.OrderBy(n => n.Name).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllSceneAndSourceNames Exception {ex}");
+            }
+            return null;
+        }
 
         public List<String> GetAllSceneCollections()
         {
@@ -778,6 +834,21 @@ namespace BarRaider.ObsTools
             catch (Exception ex)
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllSceneCollections Exception: {ex}");
+            }
+            return null;
+        }
+        public List<SceneItemDetails> GetSceneSources(string sceneName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetSceneItemList(sceneName).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSceneSources Exception {ex}");
             }
             return null;
         }

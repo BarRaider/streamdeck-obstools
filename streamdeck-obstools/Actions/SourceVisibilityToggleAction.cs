@@ -30,7 +30,7 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.sourcetoggle")]
-    public class SourceToggleAction : ActionBase
+    public class SourceVisibilityToggleAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -41,6 +41,7 @@ namespace BarRaider.ObsTools.Actions
                     ServerInfoExists = false,
                     SceneName = String.Empty,
                     Scenes = null,
+                    Sources = null,
                     SourceName = String.Empty,
                     VisibleImage = String.Empty,
                     InvisibleImage = String.Empty
@@ -53,6 +54,9 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "scenes")]
             public List<OBSScene> Scenes { get; set; }
+
+            [JsonProperty(PropertyName = "sources")]
+            public List<SceneItemDetails> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
@@ -94,7 +98,7 @@ namespace BarRaider.ObsTools.Actions
         private TitleParameters titleParameters;
 
         #endregion
-        public SourceToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public SourceVisibilityToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -106,14 +110,15 @@ namespace BarRaider.ObsTools.Actions
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
             Connection.OnTitleParametersDidChange += Connection_OnTitleParametersDidChange;
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
-            LoadScenes();
             PrefetchImages();
         }
 
         public override void Dispose()
         {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
             Connection.OnTitleParametersDidChange -= Connection_OnTitleParametersDidChange;
             base.Dispose();
         }
@@ -191,7 +196,12 @@ namespace BarRaider.ObsTools.Actions
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
+            string sceneName = Settings.SceneName;
             Tools.AutoPopulateSettings(Settings, payload.Settings);
+            if (sceneName != Settings.SceneName)
+            {
+                LoadSceneSources();
+            }
             PrefetchImages();
             SaveSettings();
         }
@@ -207,9 +217,9 @@ namespace BarRaider.ObsTools.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private void LoadScenes()
+        private Task LoadScenes()
         {
-            Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 Settings.Scenes = new List<OBSScene>
                 {
@@ -229,10 +239,21 @@ namespace BarRaider.ObsTools.Actions
                 var scenes = OBSManager.Instance.GetAllScenes();
                 if (scenes != null && scenes.Scenes != null)
                 {
-                    Settings.Scenes.AddRange(scenes.Scenes);
+                    Settings.Scenes.AddRange(scenes.Scenes.OrderBy(s => s.Name).ToList());
                 }
                 await SaveSettings();
             });
+        }
+
+        private void LoadSceneSources()
+        {
+            Settings.Sources = null;
+            if (String.IsNullOrEmpty(Settings.SceneName))
+            {
+                return;
+            }
+
+            Settings.Sources = OBSManager.Instance.GetSceneSources(Settings.SceneName)?.OrderBy(s => s.SourceName)?.ToList();
         }
 
         private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
@@ -343,6 +364,14 @@ namespace BarRaider.ObsTools.Actions
                     return;
             }
         }
+
+        private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        {
+            await LoadScenes();
+            LoadSceneSources();
+            await SaveSettings();
+        }
+
 
         #endregion
     }

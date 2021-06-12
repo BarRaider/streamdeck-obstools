@@ -3,6 +3,7 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,12 +24,20 @@ namespace BarRaider.ObsTools.Actions
             {
                 PluginSettings instance = new PluginSettings
                 {
+                    Sources = null,
+                    Filters = null,
                     ServerInfoExists = false,
                     SourceName = String.Empty,
                     FilterName = String.Empty
                 };
                 return instance;
             }
+
+            [JsonProperty(PropertyName = "sources")]
+            public List<SceneSourceInfo> Sources { get; set; }
+
+            [JsonProperty(PropertyName = "filters")]
+            public List<FilterSettings> Filters { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
@@ -81,15 +90,18 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             PrefetchImages();
+
         }
 
         #region Public Methods
 
         public override void Dispose()
         {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
             base.Dispose();
         }
 
@@ -124,14 +136,26 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
+                if (String.IsNullOrEmpty(Settings.SourceName) || String.IsNullOrEmpty(Settings.FilterName))
+                {
+                    return;
+                }
+
                 if ((DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
                 {
                     lastStatusCheck = DateTime.Now;
-                    var isEnabled = OBSManager.Instance.IsFilterEnabled(Settings.SourceName, Settings.FilterName);
+                    var isEnabled = OBSManager.Instance.IsFilterEnabled(Settings.SourceName, Settings.FilterName, out bool exceptionRaised);
                     if (isEnabled.HasValue)
                     {
                         enableFilter = !isEnabled.Value;
                         await Connection.SetImageAsync(isEnabled.Value ? filterEnabledImage : filterDisabledImage);
+                    }
+                    else if (exceptionRaised)
+                    {
+
+                        Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Exception raised for IsFilterEnabled, resetting settings");
+                        Settings.FilterName = null;
+                        Settings.SourceName = null;
                     }
                 }
             }
@@ -139,7 +163,12 @@ namespace BarRaider.ObsTools.Actions
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
+            string sourceName = Settings.SourceName;
             Tools.AutoPopulateSettings(Settings, payload.Settings);
+            if (Settings.SourceName != sourceName)
+            {
+                LoadSourceFilters();
+            }
             SaveSettings();
             lastStatusCheck = DateTime.MinValue;
         }
@@ -172,6 +201,28 @@ namespace BarRaider.ObsTools.Actions
 
             filterEnabledImage = Image.FromFile(DEFAULT_IMAGES[0]);
             filterDisabledImage = Image.FromFile(DEFAULT_IMAGES[1]);
+        }
+
+        private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        {
+            LoadSourcesList();
+            LoadSourceFilters();
+            SaveSettings();
+        }
+
+        private void LoadSourcesList()
+        {
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+        }
+
+        private void LoadSourceFilters()
+        {
+            Settings.Filters = null;
+            if (String.IsNullOrEmpty(Settings.SourceName))
+            {
+                return;
+            }
+            Settings.Filters = OBSManager.Instance.GetSourceFilters(Settings.SourceName)?.OrderBy(s => s.Name)?.ToList();
         }
 
         #endregion

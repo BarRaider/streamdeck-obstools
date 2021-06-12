@@ -19,7 +19,6 @@ namespace BarRaider.ObsTools.Backend
 
         private ServerInfo token;
         private GlobalSettings global;
-        private bool isInvalidPassword = false;
 
         #endregion
 
