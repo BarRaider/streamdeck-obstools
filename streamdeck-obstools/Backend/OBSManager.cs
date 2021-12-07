@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace BarRaider.ObsTools
+namespace BarRaider.ObsTools.Backend
 {
 
     //---------------------------------------------------
@@ -163,7 +163,7 @@ namespace BarRaider.ObsTools
                     obs.WSTimeout = new TimeSpan(0, 0, 3);
                     obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                 }
-                catch (AuthFailureException)
+                catch (AuthFailureException afe)
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
                     ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
