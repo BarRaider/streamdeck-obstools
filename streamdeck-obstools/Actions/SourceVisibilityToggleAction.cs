@@ -1,10 +1,9 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
 using BarRaider.SdTools;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog.Fluent;
-using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
@@ -52,10 +51,10 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "sceneName")]
             public String SceneName { get; set; }
 
-            [JsonProperty(PropertyName = "scenes")]
+            [JsonProperty(PropertyName = "scenes", NullValueHandling = NullValueHandling.Ignore)]
             public List<OBSScene> Scenes { get; set; }
 
-            [JsonProperty(PropertyName = "sources")]
+            [JsonProperty(PropertyName = "sources", NullValueHandling = NullValueHandling.Ignore)]
             public List<SceneItemDetails> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
