@@ -99,6 +99,7 @@ namespace BarRaider.ObsTools.Backend
         #region Public Methods
 
         public event EventHandler ObsConnectionChanged;
+        public event EventHandler<Exception> ObsConnectionFailed;
         public event EventHandler<StreamStatusEventArgs> StreamStatusChanged;
         public event EventHandler<SceneChangedEventArgs> SceneChanged;
         public event EventHandler<OutputState> ReplayBufferStateChanged;
@@ -167,10 +168,12 @@ namespace BarRaider.ObsTools.Backend
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
                     ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                    ObsConnectionFailed?.Invoke(this, afe);
                 }
                 catch (Exception ex)
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Connection Exception: {ex}");
+                    ObsConnectionFailed?.Invoke(this, ex);
                 }
                 finally
                 {

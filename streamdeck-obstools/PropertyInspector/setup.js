@@ -13,7 +13,7 @@ document.addEventListener('websocketCreate', function () {
 
         if (jsonObj.event === 'sendToPropertyInspector') {
             var payload = jsonObj.payload;
-            checkToken(payload);
+            checkStatus(payload);
         }
         else if (jsonObj.event === 'didReceiveSettings') {
             var payload = jsonObj.payload;
@@ -54,12 +54,29 @@ function checkToken(payload) {
     }
 }
 
+function checkStatus(payload) {
+    console.log("Received status update...");
+    if (!authWindow) {
+        console.log("authWindow does not exist, exiting");
+        return;
+    }
+
+    if (payload['linkStatus']) {
+        let status = payload['linkStatus']['connected'];
+
+        if (status === 0) {
+            authWindow.loadFailedView();
+        }
+    }
+}
+
+
 function openObsDownload() {
     if (websocket && (websocket.readyState === 1)) {
         const json = {
             'event': 'openUrl',
             'payload': {
-                'url': 'https://github.com/Palakis/obs-websocket/releases'
+                'url': 'https://github.com/obsproject/obs-websocket/releases/tag/4.9.1'
             }
         };
         websocket.send(JSON.stringify(json));

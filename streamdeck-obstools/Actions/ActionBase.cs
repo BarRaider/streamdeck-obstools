@@ -2,6 +2,7 @@
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,7 @@ namespace BarRaider.ObsTools.Actions
         public ActionBase(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
+            OBSManager.Instance.ObsConnectionFailed += Instance_ObsConnectionFailed;
             Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         }
 
@@ -41,6 +43,7 @@ namespace BarRaider.ObsTools.Actions
         {
             ServerManager.Instance.TokensChanged -= Instance_TokensChanged;
             Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
+            OBSManager.Instance.ObsConnectionFailed -= Instance_ObsConnectionFailed;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called {this.GetType()}");
         }
 
@@ -158,6 +161,24 @@ namespace BarRaider.ObsTools.Actions
                 SaveSettings();
             }
         }
+
+        private async void Instance_ObsConnectionFailed(object sender, Exception e)
+        {
+            if (e is AuthFailureException)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"{GetType()} OBS Auth Failure");
+                JObject obj = new JObject()
+                {
+                    new JProperty("linkStatus", new JObject() {
+                                                    new JProperty("connected", 0)
+                    })
+                };
+                await Connection.SendToPropertyInspectorAsync(obj);
+
+
+            }    
+        }
+
         #endregion
     }
 }
