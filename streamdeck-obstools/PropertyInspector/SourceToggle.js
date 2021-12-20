@@ -10,7 +10,6 @@ document.addEventListener('websocketCreate', function () {
         // Received message from Stream Deck
         var jsonObj = JSON.parse(event.data);
 
-        // *** REMOVED sendToPropertyInspector ***
         if (jsonObj.event === 'didReceiveSettings') {
             var payload = jsonObj.payload;
             checkSettings(payload.settings);
