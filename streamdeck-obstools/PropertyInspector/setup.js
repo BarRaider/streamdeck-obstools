@@ -27,23 +27,14 @@ function checkToken(payload) {
     var tokenExists = document.getElementById('serverInfoExists');
     tokenExists.value = payload['serverInfoExists'];
 
-    if (payload['serverInfoExists']) {
-        var event = new Event('serverInfoExists');
-        document.dispatchEvent(event);
-
-        if (authWindow) {
-            authWindow.loadSuccessView();
-        }
-    }
-    else {
-        if (!authWindow) {
-            authWindow = window.open("Setup/index.html")
-        }
+    if (!payload['serverInfoExists'] && !authWindow) {
+        authWindow = window.open("Setup/index.html")
     }
 
     // Open up setup dialog for twitch if needed
     if (payload['twitchTokenExists'] && payload['twitchIntegration']) {
         if (twitchWindow) {
+            console.log("Loading twitch success view");
             twitchWindow.loadSuccessView();
         }
     }
@@ -61,11 +52,30 @@ function checkStatus(payload) {
         return;
     }
 
-    if (payload['linkStatus']) {
-        let status = payload['linkStatus']['connected'];
+    if (payload['PONG']) {
+        let status = payload['PONG']['datetime'];
+        console.log("Got PONG", status);
+        lastPong = status;
+        authWindow.gotPong();
+    }
 
-        if (status === 0) {
-            authWindow.loadFailedView();
+    if (payload['linkStatus']) {
+        let isConnected = payload['linkStatus']['connected'];
+        let status = payload['linkStatus']['failCode'];
+
+        console.log("Fail code is", status);
+
+        if (status === 1) {
+            authWindow.updateLinkStatus(false, 'Invalid Password');
+        }
+        else if (status === 2) {
+            authWindow.updateLinkStatus(false, 'Wrong Websocket Version');
+        }
+        else if (isConnected) {
+            if (authWindow) {
+                console.log("Loading success view", payload['serverInfoExists']);
+                authWindow.loadSuccessView();
+            }
         }
     }
 }
@@ -172,6 +182,13 @@ function updateApprovalCode(val) {
     console.log("Approving code");
 }
 
+function sendPing() {
+    console.log("Sending Ping");
+
+    var payload = {};
+    payload.property_inspector = 'PING';
+    sendPayloadToPlugin(payload);
+}
 
 function sendPayloadToPlugin(payload) {
     if (websocket && (websocket.readyState === 1)) {

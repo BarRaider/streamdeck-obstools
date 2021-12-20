@@ -52,11 +52,19 @@ function submit() {
         return;
     }
 
-    unloadPairingView();
+    unloadControlsBinding();
     loadValidatingView();
     window.opener.updateServerInfo(ip, port, pass);
 }
 
+function updateLinkStatus(status, reason) {
+    console.log('Update Link Status')
+    if (!status) {
+        unloadControlsBinding();
+        setFailReason(reason);
+        loadFailedView();
+    }
+}
 
 // Close the window
 function closeWindow() {
@@ -64,7 +72,7 @@ function closeWindow() {
 }
 
 // Unload view
-function unloadPairingView() {
+function unloadControlsBinding() {
     // Remove event listener
     document.removeEventListener("escPressed", submit);
     document.removeEventListener("enterPressed", closeWindow);
