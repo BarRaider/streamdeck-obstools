@@ -1,6 +1,7 @@
 // Global variable containting the localizations
 var localization = null;
 var timerPairingTimeout = null;
+var pongTimeout = null;
 
 // Global function to load the localizations
 function getLocalization(callback) {
@@ -74,6 +75,21 @@ function setStatusBarTitles(view) {
     document.getElementById('title-' + view).classList.add("active");
 }
 
+function sendPing() {
+    if (!pongTimeout) {
+        pongTimeout = setTimeout(function () { console.log('Pong timeout!'); setFailReason('RESTART STREAM DECK!'); loadFailedView(); }, 5000)
+    }
+    window.opener.sendPing();
+}
+
+function gotPong() {
+    console.log("Got Pong!")
+    if (pongTimeout) {
+        clearTimeout(pongTimeout);
+        pongTimeout = null;
+    }
+}
+
 // Main function run after the page is fully loaded
 window.onload = function() {
     // Bind enter and ESC keys
@@ -92,6 +108,7 @@ window.onload = function() {
     // Show the intro view
     getLocalization(function(status) {
         if (status) {
+            sendPing();
             loadIntroView();
         }
         else {

@@ -42,7 +42,6 @@ namespace BarRaider.ObsTools.Actions
                     PreviewColor = DEFAULT_PREVIEW_COLOR,
                     LiveColor = DEFAULT_LIVE_COLOR,
                     ShowPreview = false,
-                    CustomImage = String.Empty
                 };
                 return instance;
             }
@@ -64,10 +63,6 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "scenes")]
             public List<OBSScene> Scenes { get; set; }
-            
-            [FilenameProperty]
-            [JsonProperty(PropertyName = "customImage")]
-            public String CustomImage { get; set; }
         }
 
         protected PluginSettings Settings
@@ -95,6 +90,11 @@ namespace BarRaider.ObsTools.Actions
         private const string DEFAULT_PREVIEW_COLOR = "#FFA500";
         private const string DEFAULT_LIVE_COLOR = "#FF0000";
         private const int SNAPSHOT_COOLDOWN_TIME_MS = 5000;
+        private readonly string[] DEFAULT_IMAGES = new string[]
+        {
+            @"images\noicon.png",
+            @"images\noicon.png"
+        };
 
         private string revertTransition = String.Empty;
         private TitleParameters titleParameters;
@@ -102,7 +102,6 @@ namespace BarRaider.ObsTools.Actions
         private bool isFetchingScreenshot = false;
         private string lastSnapshotImageData = null;
         private DateTime lastSnapshotTime = DateTime.MinValue;
-        private Image customImage;
 
         #endregion
         public SmartSceneSwitcherAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -277,9 +276,9 @@ namespace BarRaider.ObsTools.Actions
                 {
                     await DrawPreviewImage(graphics, width, height);
                 }
-                else if (customImage != null)
+                else if (enabledImage != null)
                 {
-                    graphics.DrawImage(customImage, new Rectangle(0, 0, width, height));
+                    graphics.DrawImage(enabledImage, new Rectangle(0, 0, width, height));
                 }
             }
 
@@ -373,16 +372,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
-            if (customImage != null)
-            {
-                customImage.Dispose();
-                customImage = null;
-            }
-
-            if (IsValidFile(Settings.CustomImage))
-            {
-                customImage = Image.FromFile(Settings.CustomImage);
-            }
+            PrefetchImages(DEFAULT_IMAGES);
 
             Settings.LiveColor = SmartSceneSwitcherManager.Instance.SceneSwitchLiveColor;
             Settings.PreviewColor = SmartSceneSwitcherManager.Instance.SceneSwitchPreviewColor;
@@ -397,21 +387,6 @@ namespace BarRaider.ObsTools.Actions
 
             SaveSettings();
 
-        }
-
-        private bool IsValidFile(string fileName)
-        {
-            if (String.IsNullOrEmpty(fileName))
-            {
-                return false;
-            }
-
-            if (!File.Exists(fileName))
-            {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} File not found: {fileName} in {Settings.SceneName}");
-                return false;
-            }
-            return true;
         }
 
         private async Task DrawPreviewImage(Graphics graphics, int width, int height)

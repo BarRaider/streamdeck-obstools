@@ -1,10 +1,13 @@
 ﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,6 +21,16 @@ namespace BarRaider.ObsTools.Actions
         {
             [JsonProperty(PropertyName = "serverInfoExists")]
             public bool ServerInfoExists { get; set; }
+
+            [FilenameProperty]
+            [JsonProperty(PropertyName = "enabledImage")]
+            public string EnabledImage { get; set; }
+
+            [FilenameProperty]
+            [JsonProperty(PropertyName = "disabledImage")]
+            public string DisabledImage { get; set; }
+
+
         }
 
         #region Protected Members
@@ -26,6 +39,9 @@ namespace BarRaider.ObsTools.Actions
         protected bool baseHandledKeypress = false;
         protected bool baseHandledOnTick = false;
         protected bool previousBaseHandledOnTick = false;
+        protected Image enabledImage;
+        protected Image disabledImage;
+
         private bool serverSettingsChanged = false;
 
         #endregion
@@ -34,14 +50,18 @@ namespace BarRaider.ObsTools.Actions
         {
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
             OBSManager.Instance.ObsConnectionFailed += Instance_ObsConnectionFailed;
+            OBSManager.Instance.ObsConnectionChanged += Instance_ObsConnectionChanged;
             Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         }
+
+
 
         #region Public Methods
 
         public override void Dispose()
         {
             ServerManager.Instance.TokensChanged -= Instance_TokensChanged;
+            OBSManager.Instance.ObsConnectionChanged -= Instance_ObsConnectionChanged;
             Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             OBSManager.Instance.ObsConnectionFailed -= Instance_ObsConnectionFailed;
             Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called {this.GetType()}");
@@ -121,7 +141,7 @@ namespace BarRaider.ObsTools.Actions
         private async void Connection_OnSendToPlugin(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.SendToPlugin> e)
         {
             var payload = e.Event.Payload;
-        
+
             if (payload["property_inspector"] != null)
             {
                 switch (payload["property_inspector"].ToString().ToLowerInvariant())
@@ -146,6 +166,9 @@ namespace BarRaider.ObsTools.Actions
                         ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
                         await SaveSettings();
                         break;
+                    case "ping":
+                        await SendPongToPI();
+                        break;
                 }
             }
         }
@@ -164,19 +187,91 @@ namespace BarRaider.ObsTools.Actions
 
         private async void Instance_ObsConnectionFailed(object sender, Exception e)
         {
+            int errorCode = 0;
             if (e is AuthFailureException)
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"{GetType()} OBS Auth Failure");
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} OBS Auth Failure");
+                errorCode = 1;
+            }
+            else if (e is InvalidOperationException)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} OBS Invalid Websocket Version");
+                ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                errorCode = 2;
+            }
+
+            if (errorCode > 0)
+            {
                 JObject obj = new JObject()
                 {
-                    new JProperty("linkStatus", new JObject() {
-                                                    new JProperty("connected", 0)
-                    })
+                    new JProperty("linkStatus", JObject.FromObject(new OBSLinkStatus(false, errorCode)))
                 };
                 await Connection.SendToPropertyInspectorAsync(obj);
+            }
+        }
 
+        private async void Instance_ObsConnectionChanged(object sender, EventArgs e)
+        {
+            JObject obj = new JObject()
+                {
+                    new JProperty("linkStatus", JObject.FromObject(new OBSLinkStatus(OBSManager.Instance.IsConnected, 0)))
+                };
+            await Connection.SendToPropertyInspectorAsync(obj);
 
-            }    
+            if (!OBSManager.Instance.IsConnected)
+            {
+                await Connection.SetTitleAsync(null);
+            }
+        }
+
+        private async Task SendPongToPI()
+        {
+            JObject obj = new JObject()
+                {
+                    new JProperty("PONG", new JObject() {
+                                                    new JProperty("datetime", DateTime.Now)
+                    })
+                };
+            await Connection.SendToPropertyInspectorAsync(obj);
+        }
+
+        protected void PrefetchImages(string[] defaultImages)
+        {
+            if (enabledImage != null)
+            {
+                enabledImage.Dispose();
+                enabledImage = null;
+            }
+
+            if (disabledImage != null)
+            {
+                disabledImage.Dispose();
+                disabledImage = null;
+            }
+
+            if (defaultImages.Length < 2)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} PrefetchImages: Invalid default images list");
+                return;
+            }
+
+            enabledImage = Image.FromFile( IsValidFile(settings.EnabledImage)  ? settings.EnabledImage  : defaultImages[0]);
+            disabledImage = Image.FromFile(IsValidFile(settings.DisabledImage) ? settings.DisabledImage : defaultImages[1]);
+        }
+
+        private bool IsValidFile(string fileName)
+        {
+            if (String.IsNullOrEmpty(fileName))
+            {
+                return false;
+            }
+
+            if (!File.Exists(fileName))
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} IsValidFile - File not found: {fileName}");
+                return false;
+            }
+            return true;
         }
 
         #endregion

@@ -534,8 +534,6 @@ namespace BarRaider.ObsTools.Actions
             Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
         }
 
-
-
         #endregion
     }
 }

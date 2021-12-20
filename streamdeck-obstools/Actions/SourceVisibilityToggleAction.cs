@@ -42,8 +42,6 @@ namespace BarRaider.ObsTools.Actions
                     Scenes = null,
                     Sources = null,
                     SourceName = String.Empty,
-                    VisibleImage = String.Empty,
-                    InvisibleImage = String.Empty
                 };
                 return instance;
             }
@@ -59,14 +57,6 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
-
-            [FilenameProperty]
-            [JsonProperty(PropertyName = "visibleImage")]
-            public String VisibleImage { get; set; }
-
-            [FilenameProperty]
-            [JsonProperty(PropertyName = "invisibleImage")]
-            public String InvisibleImage { get; set; }            
         }
 
         protected PluginSettings Settings
@@ -88,11 +78,13 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private const string DEFAULT_IMAGE = @"images\sourceAction@2x.png";
-        private const string ACTIVE_SCENE_NAME = "- Active Scene -";
+        private readonly string[] DEFAULT_IMAGES = new string[]
+       {
+            @"images\sourceAction@2x.png",
+            @"images\sourceDisabled.png"
+       };
 
-        private Image visibleImage;
-        private Image invisibleImage;
+        private const string ACTIVE_SCENE_NAME = "- Active Scene -";
 
         private TitleParameters titleParameters;
 
@@ -112,7 +104,7 @@ namespace BarRaider.ObsTools.Actions
             Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
-            PrefetchImages();
+            PrefetchImages(DEFAULT_IMAGES);
         }
 
         public override void Dispose()
@@ -201,7 +193,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 LoadSceneSources();
             }
-            PrefetchImages();
+            PrefetchImages(DEFAULT_IMAGES);
             SaveSettings();
         }
 
@@ -264,60 +256,12 @@ namespace BarRaider.ObsTools.Actions
         {
             if (sourceVisible)
             {
-                await Connection.SetImageAsync(visibleImage);
+                await Connection.SetImageAsync(enabledImage);
             }
             else
             {
-                await Connection.SetImageAsync(invisibleImage);
+                await Connection.SetImageAsync(disabledImage);
             }
-        }
-
-        private void PrefetchImages()
-        {
-            if (visibleImage != null)
-            {
-                visibleImage.Dispose();
-                visibleImage = null;
-            }
-
-            if (invisibleImage != null)
-            {
-                invisibleImage.Dispose();
-                invisibleImage = null;
-            }
-
-            if (IsValidFile(Settings.VisibleImage))
-            {
-                visibleImage = Image.FromFile(Settings.VisibleImage);
-            }
-            else
-            {
-                visibleImage = Image.FromFile(DEFAULT_IMAGE);
-            }
-
-            if (IsValidFile(Settings.InvisibleImage))
-            {
-                invisibleImage = Image.FromFile(Settings.InvisibleImage);
-            }
-            else // If no custom file, just render a grayscale version
-            {
-                invisibleImage = System.Windows.Forms.ToolStripRenderer.CreateDisabledImage(visibleImage);
-            }           
-        }
-
-        private bool IsValidFile(string fileName)
-        {
-            if (String.IsNullOrEmpty(fileName))
-            {
-                return false;
-            }
-
-            if (!File.Exists(fileName))
-            {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} File not found: {fileName} in {Settings.SourceName}");
-                return false;
-            }
-            return true;
         }
 
         private async Task HandleMultiActionKeypress(uint state)
