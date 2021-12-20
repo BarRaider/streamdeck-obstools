@@ -222,6 +222,9 @@
   <ItemGroup>
     <Compile Include="Actions\ActionBase.cs" />
     <Compile Include="Actions\BrowserSourceAction.cs" />
+    <Compile Include="Actions\SourceMonitorSetterAction.cs" />
+    <Compile Include="Actions\SourceMuteToggleAction.cs" />
+    <Compile Include="Actions\VirtualCameraToggleAction.cs" />
     <Compile Include="Actions\SetSceneCollectionAction.cs" />
     <Compile Include="Actions\SetProfileAction.cs" />
     <Compile Include="Actions\SourceVisibilityToggleAction.cs" />
@@ -266,7 +269,9 @@
     <Compile Include="Twitch\TwitchUserDetails.cs" />
     <Compile Include="Wrappers\GlobalSettings.cs" />
     <Compile Include="Wrappers\HotkeySequence.cs" />
+    <Compile Include="Wrappers\MonitorTypes.cs" />
     <Compile Include="Wrappers\SceneChangedEventArgs.cs" />
+    <Compile Include="Wrappers\OBSLinkStatus.cs" />
     <Compile Include="Wrappers\SceneSourceInfo.cs" />
     <Compile Include="Wrappers\ServerInfo.cs" />
     <Compile Include="Wrappers\ServerInfoEventArgs.cs" />
@@ -351,6 +356,15 @@
     <Content Include="Images\imageAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\monitorEnabled.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\muteEnabled.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\noicon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\pluginAction%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -384,6 +398,9 @@
     <Content Include="Images\sourceAction.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\sourceDisabled.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Images\streamAction%402x.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -403,6 +420,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\transitionSelected.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\vcamAction%402x.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\vcamAction.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\vcamEnabled.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\volumeAction%402x.png">
@@ -442,6 +468,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\SourceToggle.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceAudioMonitor.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\SourceMuteToggle.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\Streaming.html">
@@ -550,6 +582,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\ImageSettings.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\VirtualCamera.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\VideoPlayer.js">
