@@ -1,8 +1,8 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
@@ -75,8 +75,6 @@ namespace BarRaider.ObsTools.Actions
             @"images\filterEnabled.png",
             @"images\filterAction@2x.png"
         };
-        private Image filterEnabledImage = null;
-        private Image filterDisabledImage = null;
 
         #endregion
         public FilterToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -93,7 +91,7 @@ namespace BarRaider.ObsTools.Actions
             Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
-            PrefetchImages();
+            PrefetchImages(DEFAULT_IMAGES);
 
         }
 
@@ -148,7 +146,7 @@ namespace BarRaider.ObsTools.Actions
                     if (isEnabled.HasValue)
                     {
                         enableFilter = !isEnabled.Value;
-                        await Connection.SetImageAsync(isEnabled.Value ? filterEnabledImage : filterDisabledImage);
+                        await Connection.SetImageAsync(isEnabled.Value ? enabledImage : disabledImage);
                     }
                     else if (exceptionRaised)
                     {
@@ -169,6 +167,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 LoadSourceFilters();
             }
+            PrefetchImages(DEFAULT_IMAGES);
             SaveSettings();
             lastStatusCheck = DateTime.MinValue;
         }
@@ -184,24 +183,6 @@ namespace BarRaider.ObsTools.Actions
         #endregion
 
         #region Private Methods
-
-        private void PrefetchImages()
-        {
-            if (filterEnabledImage != null)
-            {
-                filterEnabledImage.Dispose();
-                filterEnabledImage = null;
-            }
-
-            if (filterDisabledImage != null)
-            {
-                filterDisabledImage.Dispose();
-                filterDisabledImage = null;
-            }
-
-            filterEnabledImage = Image.FromFile(DEFAULT_IMAGES[0]);
-            filterDisabledImage = Image.FromFile(DEFAULT_IMAGES[1]);
-        }
 
         private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {

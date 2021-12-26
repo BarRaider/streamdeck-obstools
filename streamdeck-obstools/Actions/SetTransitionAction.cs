@@ -1,9 +1,9 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OBSWebsocketDotNet;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -65,10 +65,14 @@ namespace BarRaider.ObsTools.Actions
         }
 
         #region Private Members
-        private const string SELECTED_IMAGE_FILE = @"images/transitionSelected.png";
+        private readonly string[] DEFAULT_IMAGES = new string[]
+        {
+            @"images\transitionSelected.png",
+            @"images\transitionAction@2x.png"
+        };
+
         private const int DEFAULT_DURATION_MS = 300;
 
-        private Image prefetchedSelectedImage = null;
         private bool selectedImageShown = false;
         private TitleParameters titleParameters;
         private int duration = DEFAULT_DURATION_MS;
@@ -136,12 +140,12 @@ namespace BarRaider.ObsTools.Actions
                     if (OBSManager.Instance.GetTransition()?.Name == Settings.TransitionName)
                     {
                         selectedImageShown = true;
-                        await Connection.SetImageAsync(GetSelectedImage());
+                        await Connection.SetImageAsync(enabledImage);
                     }
                     else if (selectedImageShown)
                     {
                         selectedImageShown = false;
-                        await Connection.SetImageAsync((String)null);
+                        await Connection.SetImageAsync(disabledImage);
                     }
                 }
                 catch (Exception ex)
@@ -169,6 +173,8 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
+            PrefetchImages(DEFAULT_IMAGES);
+            selectedImageShown = true;
             if (OBSManager.Instance.IsConnected)
             {
                 Settings.Transitions = OBSManager.Instance.GetAllTransitions().Select(t => new TransitionInfo() { Name = t }).ToList();
@@ -183,18 +189,6 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        private Image GetSelectedImage()
-        {
-            if (prefetchedSelectedImage == null)
-            {
-                if (File.Exists(SELECTED_IMAGE_FILE))
-                {
-                    prefetchedSelectedImage = Image.FromFile(SELECTED_IMAGE_FILE);
-                }
-            }
-
-            return prefetchedSelectedImage;
-        }
         private void Connection_OnTitleParametersDidChange(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
         {
             titleParameters = e.Event?.Payload?.TitleParameters;

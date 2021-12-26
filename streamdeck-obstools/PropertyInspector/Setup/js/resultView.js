@@ -1,3 +1,4 @@
+var failReason = null;
 
 function loadValidatingView() {
     setStatusBar('result');
@@ -15,14 +16,25 @@ function loadValidatingView() {
     document.getElementById('app-over').className = "ellipseStart ellipseTopLeft";
     document.getElementById('br-over').className = "ellipseStart  ellipseBottomRight";
 
+    // Set Pairing Timeout
     if (!timerPairingTimeout) {
-        timerPairingTimeout = setTimeout(function () { console.log('Pairing timeout!'); loadFailedView(); }, 30000)
+        timerPairingTimeout = setTimeout(function () {
+            console.log('Pairing timeout!');
+            setFailReason('Pairing Timeout');
+            loadFailedView();
+            window.opener.resetPlugin();
+        }, 30000)
     }
 
     // Close this window
     function closeWindow() {
         window.close();
     }
+}
+
+function setFailReason(reason) {
+    console.log("setFailReason called", reason);
+    failReason = reason;
 }
 
 function loadFailedView() {
@@ -45,6 +57,12 @@ function loadFailedView() {
                   <br/><br/> \
                    <div class='button' id='failRetry'>" + localization['Result']['FailRetry'] + "</div>\
                    <div class='button-transparent' id='close'>" + localization['Result']['Close'] + "</div>";
+
+    // Append fail reason
+    if (failReason) {
+        content = "<p class='error bold'>" + failReason + "</p>" + content;
+    }
+
     document.getElementById('content').innerHTML = content;
 
     document.getElementById("close").addEventListener("click", closeWindow);
@@ -71,7 +89,7 @@ function loadFailedView() {
 
 // Load the results view
 function loadSuccessView() {
-    console.log("loadFailedView called!");
+    console.log("loadSuccessView called!");
     if (timerPairingTimeout) {
         clearTimeout(timerPairingTimeout);
         timerPairingTimeout = null;

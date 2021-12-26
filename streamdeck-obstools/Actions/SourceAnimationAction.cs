@@ -1,8 +1,8 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OBSWebsocketDotNet.Types;
 using OTI.Shared;
 using System;
 using System.Collections.Generic;
@@ -533,8 +533,6 @@ namespace BarRaider.ObsTools.Actions
         {
             Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
         }
-
-
 
         #endregion
     }

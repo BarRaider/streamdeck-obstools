@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace BarRaider.ObsTools
+namespace BarRaider.ObsTools.Backend
 {
 
     //---------------------------------------------------
@@ -31,6 +31,7 @@ namespace BarRaider.ObsTools
         private readonly SemaphoreSlim connectLock = new SemaphoreSlim(1, 1);
         private const int CONNECT_COOLDOWN_MS = 10000;
         private const int AUTO_CONNECT_SLEEP_MS = 10000;
+        private const int INVALID_WEBSOCKET_VERSION_ERROR_CODE = 4009;
 
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
@@ -99,6 +100,7 @@ namespace BarRaider.ObsTools
         #region Public Methods
 
         public event EventHandler ObsConnectionChanged;
+        public event EventHandler<Exception> ObsConnectionFailed;
         public event EventHandler<StreamStatusEventArgs> StreamStatusChanged;
         public event EventHandler<SceneChangedEventArgs> SceneChanged;
         public event EventHandler<OutputState> ReplayBufferStateChanged;
@@ -137,6 +139,8 @@ namespace BarRaider.ObsTools
                         return;
                     }
 
+                    Logger.Instance.LogMessage(TracingLevel.DEBUG, $"Attempting to connect");
+
                     if (!autoConnect) // Don't spam log
                     {
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
@@ -163,14 +167,16 @@ namespace BarRaider.ObsTools
                     obs.WSTimeout = new TimeSpan(0, 0, 3);
                     obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                 }
-                catch (AuthFailureException)
+                catch (AuthFailureException afe)
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
                     ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                    ObsConnectionFailed?.Invoke(this, afe);
                 }
                 catch (Exception ex)
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Connection Exception: {ex}");
+                    ObsConnectionFailed?.Invoke(this, ex);
                 }
                 finally
                 {
@@ -698,7 +704,38 @@ namespace BarRaider.ObsTools
             }
             return false;
         }
+        public bool ToggleSourceMute(string sourceName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    obs.ToggleMute(sourceName);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleSourceMute Exception Source: {sourceName}: {ex}");
+            }
+            return false;
+        }
 
+        public bool IsSourceMuted(string sourceName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetMute(sourceName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceMute Exception Source: {sourceName} {ex}");
+            }
+            return false;
+        }
 
         public void ToggleFilterVisibility(string sourceName, string filterName, bool enableFilter)
         {
@@ -733,6 +770,41 @@ namespace BarRaider.ObsTools
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsFilterEnabled Exception for Source {sourceName} and Filter {filterName} {ex}");
                 exceptionRaised = true;
+            }
+            return null;
+        }
+
+        public void ToggleVirtualCam()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    obs.ToggleVirtualCam();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleVirtualCam Exception {ex}");
+            }
+        }
+
+        public bool? IsVirtualCamEnabled()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    var camStatus = obs.GetVirtualCamStatus();
+                    if (camStatus != null)
+                    {
+                        return camStatus.IsActive;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsVirtualCamEnabled Exception {ex}");
             }
             return null;
         }
@@ -1067,6 +1139,39 @@ namespace BarRaider.ObsTools
             return false;
         }
 
+        public void SetAudioMonitorType(string sourceName, MonitorTypes monitorType)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting {sourceName} MonitorType to: {monitorType}");
+                    obs.SetAudioMonitorType(sourceName, monitorType.ToStringEx());
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetAudioMonitorType Exception: {ex}");
+            }
+        }
+
+        public MonitorTypes GetAudioMonitorType(string sourceName)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    string monitorType = obs.GetAudioMonitorType(sourceName);
+                    return monitorType.ToMonitorType();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAudioMonitorType Exception: {ex}");
+            }
+            return MonitorTypes.None;
+        }
+
         #endregion
 
         #region Private Methods
@@ -1097,6 +1202,17 @@ namespace BarRaider.ObsTools
         private void Obs_Disconnected(object sender, EventArgs e)
         {
             IsConnected = false;
+
+            if (e is WebSocketSharp.CloseEventArgs cea)
+            {
+                if (cea.Code == INVALID_WEBSOCKET_VERSION_ERROR_CODE)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Invalid Websocket version! {cea.Reason}");
+                    ObsConnectionFailed?.Invoke(this, new InvalidOperationException(cea.Reason));
+                    return;
+                }
+            }
+
             if (!autoConnectRunning) // Don't spam logs
             {
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");

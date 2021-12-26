@@ -111,6 +111,22 @@
             </div>
             <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
         </div>
+        <div class="sdpi-item" id="dvEnabledImage">
+            <div class="sdpi-item-label">Enabled image</div>
+            <div class="sdpi-item-group file" id="filepickergroup">
+                <input class="sdpi-item-value sdProperty sdFile" type="file" id="enabledImage" accept=".jpg, .jpeg, .png, .ico, .gif, .bmp, .tiff" oninput="setSettings()">
+                <label class="sdpi-file-info " for="enabledImage" id="enabledImageFilename">No file...</label>
+                <label class="sdpi-file-label" for="enabledImage">Choose file...</label>
+            </div>
+        </div>
+        <div class="sdpi-item" id="dvDisabledImage">
+            <div class="sdpi-item-label">Disabled image</div>
+            <div class="sdpi-item-group file" id="filepickergroup">
+                <input class="sdpi-item-value sdProperty sdFile" type="file" id="disabledImage" accept=".jpg, .jpeg, .png, .ico, .gif, .bmp, .tiff" oninput="setSettings()">
+                <label class="sdpi-file-info " for="disabledImage" id="disabledImageFilename">No file...</label>
+                <label class="sdpi-file-label" for="disabledImage">Choose file...</label>
+            </div>
+        </div>
         <hr />
         <div class="sdpi-item" id="dvReset">
             <div class="sdpi-item-label">Reset Settings</div>

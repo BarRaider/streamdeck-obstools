@@ -1,9 +1,8 @@
-﻿using BarRaider.ObsTools.Wrappers;
+﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OBSWebsocketDotNet;
-using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -132,8 +131,6 @@ namespace BarRaider.ObsTools.Actions
         private int replayCooldown = DEFAULT_REPLAY_COOLDOWN;
         private int delayReplaySettings = DELAY_REPLAY_SECONDS;
         private int speed = DEFAULT_PLAY_SPEED_PERCENTAGE;
-        private Image replayEnabledImage = null;
-        private Image replayDisabledImage = null;
 
         #endregion
         public InstantReplyAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -152,7 +149,6 @@ namespace BarRaider.ObsTools.Actions
             Connection.GetGlobalSettingsAsync();
             ChatPager.Twitch.TwitchChat.Instance.PageRaised += Instance_PageRaised;
             ChatPager.Twitch.TwitchTokenManager.Instance.TokenStatusChanged += Instance_TokenStatusChanged;
-            PrefetchImages();
             InitializeSettings();
         }
 
@@ -209,7 +205,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                await Connection.SetImageAsync(OBSManager.Instance.IsReplayBufferEnabled() ? replayEnabledImage : replayDisabledImage);
+                await Connection.SetImageAsync(OBSManager.Instance.IsReplayBufferEnabled() ? enabledImage : disabledImage);
                 await Connection.SetTitleAsync($"Buffer\n{(OBSManager.Instance.IsReplayBufferEnabled() ? "On" : "Off")}");
             }
         }
@@ -345,6 +341,8 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
+            PrefetchImages(DEFAULT_IMAGES);
+
             // Port is empty or not numeric
             if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))
             {
@@ -423,24 +421,6 @@ namespace BarRaider.ObsTools.Actions
                 Logger.Instance.LogMessage(TracingLevel.WARN, $"Instant Replay not enabled. Status: {OBSManager.Instance.InstantReplyStatus}");
                 await Connection.ShowAlert();
             }
-        }
-
-        private void PrefetchImages()
-        {
-            if (replayEnabledImage != null)
-            {
-                replayEnabledImage.Dispose();
-                replayEnabledImage = null;
-            }
-
-            if (replayDisabledImage != null)
-            {
-                replayDisabledImage.Dispose();
-                replayDisabledImage = null;
-            }
-
-            replayEnabledImage = Image.FromFile(DEFAULT_IMAGES[0]);
-            replayDisabledImage = Image.FromFile(DEFAULT_IMAGES[1]);
         }
 
         #endregion

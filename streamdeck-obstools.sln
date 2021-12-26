@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OBSTools", "streamdeck-obst
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OTI.Shared", "..\..\DotNet\OTI.Shared\OTI.Shared.csproj", "{86096883-9575-4A6D-8B29-434D9D7B9601}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "obs-websocket-dotnet", "..\obs-websocket-dotnet-standard\obs-websocket-dotnet\obs-websocket-dotnet.csproj", "{57CE8EE1-A1E9-4901-A96D-FE63AB120370}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{86096883-9575-4A6D-8B29-434D9D7B9601}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86096883-9575-4A6D-8B29-434D9D7B9601}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86096883-9575-4A6D-8B29-434D9D7B9601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57CE8EE1-A1E9-4901-A96D-FE63AB120370}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57CE8EE1-A1E9-4901-A96D-FE63AB120370}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57CE8EE1-A1E9-4901-A96D-FE63AB120370}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57CE8EE1-A1E9-4901-A96D-FE63AB120370}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
