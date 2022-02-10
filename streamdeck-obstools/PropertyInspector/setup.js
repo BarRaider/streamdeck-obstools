@@ -55,7 +55,6 @@ function checkStatus(payload) {
     if (payload['PONG']) {
         let status = payload['PONG']['datetime'];
         console.log("Got PONG", status);
-        lastPong = status;
         authWindow.gotPong();
     }
 

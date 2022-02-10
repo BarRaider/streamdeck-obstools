@@ -3,6 +3,9 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
+# New in v2.5
+- Migrated code to use Twitch's new APIs
+
 # New in v2.4
 - :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
 - :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
