@@ -3,6 +3,14 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
+# INSTALLATION
+**Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/
+
+2. After installing, enable from inside OBS: Tools -> WebSockets Server Setting 
+[You can keep the port as is, but It is ***highly recommended you Enable authentication and set a password***]
+
+3. For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
+
 ## Features:
 - `Smart Scene Switcher`  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
   - Shows a border on the scene indicating if it's in preview or live
@@ -41,24 +49,13 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 - `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
 - `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
 
-
-
-
-# INSTALLATION
-**Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/
-
-2. After installing, enable from inside OBS: Tools -> WebSockets Server Setting 
-[You can keep the port as is, but It is ***highly recommended you Enable authentication and set a password***]
-
-3. For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
-
 ## Usage
 **Demo for Instant Replay**: https://www.youtube.com/watch?v=7mioa-hnndw
 
 OBS must be streaming for the majority of the features to work
 For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
 
-### Download
+## Download
 
 * [Download plugin](https://github.com/BarRaider/streamdeck-obstools/releases/)
 
@@ -74,10 +71,10 @@ Please contact the developer. Contact information is available at https://barrai
 
 ## Change Log
 
-# New in v2.5
+## New in v2.5
 - Migrated code to use Twitch's new APIs
 
-# New in v2.4
+## New in v2.4
 - :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
 - :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
 - :new: `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
