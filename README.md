@@ -3,16 +3,13 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
-# New in v2.5
-- Migrated code to use Twitch's new APIs
+# INSTALLATION
+**Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/
 
-# New in v2.4
-- :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
-- :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
-- :new: `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
-     - Includes Multi-Action support!
-- Added support for customizable icons to many of the actions
-- Reworked the setup wizard to clearly state the required Websocket version and give more informative messages in case of errors.
+2. After installing, enable from inside OBS: Tools -> WebSockets Server Setting 
+[You can keep the port as is, but It is ***highly recommended you Enable authentication and set a password***]
+
+3. For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
 
 ## Features:
 - `Smart Scene Switcher`  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
@@ -52,24 +49,13 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 - `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
 - `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
 
-
-
-
-# INSTALLATION
-**Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/
-
-2. After installing, enable from inside OBS: Tools -> WebSockets Server Setting 
-[You can keep the port as is, but It is ***highly recommended you Enable authentication and set a password***]
-
-3. For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
-
 ## Usage
 **Demo for Instant Replay**: https://www.youtube.com/watch?v=7mioa-hnndw
 
 OBS must be streaming for the majority of the features to work
 For instant replay to work, you must check the **Enabled Replay Buffer** from File->Settings->Output->Recording
 
-### Download
+## Download
 
 * [Download plugin](https://github.com/BarRaider/streamdeck-obstools/releases/)
 
@@ -85,7 +71,18 @@ Please contact the developer. Contact information is available at https://barrai
 
 ## Change Log
 
-# New in v2.1
+## New in v2.5
+- Migrated code to use Twitch's new APIs
+
+## New in v2.4
+- :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
+- :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
+- :new: `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
+     - Includes Multi-Action support!
+- Added support for customizable icons to many of the actions
+- Reworked the setup wizard to clearly state the required Websocket version and give more informative messages in case of errors.
+
+## New in v2.1
 ***NOTE: This version requires upgrading to OBS Websocket v4.9 (!!) see: https://barraider.com/obs***
 - :new: `HotkeyTriggerAction` allows you to send Hotkeys directly to OBS (even when OBS is running as Admin)
 - :new: Auto-Reconnect feature will try to connect to OBS every few seconds automatically .
@@ -142,13 +139,14 @@ What's New:
 ## New in v1.6
 - `Source Volume` allows increasing/decreasing/setting the volume of an audio source
 - Support for modifying the speed of Videos/Instant Replay (great when you want to do a slow mo)
-- :new: `Smart Scene Switcher`  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
+- New `Smart Scene Switcher`:
+  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
   - Shows a border on the scene indicating if it's in preview or live
   - **See a Preview of how the scene will look on the Stream Deck key**
 
 ## New in v1.5
-- New Action: `Set Transition` allows you to modify the default scene transition from the Stream Deck
+- New Action: `Set Transition` allows you to modify the default scene transition from the Stream Deck.
 - New Action `Filter Toggle` allows you to enable/disable filters on a source from the Stream Deck.
-- Added Multi-Action support for the `Previous Scene` action
-- Added checks to verify user is on the correct version of obs-websocket
-***Make sure to upgrade to obs-websocket v4.7 or above ***
+- Added Multi-Action support for the `Previous Scene` action.
+- Added checks to verify user is on the correct version of obs-websocket.
+***Make sure to upgrade to obs-websocket v4.7 or above.***
