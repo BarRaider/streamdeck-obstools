@@ -82,7 +82,7 @@ Please contact the developer. Contact information is available at https://barrai
 - Added support for customizable icons to many of the actions
 - Reworked the setup wizard to clearly state the required Websocket version and give more informative messages in case of errors.
 
-# New in v2.1
+## New in v2.1
 ***NOTE: This version requires upgrading to OBS Websocket v4.9 (!!) see: https://barraider.com/obs***
 - :new: `HotkeyTriggerAction` allows you to send Hotkeys directly to OBS (even when OBS is running as Admin)
 - :new: Auto-Reconnect feature will try to connect to OBS every few seconds automatically .
