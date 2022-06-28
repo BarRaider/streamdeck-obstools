@@ -27,6 +27,15 @@
             <div class="sdpi-item-label">Alert Color</div>
             <input type="color" class="sdpi-item-value sdProperty" value="#FF0000" id="alertColor" oninput="setSettings()">
         </div>
+        <div class="sdpi-item" id="dvMinFrames">
+            <div class="sdpi-item-label">Minimum Threshold (frames)</div>
+            <input class="sdpi-item-value sdProperty" id="minFrames" inputmode="numeric" placeholder="0" pattern="[0-9]*" type="number" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item">
+            <details class="message info">
+                <summary>Minimum Threshold is the number of dropped frames allowed before alert starts (default is 0 which alerts on first dropped frame)</summary>
+            </details>
+        </div>
         <hr />
         <div class="sdpi-item" id="dvReset">
             <div class="sdpi-item-label">Reset Settings</div>
