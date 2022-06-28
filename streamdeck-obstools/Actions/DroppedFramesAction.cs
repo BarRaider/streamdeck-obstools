@@ -34,7 +34,7 @@ namespace BarRaider.ObsTools.Actions
                     ServerInfoExists = false,
                     DroppedFramesType = DroppedFramesType.DroppedFrames,
                     AlertColor = "#FF0000",
-                    MinFrames = MIN_FRAMES_DEFAULT.ToString()
+                    MinFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD.ToString()
                 };
                 return instance;
             }
@@ -46,7 +46,7 @@ namespace BarRaider.ObsTools.Actions
             public String AlertColor { get; set; }
 
             [JsonProperty(PropertyName = "minFrames")]
-            public String MinFrames { get; set; }
+            public String MinFramesThreshold { get; set; }
             
         }
 
@@ -70,7 +70,7 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private const int TOTAL_ALERT_STAGES = 4;
-        private const int MIN_FRAMES_DEFAULT = 0;
+        private const int DEFAULT_MIN_FRAMES_THRESHOLD = 0;
 
         private StreamStatusEventArgs streamStatus;
         private int lastCountOfDroppedFrames = 0;
@@ -78,7 +78,7 @@ namespace BarRaider.ObsTools.Actions
         private bool isAlerting = false;
         private int alertStage = 0;
         private bool firstDataLoad = true;
-        private int minFrames = MIN_FRAMES_DEFAULT;
+        private int minFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD;
 
         #endregion
         public DroppedFramesAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -173,7 +173,7 @@ namespace BarRaider.ObsTools.Actions
             if (streamStatus != null)
             {
                 int currentDroppedFrames = GetCurrentDroppedFrames();
-                if (currentDroppedFrames > lastCountOfDroppedFrames)
+                if (firstDataLoad || currentDroppedFrames > lastCountOfDroppedFrames + minFramesThreshold)
                 {
                     lastCountOfDroppedFrames = currentDroppedFrames;
                     if (!firstDataLoad)
@@ -267,10 +267,10 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
-            if (!Int32.TryParse(Settings.MinFrames, out minFrames))
+            if (!Int32.TryParse(Settings.MinFramesThreshold, out minFramesThreshold))
             {
-                minFrames = MIN_FRAMES_DEFAULT;
-                Settings.MinFrames = MIN_FRAMES_DEFAULT.ToString();
+                minFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD;
+                Settings.MinFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD.ToString();
                 SaveSettings();
             }
         }
