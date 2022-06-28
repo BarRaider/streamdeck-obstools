@@ -1,5 +1,6 @@
 ﻿using BarRaider.ObsTools.Backend;
 using BarRaider.SdTools;
+using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,14 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
+        #region Private Members
+
+        private bool showedPrevScene = false;
+        private string prevSceneName = string.Empty;
+        private TitleParameters titleParameters;
+
+        #endregion
+
         public PreviousSceneAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
@@ -55,12 +64,14 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
+            Connection.OnTitleParametersDidChange += Connection_OnTitleParametersDidChange;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
         }
 
         public override void Dispose()
         {
+            Connection.OnTitleParametersDidChange -= Connection_OnTitleParametersDidChange;
             base.Dispose();
         }
 
@@ -99,7 +110,17 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (!String.IsNullOrEmpty(OBSManager.Instance.PreviousSceneName))
                 {
-                    await Connection.SetTitleAsync($"{OBSManager.Instance.PreviousSceneName.Replace(" ", "\n")}");
+                    if (prevSceneName != OBSManager.Instance.PreviousSceneName)
+                    {
+                        prevSceneName = OBSManager.Instance.PreviousSceneName;
+                        await Connection.SetTitleAsync(Tools.SplitStringToFit($"{OBSManager.Instance.PreviousSceneName}", titleParameters));
+                    }
+                    showedPrevScene = true;                    
+                }
+                else if (showedPrevScene)
+                {
+                    await Connection.SetTitleAsync(null);
+                    showedPrevScene = false;
                 }
             }
         }
@@ -118,6 +139,15 @@ namespace BarRaider.ObsTools.Actions
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
+        #endregion
+
+        #region Private Methods
+
+        private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
+        {
+            titleParameters = e?.Event?.Payload?.TitleParameters;
+        }
+
         #endregion
     }
 }

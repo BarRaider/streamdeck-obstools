@@ -43,6 +43,7 @@ namespace BarRaider.ObsTools.Backend
         private bool autoConnectRunning = false;
         private static readonly object autoConnectLock = new object();
 
+        private string previousSceneBackupName = string.Empty;
 
         #endregion
 
@@ -115,6 +116,8 @@ namespace BarRaider.ObsTools.Backend
 
         public string PreviousSceneName { get; private set; }
 
+        public string NextSceneName { get; private set; }
+
         public OutputState InstantReplyStatus { get; private set; }
 
         public bool IsStreaming { get; private set; }
@@ -138,8 +141,6 @@ namespace BarRaider.ObsTools.Backend
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Connect: Already connected");
                         return;
                     }
-
-                    Logger.Instance.LogMessage(TracingLevel.DEBUG, $"Attempting to connect");
 
                     if (!autoConnect) // Don't spam log
                     {
@@ -655,6 +656,25 @@ namespace BarRaider.ObsTools.Backend
             catch (Exception ex)
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"AnimateSource Exception: {ex}");
+            }
+            return false;
+        }
+
+        public bool SetWindowCaptureWindow(string sourceName, string windowInfo)
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    var sourceInfo = obs.GetSourceSettings(sourceName);
+                    sourceInfo.Settings["window"] = windowInfo;
+                    obs.SetSourceSettings(sourceName, sourceInfo.Settings);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetWindowCaptureWindow Exception Source: {sourceName} Window {windowInfo}: {ex}");
             }
             return false;
         }
@@ -1190,6 +1210,7 @@ namespace BarRaider.ObsTools.Backend
             IsStreaming = obs.GetStreamingStatus().IsStreaming;
             IsRecording = obs.GetStreamingStatus().IsRecording;
             CurrentSceneName = obs.GetCurrentScene()?.Name;
+            Task.Run(() => GetNextSceneName());
 
             if (IsStudioModeEnabled())
             {
@@ -1242,10 +1263,21 @@ namespace BarRaider.ObsTools.Backend
 
         private void Obs_SceneChanged(OBSWebsocket sender, string newSceneName)
         {
-            PreviousSceneName = CurrentSceneName;
-            CurrentSceneName = newSceneName;
+
+            // This can be caused by a race condition with the CheckStatus() function
+            if (CurrentSceneName == newSceneName && !String.IsNullOrEmpty(previousSceneBackupName))
+            {
+                PreviousSceneName = previousSceneBackupName;
+                previousSceneBackupName = String.Empty;
+            }
+            else
+            {
+                PreviousSceneName = CurrentSceneName;
+                CurrentSceneName = newSceneName;
+            }
             Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {newSceneName}");
             SceneChanged?.Invoke(this, new SceneChangedEventArgs(newSceneName));
+            Task.Run(() => GetNextSceneName());
         }
 
         private void Obs_PreviewSceneChanged(OBSWebsocket sender, string newSceneName)
@@ -1279,14 +1311,31 @@ namespace BarRaider.ObsTools.Backend
             ReplayBufferStateChanged?.Invoke(this, type);
         }
 
+        private void GetNextSceneName()
+        {
+            NextSceneName = string.Empty;
+            var scenes = GetAllScenes();
+            int idx = scenes.Scenes.FindIndex(x => x.Name == scenes.CurrentScene) + 1;
+            if (idx > 0 && idx < scenes.Scenes.Count)
+            {
+                NextSceneName = scenes.Scenes[idx].Name;
+            }
+        }
+
         private void CheckStatus()
         {
             try
             {
                 if (obs.IsConnected)
                 {
+                    string backup = CurrentSceneName;
                     CurrentSceneName = obs.GetCurrentScene()?.Name;
 
+                    // We changed the scene name since last refresh
+                    if (CurrentSceneName != backup)
+                    {
+                        previousSceneBackupName = backup;
+                    }
 
                     if (IsStudioModeEnabled())
                     {
