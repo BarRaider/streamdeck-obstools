@@ -69,6 +69,7 @@ namespace BarRaider.ObsTools.Actions
 
         private bool enableFilter = true;
         private DateTime lastStatusCheck = DateTime.MinValue;
+        private bool disableStatusCheck = false;
 
         private readonly string[] DEFAULT_IMAGES = new string[]
         {
@@ -134,7 +135,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (String.IsNullOrEmpty(Settings.SourceName) || String.IsNullOrEmpty(Settings.FilterName))
+                if (String.IsNullOrEmpty(Settings.SourceName) || String.IsNullOrEmpty(Settings.FilterName) || disableStatusCheck)
                 {
                     return;
                 }
@@ -151,9 +152,8 @@ namespace BarRaider.ObsTools.Actions
                     else if (exceptionRaised)
                     {
 
-                        Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Exception raised for IsFilterEnabled, resetting settings");
-                        Settings.FilterName = null;
-                        Settings.SourceName = null;
+                        Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Exception raised for IsFilterEnabled on Source: {Settings.SourceName} and Filter: {Settings.FilterName}, halting updates");
+                        disableStatusCheck = true;
                     }
                 }
             }
