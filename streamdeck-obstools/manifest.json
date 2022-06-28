@@ -30,7 +30,7 @@
       "DisableCaching": true,
       "Tooltip": "Shows the current OBS CPU usage",
       "UUID": "com.barraider.obstools.cpuusage",
-      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+      "PropertyInspectorPath": "PropertyInspector/CPUUsage.html"
     },
     {
       "Icon": "Images/icon",
@@ -69,6 +69,22 @@
       "Tooltip": "Enable/Disable a Filter on a specific source",
       "UUID": "com.barraider.obstools.filtertoggle",
       "PropertyInspectorPath": "PropertyInspector/FilterToggle.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Focused Window Capture",
+      "States": [
+        {
+          "Image": "Images/captureAction",
+          "TitleAlignment": "top",
+          "FontSize": "11"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Modifies a Window Capture source to show the current focused window",
+      "UUID": "com.barraider.obstools.focusedwindowcapture",
+      "PropertyInspectorPath": "PropertyInspector/FocusedWindowCapture.html"
     },
     {
       "Icon": "Images/icon",
@@ -131,12 +147,28 @@
     },
     {
       "Icon": "Images/icon",
+      "Name": "Next Scene",
+      "States": [
+        {
+          "Image": "Images/nextAction",
+          "TitleAlignment": "top",
+          "FontSize": "14"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Moves to the next scene down in the scenes list",
+      "UUID": "com.barraider.obstools.nextscene",
+      "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
+    },
+    {
+      "Icon": "Images/icon",
       "Name": "Previous Scene",
       "States": [
         {
-          "Image": "Images/pluginAction",
-          "TitleAlignment": "middle",
-          "FontSize": "18"
+          "Image": "Images/prevAction",
+          "TitleAlignment": "top",
+          "FontSize": "14"
         }
       ],
       "SupportedInMultiActions": true,
@@ -456,7 +488,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "2.4",
+  "Version": "2.6.1",
   "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",
