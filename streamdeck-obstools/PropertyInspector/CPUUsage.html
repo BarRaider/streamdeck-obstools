@@ -5,35 +5,20 @@
     <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
     <meta name=apple-mobile-web-app-capable content=yes>
     <meta name=apple-mobile-web-app-status-bar-style content=black>
-    <title>OBS Tools Dropped Frames</title>
+    <title>BarRaider's OBS Tools</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
     <script src="setup.js"></script>
+    <script src="OBSTools.js"></script>
 </head>
 <body>
     <div class="sdpi-wrapper">
         <details class="message">
             <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
         </details>
-        <div class="sdpi-item" id="select_single">
-            <div class="sdpi-item-label">Frames Type</div>
-            <select class="sdpi-item-value select sdProperty" id="droppedFramesType" oninput="setSettings()">
-                <option value="0">Dropped Frames</option>
-                <option value="1">Output Skipped Frames</option>
-                <option value="2">Render Missed Frames</option>
-            </select>
-        </div>
-        <div type="color" class="sdpi-item" id="dvAlert">
-            <div class="sdpi-item-label">Alert Color</div>
-            <input type="color" class="sdpi-item-value sdProperty" value="#FF0000" id="alertColor" oninput="setSettings()">
-        </div>
-        <div class="sdpi-item" id="dvMinFrames">
-            <div class="sdpi-item-label">Minimum Threshold (frames)</div>
-            <input class="sdpi-item-value sdProperty" id="minFrames" inputmode="numeric" placeholder="0" pattern="[0-9]*" type="number" oninput="setSettings()">
-        </div>
         <div class="sdpi-item">
             <details class="message info">
-                <summary>Minimum Threshold is the number of dropped frames allowed before alert starts (default is 0 which alerts on first dropped frame)</summary>
+                <summary>CPU Usage is only active when OBS is streaming</summary>
             </details>
         </div>
         <hr />

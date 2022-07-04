@@ -33,7 +33,8 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     DroppedFramesType = DroppedFramesType.DroppedFrames,
-                    AlertColor = "#FF0000"
+                    AlertColor = "#FF0000",
+                    MinFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD.ToString()
                 };
                 return instance;
             }
@@ -43,6 +44,10 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "alertColor")]
             public String AlertColor { get; set; }
+
+            [JsonProperty(PropertyName = "minFrames")]
+            public String MinFramesThreshold { get; set; }
+            
         }
 
         protected PluginSettings Settings
@@ -65,6 +70,7 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private const int TOTAL_ALERT_STAGES = 4;
+        private const int DEFAULT_MIN_FRAMES_THRESHOLD = 0;
 
         private StreamStatusEventArgs streamStatus;
         private int lastCountOfDroppedFrames = 0;
@@ -72,6 +78,7 @@ namespace BarRaider.ObsTools.Actions
         private bool isAlerting = false;
         private int alertStage = 0;
         private bool firstDataLoad = true;
+        private int minFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD;
 
         #endregion
         public DroppedFramesAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -91,6 +98,7 @@ namespace BarRaider.ObsTools.Actions
             tmrAlert.Elapsed += TmrAlert_Elapsed;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
+            InitializeSettings();
         }
 
         public override void Dispose()
@@ -150,6 +158,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 lastCountOfDroppedFrames = GetCurrentDroppedFrames();
             }
+            InitializeSettings();
             SaveSettings();
         }
 
@@ -164,7 +173,7 @@ namespace BarRaider.ObsTools.Actions
             if (streamStatus != null)
             {
                 int currentDroppedFrames = GetCurrentDroppedFrames();
-                if (currentDroppedFrames > lastCountOfDroppedFrames)
+                if (firstDataLoad || currentDroppedFrames > lastCountOfDroppedFrames + minFramesThreshold)
                 {
                     lastCountOfDroppedFrames = currentDroppedFrames;
                     if (!firstDataLoad)
@@ -254,6 +263,16 @@ namespace BarRaider.ObsTools.Actions
                 graphics.Dispose();
             }
             alertStage = (alertStage + 1) % TOTAL_ALERT_STAGES;
+        }
+
+        private void InitializeSettings()
+        {
+            if (!Int32.TryParse(Settings.MinFramesThreshold, out minFramesThreshold))
+            {
+                minFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD;
+                Settings.MinFramesThreshold = DEFAULT_MIN_FRAMES_THRESHOLD.ToString();
+                SaveSettings();
+            }
         }
 
         public override Task SaveSettings()

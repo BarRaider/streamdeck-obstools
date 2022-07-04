@@ -13,8 +13,8 @@ using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
-    [PluginActionId("com.barraider.obstools.previousscene")]
-    public class PreviousSceneAction : ActionBase
+    [PluginActionId("com.barraider.obstools.nextscene")]
+    public class NextSceneAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -47,13 +47,14 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private bool showedPrevScene = false;
-        private string prevSceneName = string.Empty;
+        private bool showedNextScene = false;
+        private string nextSceneName = string.Empty;
         private TitleParameters titleParameters;
 
         #endregion
 
-        public PreviousSceneAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+
+        public NextSceneAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -83,9 +84,9 @@ namespace BarRaider.ObsTools.Actions
             if (!baseHandledKeypress)
             {
                 bool sceneChanged = false;
-                if (!string.IsNullOrEmpty(OBSManager.Instance.PreviousSceneName))
+                if (!string.IsNullOrEmpty(OBSManager.Instance.NextSceneName))
                 {
-                    sceneChanged = OBSManager.Instance.ChangeScene(OBSManager.Instance.PreviousSceneName);
+                    sceneChanged = OBSManager.Instance.ChangeScene(OBSManager.Instance.NextSceneName);
                 }
 
                 if (sceneChanged)
@@ -108,19 +109,19 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (!String.IsNullOrEmpty(OBSManager.Instance.PreviousSceneName))
+                if (!String.IsNullOrEmpty(OBSManager.Instance.NextSceneName))
                 {
-                    if (prevSceneName != OBSManager.Instance.PreviousSceneName)
+                    if (nextSceneName != OBSManager.Instance.NextSceneName)
                     {
-                        prevSceneName = OBSManager.Instance.PreviousSceneName;
-                        await Connection.SetTitleAsync(Tools.SplitStringToFit($"{OBSManager.Instance.PreviousSceneName}", titleParameters));
+                        nextSceneName = OBSManager.Instance.NextSceneName;
+                        await Connection.SetTitleAsync(Tools.SplitStringToFit($"{OBSManager.Instance.NextSceneName}", titleParameters));
                     }
-                    showedPrevScene = true;                    
+                    showedNextScene = true;
                 }
-                else if (showedPrevScene)
+                else if (showedNextScene)
                 {
                     await Connection.SetTitleAsync(null);
-                    showedPrevScene = false;
+                    showedNextScene = false;
                 }
             }
         }

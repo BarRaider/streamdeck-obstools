@@ -138,17 +138,18 @@ namespace BarRaider.ObsTools.Actions
         public override void KeyReleased(KeyPayload payload)
         {
             tmrRunLongPress.Stop();
-
-            if (!longKeyPressed)
+            if (longKeyPressed)
             {
-                if (payload.IsInMultiAction)
-                {
-                    HandleMultiActionKeyPress(payload.UserDesiredState);
-                }
-                else
-                {
-                    HandleAction(Settings.ShortPressAction);
-                }
+                return;
+            }
+
+            if (payload.IsInMultiAction)
+            {
+                HandleMultiActionKeyPress(payload.UserDesiredState);
+            }
+            else
+            {
+                HandleAction(Settings.ShortPressAction);
             }
         }
 
