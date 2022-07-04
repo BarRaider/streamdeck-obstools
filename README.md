@@ -3,25 +3,16 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
-# New in v2.1
-***NOTE: This version requires upgrading to OBS Websocket v4.9 (!!) see: https://barraider.com/obs***
-- :new: `HotkeyTriggerAction` allows you to send Hotkeys directly to OBS (even when OBS is running as Admin)
-- :new: Auto-Reconnect feature will try to connect to OBS every few seconds automatically .
-    - Keys will now show an indicator if plugin is not connected to OBS
-- `Instant Replay` key allows enabling/disabling the Replay Buffer (long pressing the key) *even when you're not streaming or recording.*
-    -  `Instant Replay` key now shows a visual indicator if the Replay Buffer is enabled
-- `Toggle Filter` action now shows a visual indicator if the filter is enabled or disabled
-- `Toggle Filter` action can now toggle filters on ***Sources*** (just like Scenes)
-- `Set Transition` action now allows to set the transition duration
+# New in v2.5
+- Migrated code to use Twitch's new APIs
 
-- Multiple improvements to the `Recording Toggle` action:
-    - Recording action now supports to Pause/Resume recordings
-    - Recording action now supports multi-actions
-    - Recording Action now allows to customize the recording indicator
-- `Stream Toggle` Action now allows to customize the streaming indicator
-- `Source Volume Adjuster` action now supports -/+1 steps
-
-
+# New in v2.4
+- :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
+- :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
+- :new: `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
+     - Includes Multi-Action support!
+- Added support for customizable icons to many of the actions
+- Reworked the setup wizard to clearly state the required Websocket version and give more informative messages in case of errors.
 
 ## Features:
 - `Smart Scene Switcher`  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
@@ -56,6 +47,13 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 - `Set Scene Collection` action allows you to modify the Scene Collection
 - `Source Visibility` action allows you to toggle sources on/off (+ multi-action support)
 - `Image Settings` action allows to change the settings of an Image source (as an example - think changing your background image with one press)
+- `HotkeyTriggerAction` allows you to send Hotkeys directly to OBS (even when OBS is running as Admin)
+- `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
+- `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
+- `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
+
+
+
 
 # INSTALLATION
 **Important:** You must download and install obs-websocket before using this plugin. Install from here: https://github.com/Palakis/obs-websocket/releases/
@@ -86,6 +84,24 @@ Please contact the developer. Contact information is available at https://barrai
 * Uses [Easy-PI](https://github.com/BarRaider/streamdeck-easypi) by BarRaider - Provides seamless integration with the Stream Deck PI (Property Inspector) 
 
 ## Change Log
+
+# New in v2.1
+***NOTE: This version requires upgrading to OBS Websocket v4.9 (!!) see: https://barraider.com/obs***
+- :new: `HotkeyTriggerAction` allows you to send Hotkeys directly to OBS (even when OBS is running as Admin)
+- :new: Auto-Reconnect feature will try to connect to OBS every few seconds automatically .
+    - Keys will now show an indicator if plugin is not connected to OBS
+- `Instant Replay` key allows enabling/disabling the Replay Buffer (long pressing the key) *even when you're not streaming or recording.*
+    -  `Instant Replay` key now shows a visual indicator if the Replay Buffer is enabled
+- `Toggle Filter` action now shows a visual indicator if the filter is enabled or disabled
+- `Toggle Filter` action can now toggle filters on ***Sources*** (just like Scenes)
+- `Set Transition` action now allows to set the transition duration
+
+- Multiple improvements to the `Recording Toggle` action:
+    - Recording action now supports to Pause/Resume recordings
+    - Recording action now supports multi-actions
+    - Recording Action now allows to customize the recording indicator
+- `Stream Toggle` Action now allows to customize the streaming indicator
+- `Source Volume Adjuster` action now supports -/+1 steps
 
 ## New in v1.9
 - Fixed issues with `Filter Toogle` not working when scene does not include that source
