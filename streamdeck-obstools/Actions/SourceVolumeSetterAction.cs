@@ -107,7 +107,7 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                OBSManager.Instance.SetSourceVolume(Settings.SourceName, volume);
+                OBSManager.Instance.SetInputVolume(Settings.SourceName, volume, true);
             }
             else
             {
@@ -126,16 +126,16 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (!String.IsNullOrEmpty(Settings.SourceName))
                 {
-                    var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
+                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.SourceName);
                     if (volumeInfo != null)
                     {
-                        if (volumeInfo.Muted)
+                        if (OBSManager.Instance.IsInputMuted(Settings.SourceName))
                         {
                             await Connection.SetTitleAsync("🔇");
                         }
                         else
                         {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume,1)} db");
+                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.VolumeDb,1)} db");
                         }
                     }
                 }
@@ -175,7 +175,7 @@ namespace BarRaider.ObsTools.Actions
         }
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
         }
 
         #endregion

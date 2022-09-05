@@ -109,10 +109,10 @@ namespace BarRaider.ObsTools.Actions
                 }
 
                 // Get current volume
-                var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
+                var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.SourceName);
                 if (volumeInfo != null)
                 {
-                    float outputVolume = volumeInfo.Volume + volumeStep;
+                    float outputVolume = volumeInfo.VolumeDb + volumeStep;
                     if (outputVolume > 0)
                     {
                         outputVolume = 0;
@@ -121,7 +121,7 @@ namespace BarRaider.ObsTools.Actions
                     {
                         outputVolume = MINIMAL_DB_VALUE;
                     }
-                    OBSManager.Instance.SetSourceVolume(Settings.SourceName, outputVolume);
+                    OBSManager.Instance.SetInputVolume(Settings.SourceName, outputVolume, true);
                 }
             }
             else
@@ -141,16 +141,16 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (!String.IsNullOrEmpty(Settings.SourceName))
                 {
-                    var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
+                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.SourceName);
                     if (volumeInfo != null)
                     {
-                        if (volumeInfo.Muted)
+                        if (OBSManager.Instance.IsInputMuted(Settings.SourceName))
                         {
                             await Connection.SetTitleAsync("🔇");
                         }
                         else
                         {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume, 1)} db");
+                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.VolumeDb, 1)} db");
                         }
                     }
                 }
@@ -191,7 +191,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
         }
 
         #endregion

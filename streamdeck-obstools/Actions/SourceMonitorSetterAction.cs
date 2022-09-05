@@ -109,7 +109,7 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                OBSManager.Instance.SetAudioMonitorType(Settings.SourceName, Settings.MonitorType);
+                OBSManager.Instance.SetInputAudioMonitorType(Settings.SourceName, Settings.MonitorType);
             }
             else
             {
@@ -129,7 +129,7 @@ namespace BarRaider.ObsTools.Actions
                 if (!String.IsNullOrEmpty(Settings.SourceName) && (DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
                 {
                     lastStatusCheck = DateTime.Now;
-                    var monitorType = OBSManager.Instance.GetAudioMonitorType(Settings.SourceName);
+                    var monitorType = OBSManager.Instance.GetInputAudioMonitorType(Settings.SourceName);
                     await Connection.SetImageAsync(monitorType == Settings.MonitorType ? enabledImage : disabledImage);
                 }
             }
@@ -169,7 +169,7 @@ namespace BarRaider.ObsTools.Actions
         }
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
         }
 
         #endregion

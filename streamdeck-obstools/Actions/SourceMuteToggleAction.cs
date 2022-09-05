@@ -112,7 +112,7 @@ namespace BarRaider.ObsTools.Actions
                 return;
             }
 
-            if (!OBSManager.Instance.ToggleSourceMute(Settings.SourceName))
+            if (!OBSManager.Instance.ToggleInputMute(Settings.SourceName))
             {
                 await Connection.ShowAlert();
                 return;
@@ -142,7 +142,7 @@ namespace BarRaider.ObsTools.Actions
                 if ((DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
                 {
                     lastStatusCheck = DateTime.Now;
-                    var isEnabled = OBSManager.Instance.IsSourceMuted(Settings.SourceName);
+                    var isEnabled = OBSManager.Instance.IsInputMuted(Settings.SourceName);
                     await Connection.SetImageAsync(isEnabled ? enabledImage : disabledImage);
                 }
             }
@@ -186,7 +186,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
         }
 
         #endregion
