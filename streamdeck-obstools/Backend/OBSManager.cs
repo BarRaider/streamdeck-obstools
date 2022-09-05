@@ -29,6 +29,9 @@ namespace BarRaider.ObsTools.Backend
         private const string CONNECTION_STRING = "ws://{0}:{1}";
         private const string REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE = "replay buffer already active";
         private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("5.0");
+        private readonly string[] AUDIO_INPUT_KINDS = new string[] { "wasapi_input_capture", "wasapi_output_capture" };
+
+
         private readonly SemaphoreSlim connectLock = new SemaphoreSlim(1, 1);
         private const int CONNECT_COOLDOWN_MS = 10000;
         private const int AUTO_CONNECT_SLEEP_MS = 10000;
@@ -937,6 +940,23 @@ namespace BarRaider.ObsTools.Backend
 
         }
 
+        public List<Input> GetAudioInputs()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetInputList().Where(i => AUDIO_INPUT_KINDS.Contains(i.UnversionedKind)).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllScenes Exception {ex}");
+            }
+            return null;
+
+        }
+
         public List<SceneSourceInfo> GetAllSceneAndSceneItemNames()
         {
             try
@@ -952,7 +972,8 @@ namespace BarRaider.ObsTools.Backend
                     }
                     list.AddRange(scenes?.Scenes?.Select(s => new SceneSourceInfo() { Name = s.Name }).ToList());
 
-                    return list.OrderBy(n => n.Name).GroupBy(g => g.Name).FirstOrDefault().ToList();
+                    // Distinct
+                    return list.OrderBy(n => n.Name).GroupBy(g => g.Name).Select(grp => grp.FirstOrDefault()).ToList();
                 }
             }
             catch (Exception ex)
@@ -1393,7 +1414,7 @@ namespace BarRaider.ObsTools.Backend
             NextSceneName = string.Empty;
             var scenes = GetAllScenes();
             int idx = scenes.Scenes.FindIndex(x => x.Name == scenes.CurrentProgramSceneName) - 1;
-            if (idx > 0 && idx < scenes.Scenes.Count)
+            if (idx >= 0 && idx < scenes.Scenes.Count)
             {
                 NextSceneName = scenes.Scenes[idx].Name;
             }
