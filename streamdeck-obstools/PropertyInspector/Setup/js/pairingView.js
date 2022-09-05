@@ -15,7 +15,7 @@ function loadPairingView() {
 
     // Show manual user controls instead
     var controls = "<input type='textarea' class='textbox' placeholder='" + localization['Pairing']['IpPlaceholder'] + "' value='127.0.0.1' id='ip'><span id='ip-error' class='error bold' style='display:none;'>*</span><br/>\
-                    <input type='textarea' class='textbox' placeholder='" + localization['Pairing']['PortPlaceholder'] + "' value = '4444' id = 'port'><span id='port-error' class='error bold' style='display:none;'>*</span><br/> \
+                    <input type='textarea' class='textbox' placeholder='" + localization['Pairing']['PortPlaceholder'] + "' value = '4455' id = 'port'><span id='port-error' class='error bold' style='display:none;'>*</span><br/> \
                     <input type='textarea' class='textbox' placeholder='" + localization['Pairing']['PassPlaceholder'] + "' value = '' id = 'pass'>&nbsp;&nbsp;<span title='It is HIGHLY RECOMMENDED to set a password in the WebSockets Server settings.'>🛈</span><br/>\
                               <div class='button' id='submit'>" + localization['Pairing']['Submit'] + "</div> \
                                <div class='button-transparent' id='close'>" + localization['Pairing']['Close'] + "</div>";

@@ -40,7 +40,7 @@ namespace BarRaider.ObsTools.Actions
             public String SceneName { get; set; }
 
             [JsonProperty(PropertyName = "scenes", NullValueHandling = NullValueHandling.Ignore)]
-            public List<OBSScene> Scenes { get; set; }
+            public List<SceneBasicInfo> Scenes { get; set; }
 
             [JsonProperty(PropertyName = "sources", NullValueHandling = NullValueHandling.Ignore)]
             public List<SceneItemDetails> Sources { get; set; }
@@ -193,9 +193,9 @@ namespace BarRaider.ObsTools.Actions
         {
             return Task.Run(async () =>
             {
-                Settings.Scenes = new List<OBSScene>
+                Settings.Scenes = new List<SceneBasicInfo>
                 {
-                    new OBSScene
+                    new SceneBasicInfo
                     {
                         Name = ACTIVE_SCENE_NAME
                     }

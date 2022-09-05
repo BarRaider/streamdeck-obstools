@@ -4,6 +4,7 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -49,7 +50,7 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private StreamStatusEventArgs streamStatus;
+        private ObsStats obsStats;
 
         #endregion
         public CPUUsageAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -63,14 +64,14 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
-            OBSManager.Instance.StreamStatusChanged += Instance_StreamStatusChanged;
+            OBSManager.Instance.ObsStatsChanged += Instance_ObsStatsChanged;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
         }
 
         public override void Dispose()
         {
-            OBSManager.Instance.StreamStatusChanged -= Instance_StreamStatusChanged;
+            OBSManager.Instance.ObsStatsChanged -= Instance_ObsStatsChanged;
             base.Dispose();
         }
 
@@ -87,9 +88,9 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (streamStatus != null)
+                if (obsStats != null)
                 {
-                    await Connection.SetTitleAsync($"{streamStatus.Status.CPU:#.#}%");
+                    await Connection.SetTitleAsync($"{obsStats.CpuUsage:#.#}%");
                 }
             }
         }
@@ -104,9 +105,9 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
-        private void Instance_StreamStatusChanged(object sender, StreamStatusEventArgs e)
+        private void Instance_ObsStatsChanged(object sender, OBSWebsocketDotNet.Types.ObsStats e)
         {
-            streamStatus = e;
+            obsStats = e;
         }
 
         public override Task SaveSettings()

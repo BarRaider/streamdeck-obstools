@@ -19,7 +19,7 @@
         "Title": "Server Info",
         "Description": "The 'Ip' and 'Port' should be kept as is, unless you made changes in OBS. Also, ensure to input the password you set in OBS",
         "IpPlaceholder": "IP [127.0.0.1]",
-        "PortPlaceholder": "Port [4444]",
+        "PortPlaceholder": "Port [4455]",
         "PassPlaceholder": "Password",
         "Submit": "SAVE",
         "Close": "Cancel"

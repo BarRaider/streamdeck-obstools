@@ -149,7 +149,7 @@ namespace BarRaider.ObsTools.Actions
                     urlOrFile = Settings.SourceURL;
                 }
 
-                await OBSManager.Instance.ModifyBrowserSource(urlOrFile, Settings.LocalFile, Settings.SourceName, 0, hideSourceSettings, Settings.MuteSound);
+                await OBSManager.Instance.ModifyBrowserInput(urlOrFile, Settings.LocalFile, Settings.SourceName, 0, hideSourceSettings, Settings.MuteSound);
             }
         }
 

@@ -201,12 +201,6 @@ namespace BarRaider.ObsTools.Actions
         {
             baseHandledOnTick = false;
             base.OnTick();
-
-            /*
-            if (!baseHandledOnTick && !String.IsNullOrEmpty(Settings.TransitionName))
-            {
-                await Connection.SetTitleAsync($"{Settings.TransitionName}");
-            }*/
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -471,7 +465,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void StartSourceRecording()
         {
-            recordingProperties = OBSManager.Instance.GetSourceProperties(Settings.SourceName, out string errorMessage);
+            recordingProperties = OBSManager.Instance.GetSceneItemProperties(OBSManager.Instance.CurrentSceneName, Settings.SourceName, out string errorMessage);
             if (!String.IsNullOrEmpty(errorMessage))
             {
                 Settings.IsRecording = false;
@@ -482,7 +476,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void HandleRecording()
         {
-            var newProperties = OBSManager.Instance.GetSourceProperties(Settings.SourceName, out string errorMessage);
+            var newProperties = OBSManager.Instance.GetSceneItemProperties(OBSManager.Instance.CurrentSceneName, Settings.SourceName, out string errorMessage);
             if (!String.IsNullOrEmpty(errorMessage))
             {
                 MessageBox.Show(errorMessage, "Source Animation Error");
@@ -531,7 +525,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
         }
 
         #endregion
