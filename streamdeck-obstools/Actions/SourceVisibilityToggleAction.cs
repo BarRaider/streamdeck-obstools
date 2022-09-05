@@ -147,7 +147,7 @@ namespace BarRaider.ObsTools.Actions
             string sceneName = Settings.SceneName;
             if (Settings.SceneName == ACTIVE_SCENE_NAME)
             {
-                sceneName = null;
+                sceneName = OBSManager.Instance.CurrentSceneName;
             }
 
             if (!OBSManager.Instance.ToggleSourceVisibility(sceneName, Settings.SourceName))
@@ -178,7 +178,7 @@ namespace BarRaider.ObsTools.Actions
                 string sceneName = Settings.SceneName;
                 if (Settings.SceneName == ACTIVE_SCENE_NAME)
                 {
-                    sceneName = null;
+                    sceneName = OBSManager.Instance.CurrentSceneName;
                 }
 
                 await DrawImage(OBSManager.Instance.IsSourceVisible(sceneName, Settings.SourceName));
@@ -269,7 +269,7 @@ namespace BarRaider.ObsTools.Actions
             string sceneName = Settings.SceneName;
             if (Settings.SceneName == ACTIVE_SCENE_NAME)
             {
-                sceneName = null;
+                sceneName = OBSManager.Instance.CurrentSceneName;
             }
             bool isVisible;
             switch (state) // 0 = Toggle, 1 = Show, 2 = Hide

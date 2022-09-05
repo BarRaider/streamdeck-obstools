@@ -20,7 +20,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.sourcemutetoggle")]
-    public class SourceMuteToggleAction : ActionBase
+    public class InputMuteToggleAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -36,7 +36,7 @@ namespace BarRaider.ObsTools.Actions
             }
 
             [JsonProperty(PropertyName = "sources", NullValueHandling = NullValueHandling.Ignore)]
-            public List<SceneSourceInfo> Sources { get; set; }
+            public List<Input> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
@@ -71,7 +71,7 @@ namespace BarRaider.ObsTools.Actions
         private DateTime lastStatusCheck = DateTime.MinValue;
 
         #endregion
-        public SourceMuteToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public InputMuteToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -186,7 +186,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
+            Settings.Sources = OBSManager.Instance.GetAudioInputs();
         }
 
         #endregion
