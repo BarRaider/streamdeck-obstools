@@ -190,12 +190,10 @@ namespace BarRaider.ObsTools.Actions
             int errorCode = 0;
             if (e is AuthFailureException)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} OBS Auth Failure");
                 errorCode = 1;
             }
             else if (e is InvalidOperationException)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} OBS Invalid Websocket Version");
                 ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
                 errorCode = 2;
             }
