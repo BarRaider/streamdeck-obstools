@@ -17,6 +17,14 @@
         <details class="message">
             <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
         </details>
+        <div class="sdpi-item" id="dvSceneName">
+            <div class="sdpi-item-label">OBS Scene Name</div>
+            <select class="sdpi-item-value select sdProperty sdList" id="scenes" oninput="setSettings()" sdListTextProperty="sceneName" sdListValueProperty="sceneName" sdValueField="sceneName"></select>
+        </div>
+        <div class="sdpi-item" id="dvInputNameSelect">
+            <div class="sdpi-item-label">'Browser Source' Name</div>
+            <select class="sdpi-item-value select sdProperty sdList" id="inputs" oninput="setSettings()" sdListTextProperty="inputName" sdListValueProperty="inputName" sdValueField="inputName"></select>
+        </div>
         <div type="checkbox" class="sdpi-item" id="dvLocalCheckbox">
             <div class="sdpi-item-label">Local</div>
             <div class="sdpi-item-value">
@@ -37,10 +45,6 @@
                     <label class="sdpi-file-label" for="videoFileName">Choose file...</label>
                 </div>
             </div>
-        </div>
-        <div class="sdpi-item" id="dvSourceName">
-            <div class="sdpi-item-label">Media Source Name</div>
-            <input class="sdpi-item-value sdProperty" placeholder="Source name in OBS" value="" id="sourceName" oninput="setSettings()">
         </div>
         <div type="checkbox" class="sdpi-item" id="dvMute">
             <div class="sdpi-item-label">Mute</div>

@@ -11,5 +11,9 @@ namespace BarRaider.ObsTools.Backend
         // Used for the Twitch setup, NOT for OBS Websocket
         internal const string OAUTH_REDIRECT_URL = "https://buz.bz/XkyI";
         internal const int OAUTH_PORT = 4204;
+
+        // Used across various actions
+        internal const string ACTIVE_SCENE_CAPTION = "- Active Scene -";
+
     }
 }

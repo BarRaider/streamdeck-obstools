@@ -51,6 +51,7 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private ObsStats obsStats;
+        private bool titleUpdated = false;
 
         #endregion
         public CPUUsageAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
@@ -91,6 +92,12 @@ namespace BarRaider.ObsTools.Actions
                 if (obsStats != null)
                 {
                     await Connection.SetTitleAsync($"{obsStats.CpuUsage:#.#}%");
+                    titleUpdated = true;
+                }
+                else if (titleUpdated) // Clean title on disconnect
+                {
+                    titleUpdated = false;
+                    await Connection.SetTitleAsync(null);
                 }
             }
         }

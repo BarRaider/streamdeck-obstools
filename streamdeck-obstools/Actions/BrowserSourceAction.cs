@@ -1,7 +1,9 @@
 ﻿using BarRaider.ObsTools.Backend;
 using BarRaider.SdTools;
+using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -36,7 +38,10 @@ namespace BarRaider.ObsTools.Actions
                     ServerInfoExists = false,
                     VideoFileName = String.Empty,
                     MuteSound = false,
-                    SourceName = String.Empty,
+                    Scenes = null,
+                    SceneName = String.Empty,
+                    Inputs = null,
+                    InputName = String.Empty,
                     HideSourceSeconds = HIDE_SOURCE_SECONDS.ToString(),
                     SourceURL = String.Empty,
                     LocalFile = false
@@ -51,9 +56,6 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "hideReplaySeconds")]
             public String HideSourceSeconds { get; set; }
 
-            [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }
-
             [JsonProperty(PropertyName = "muteSound")]
             public bool MuteSound { get; set; }
 
@@ -62,6 +64,18 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "localFile")]
             public bool LocalFile { get; set; }
+
+            [JsonProperty(PropertyName = "scenes", NullValueHandling = NullValueHandling.Ignore)]
+            public List<SceneBasicInfo> Scenes { get; set; }
+
+            [JsonProperty(PropertyName = "sceneName")]
+            public String SceneName { get; set; }
+
+            [JsonProperty(PropertyName = "inputs", NullValueHandling = NullValueHandling.Ignore)]
+            public List<InputBasicInfo> Inputs { get; set; }
+
+            [JsonProperty(PropertyName = "inputName")]
+            public String InputName { get; set; }
         }
 
         protected PluginSettings Settings
@@ -83,6 +97,8 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
+        private const string BROWSER_SOURCE_TYPE = "browser_source";
+
         private int hideSourceSettings = HIDE_SOURCE_SECONDS;
 
         #endregion
@@ -96,7 +112,10 @@ namespace BarRaider.ObsTools.Actions
             else
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
+                MakeBackwardsCompatibleForV5(payload.Settings);
+
             }
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             InitializeSettings();
@@ -104,6 +123,7 @@ namespace BarRaider.ObsTools.Actions
 
         public override void Dispose()
         {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
             base.Dispose();
         }
 
@@ -149,7 +169,7 @@ namespace BarRaider.ObsTools.Actions
                     urlOrFile = Settings.SourceURL;
                 }
 
-                await OBSManager.Instance.ModifyBrowserInput(urlOrFile, Settings.LocalFile, Settings.SourceName, 0, hideSourceSettings, Settings.MuteSound);
+                await OBSManager.Instance.ModifyBrowserInput(Settings.SceneName, Settings.InputName, urlOrFile, Settings.LocalFile, 0, hideSourceSettings, Settings.MuteSound);
             }
         }
 
@@ -188,6 +208,34 @@ namespace BarRaider.ObsTools.Actions
             if (String.IsNullOrEmpty(Settings.HideSourceSeconds) || !int.TryParse(Settings.HideSourceSeconds, out hideSourceSettings))
             {
                 Settings.HideSourceSeconds = HIDE_SOURCE_SECONDS.ToString();
+                SaveSettings();
+            }
+        }
+
+        private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        {
+            await LoadScenes();
+            LoadInputs();
+            await SaveSettings();
+        }
+
+        private async Task LoadScenes()
+        {
+            Settings.Scenes = await CommonFunctions.FetchScenesAndActiveCaption();
+            await SaveSettings();
+        }
+
+        private void LoadInputs()
+        {
+            Settings.Inputs = null;
+            Settings.Inputs = OBSManager.Instance.GetAllInputs()?.Where(i => i.InputKind == BROWSER_SOURCE_TYPE)?.OrderBy(i => i.InputName)?.ToList();
+        }
+
+        private void MakeBackwardsCompatibleForV5(JObject oldSettings)
+        {
+            if (oldSettings.ContainsKey("sourceName") && string.IsNullOrEmpty(Settings.InputName))
+            {
+                Settings.InputName = (string)oldSettings["sourceName"];
                 SaveSettings();
             }
         }

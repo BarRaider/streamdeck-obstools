@@ -84,8 +84,6 @@ namespace BarRaider.ObsTools.Actions
             @"images\sourceDisabled.png"
        };
 
-        private const string ACTIVE_SCENE_NAME = "- Active Scene -";
-
         private TitleParameters titleParameters;
 
         #endregion
@@ -145,7 +143,7 @@ namespace BarRaider.ObsTools.Actions
             }
 
             string sceneName = Settings.SceneName;
-            if (Settings.SceneName == ACTIVE_SCENE_NAME)
+            if (Settings.SceneName == Constants.ACTIVE_SCENE_CAPTION)
             {
                 sceneName = OBSManager.Instance.CurrentSceneName;
             }
@@ -176,7 +174,7 @@ namespace BarRaider.ObsTools.Actions
                 }
 
                 string sceneName = Settings.SceneName;
-                if (Settings.SceneName == ACTIVE_SCENE_NAME)
+                if (Settings.SceneName == Constants.ACTIVE_SCENE_CAPTION)
                 {
                     sceneName = OBSManager.Instance.CurrentSceneName;
                 }
@@ -208,32 +206,10 @@ namespace BarRaider.ObsTools.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private Task LoadScenes()
+        private async Task LoadScenes()
         {
-            return Task.Run(async () =>
-            {
-                Settings.Scenes = new List<SceneBasicInfo>
-                {
-                    new SceneBasicInfo
-                    {
-                        Name = ACTIVE_SCENE_NAME
-                    }
-                };
-                int retries = 40;
-
-                while (!OBSManager.Instance.IsConnected && retries > 0)
-                {
-                    retries--;
-                    await Task.Delay(250);
-                }
-
-                var scenes = OBSManager.Instance.GetAllScenes();
-                if (scenes != null && scenes.Scenes != null)
-                {
-                    Settings.Scenes.AddRange(scenes.Scenes.OrderBy(s => s.Name).ToList());
-                }
-                await SaveSettings();
-            });
+            Settings.Scenes = await CommonFunctions.FetchScenesAndActiveCaption();
+            await SaveSettings();
         }
 
         private void LoadSceneSources()
@@ -267,7 +243,7 @@ namespace BarRaider.ObsTools.Actions
         private async Task HandleMultiActionKeypress(uint state)
         {
             string sceneName = Settings.SceneName;
-            if (Settings.SceneName == ACTIVE_SCENE_NAME)
+            if (Settings.SceneName == Constants.ACTIVE_SCENE_CAPTION)
             {
                 sceneName = OBSManager.Instance.CurrentSceneName;
             }

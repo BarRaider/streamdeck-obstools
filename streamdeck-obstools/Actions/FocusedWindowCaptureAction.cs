@@ -74,7 +74,6 @@ namespace BarRaider.ObsTools.Actions
             @"images\sourceDisabled.png"
        };
 
-        private const string ACTIVE_SCENE_NAME = "- Active Scene -";
         private const string WINDOW_CAPTURE_TYPE = "window_capture";
 
         private TitleParameters titleParameters;
@@ -163,32 +162,10 @@ namespace BarRaider.ObsTools.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private Task LoadScenes()
+        private async Task LoadScenes()
         {
-            return Task.Run(async () =>
-            {
-                Settings.Scenes = new List<SceneBasicInfo>
-                {
-                    new SceneBasicInfo
-                    {
-                        Name = ACTIVE_SCENE_NAME
-                    }
-                };
-                int retries = 40;
-
-                while (!OBSManager.Instance.IsConnected && retries > 0)
-                {
-                    retries--;
-                    await Task.Delay(250);
-                }
-
-                var scenes = OBSManager.Instance.GetAllScenes();
-                if (scenes != null && scenes.Scenes != null)
-                {
-                    Settings.Scenes.AddRange(scenes.Scenes.OrderBy(s => s.Name).ToList());
-                }
-                await SaveSettings();
-            });
+            Settings.Scenes = await CommonFunctions.FetchScenesAndActiveCaption();
+            await SaveSettings();
         }
 
         private void LoadSceneSources()
@@ -207,17 +184,6 @@ namespace BarRaider.ObsTools.Actions
             titleParameters = e?.Event?.Payload?.TitleParameters;
         }
 
-        private async Task DrawImage(bool sourceVisible)
-        {
-            if (sourceVisible)
-            {
-                await Connection.SetImageAsync(enabledImage);
-            }
-            else
-            {
-                await Connection.SetImageAsync(disabledImage);
-            }
-        }
         private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {
             await LoadScenes();

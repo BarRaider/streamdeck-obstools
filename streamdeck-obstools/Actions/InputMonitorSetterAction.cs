@@ -37,7 +37,7 @@ namespace BarRaider.ObsTools.Actions
             public String Volume { get; set; }
 
             [JsonProperty(PropertyName = "sources")]
-            public List<Input> Sources { get; set; }
+            public List<InputBasicInfo> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
@@ -170,7 +170,7 @@ namespace BarRaider.ObsTools.Actions
         }
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAudioInputs();
+            Settings.Sources = OBSManager.Instance.GetAudioInputs().OrderBy(s => s.InputName).ToList();
         }
 
         #endregion
