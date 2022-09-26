@@ -29,7 +29,7 @@
         "SuccessTitle": "✔️ Plugin Configured",
         "SuccessDescription": "Enjoy using OBS with your Stream Deck.<br/>You may <b><i>close</i></b> this window.",
         "FailTitle": "SETUP FAILED",
-        "FailDescription": "We failed to save the settings. Validate the Ip/Port/Password are correct and that you're <b>not using Websocket v5.x</b>. For support:",
+        "FailDescription": "We failed to link with OBS. Validate the Ip/Port/Password are correct, that `Enable Websocket Server` is checked in OBS, and that you're <b>using OBS v28 or higher</b>. For support:",
         "FailRetry": "TRY AGAIN",
         "Close": "Close",
         "Cancel": "Cancel",

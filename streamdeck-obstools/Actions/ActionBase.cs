@@ -150,7 +150,7 @@ namespace BarRaider.ObsTools.Actions
                         string ip = ((string)payload["ip"]).Trim();
                         string port = ((string)payload["port"]).Trim();
                         string password = ((string)payload["password"]).Trim();
-                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting server info. Ip: {ip} Port: {port} Password: {String.IsNullOrEmpty(password)}");
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting server info. Ip: {ip} Port: {port} Password: {(String.IsNullOrEmpty(password) ? "Empty" : password.Length.ToString())}");
                         ServerManager.Instance.InitTokens(ip, port, password, DateTime.Now);
                         break;
                     case "updateapproval":
