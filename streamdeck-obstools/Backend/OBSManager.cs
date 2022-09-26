@@ -36,7 +36,7 @@ namespace BarRaider.ObsTools.Backend
 
 
         private readonly SemaphoreSlim connectLock = new SemaphoreSlim(1, 1);
-        private const int CONNECT_COOLDOWN_MS = 10000;
+        private const int CONNECT_COOLDOWN_MS = 9500;
         private const int AUTO_CONNECT_SLEEP_MS = 10000;
 
         private static OBSManager instance = null;
@@ -184,7 +184,7 @@ namespace BarRaider.ObsTools.Backend
                     }
                     lastConnectAttempt = DateTime.Now;
                     obs.WSTimeout = new TimeSpan(0, 0, 3);
-                    obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
+                    obs.ConnectAsync(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                 }
                 catch (Exception ex)
                 {
@@ -200,6 +200,7 @@ namespace BarRaider.ObsTools.Backend
 
         public void Disconnect()
         {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnect() function was called");
             disconnectCalled = true;
             if (obs.IsConnected)
             {
@@ -468,12 +469,7 @@ namespace BarRaider.ObsTools.Backend
                     {
                         Thread.Sleep(delayReplaySeconds * 1000);
 
-                        if (String.IsNullOrEmpty(sceneName) || sceneName == Constants.ACTIVE_SCENE_CAPTION)
-                        {
-                            sceneName =  obs.GetCurrentProgramScene();
-                            Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyBrowserInput using active scene {sceneName}");
-                        }
-
+                        sceneName = GetValidSceneName(sceneName);
                         obs.SetInputMute(inputName, muteSound);
                         int itemId = obs.GetSceneItemId(sceneName, inputName, 0);
                         obs.SetSceneItemEnabled(sceneName, itemId, false);
@@ -531,12 +527,7 @@ namespace BarRaider.ObsTools.Backend
                 {
                     try
                     {
-                        if (String.IsNullOrEmpty(sceneName) || sceneName == Constants.ACTIVE_SCENE_CAPTION)
-                        {
-                            sceneName =  obs.GetCurrentProgramScene();
-                            Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyImageSource using active scene {sceneName}");
-                        }
-
+                        sceneName = GetValidSceneName(sceneName);
                         int itemId = obs.GetSceneItemId(sceneName, inputName, 0);
                         obs.SetSceneItemEnabled(sceneName, itemId, false);
                         var sourceSettings = obs.GetInputSettings(inputName);
@@ -1028,6 +1019,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
+                    sceneName = GetValidSceneName(sceneName);
                     return obs.GetSceneItemList(sceneName).ToList();
                 }
             }
@@ -1355,7 +1347,7 @@ namespace BarRaider.ObsTools.Backend
 
             if (!autoConnectRunning) // Don't spam logs
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS. CloseCode: {e.ObsCloseCode} Reason: {e.DisconnectReason} Exception: {e.WebsocketDisconnectionInfo?.Exception}\nInner Exception: {e.WebsocketDisconnectionInfo?.Exception?.InnerException?.Message}");
             }
             ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
             if (!disconnectCalled)
@@ -1555,6 +1547,21 @@ namespace BarRaider.ObsTools.Backend
             {
                 autoConnectRunning = false;
             }
+        }
+
+        private string GetValidSceneName(string inputedSceneName)
+        {
+            if (String.IsNullOrEmpty(inputedSceneName) || inputedSceneName == Constants.ACTIVE_SCENE_CAPTION)
+            {
+                if (IsConnected)
+                {
+                    string activeScene = obs.GetCurrentProgramScene();
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} GetValidSceneName using {activeScene}");
+                    return activeScene;
+                }
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} GetValidSceneName called but OBS isn't connected!");
+            }
+            return inputedSceneName;
         }
 
         #endregion
