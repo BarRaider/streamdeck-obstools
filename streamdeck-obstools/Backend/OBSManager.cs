@@ -91,7 +91,7 @@ namespace BarRaider.ObsTools.Backend
             obs.RecordStateChanged += Obs_RecordStateChanged;
             obs.ReplayBufferStateChanged += Obs_ReplayBufferStateChanged;
             obs.CurrentPreviewSceneChanged += Obs_CurrentPreviewSceneChanged;
-
+            obs.StudioModeStateChanged += Obs_StudioModeStateChanged;
 
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
 
@@ -137,9 +137,21 @@ namespace BarRaider.ObsTools.Backend
 
         public OutputState InstantReplyStatus { get; private set; }
 
-        public bool IsStreaming { get; private set; }
+        public bool IsStreaming
+        {
+            get
+            {
+                return IsConnected && LastStreamingStats != null && LastStreamingStats.IsActive;
+            }
+        }
 
-        public bool IsRecording { get; private set; }
+        public bool IsRecording
+        {
+            get
+            {
+                return IsConnected && LastRecordingStats != null && LastRecordingStats.IsRecording;
+            }
+        }
 
         public OutputStatus LastStreamingStats { get; private set; }
 
@@ -1281,21 +1293,6 @@ namespace BarRaider.ObsTools.Backend
 
         #region Private Methods
 
-        private void Obs_Connected(object sender, EventArgs e)
-        {
-            try
-            {
-                internalConnected = true;
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
-
-                Task.Run(() => HandlePostConnectionSettings());
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"CONNECTION EXCEPTION! [OBSManager] Exception: {ex}");
-            }
-        }
-
         private void HandlePostConnectionSettings()
         {
             try
@@ -1307,16 +1304,18 @@ namespace BarRaider.ObsTools.Backend
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"WebSocket Version: {version.PluginVersion}");
                 }
 
-                IsStreaming = obs.GetStreamStatus().IsActive;
-                IsRecording = obs.GetRecordStatus().IsRecording;
+                LastStreamingStats = obs.GetStreamStatus();
+                LastRecordingStats = obs.GetRecordStatus();
                 CurrentSceneName = obs.GetCurrentProgramScene();
-                Task.Run(() => GetNextSceneName());
 
+                CurrentPreviewSceneName = String.Empty;
                 if (IsStudioModeEnabled())
                 {
                     CurrentPreviewSceneName = obs.GetCurrentPreviewScene();
                 }
-                ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+
+                Task.Run(() => GetNextSceneName());
+                Task.Run(() => ObsConnectionChanged?.Invoke(this, EventArgs.Empty));
                 VerifyValidVersion(version);
             }
             catch (Exception ex)
@@ -1325,106 +1324,6 @@ namespace BarRaider.ObsTools.Backend
             }
         }
 
-
-        private void Obs_Disconnected(object sender, OBSWebsocketDotNet.Communication.ObsDisconnectionInfo e)
-        {
-            internalConnected = false;
-
-            if (e.ObsCloseCode == OBSWebsocketDotNet.Communication.ObsCloseCodes.AuthenticationFailed)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
-                ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
-                ObsConnectionFailed?.Invoke(this, new AuthFailureException());
-                return;
-            }
-            else if (e.WebsocketDisconnectionInfo?.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.ProtocolError ||
-                     e.WebsocketDisconnectionInfo?.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.InternalServerError)
-            {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"Invalid Websocket version! {e.WebsocketDisconnectionInfo?.CloseStatusDescription}");
-                ObsConnectionFailed?.Invoke(this, new InvalidOperationException(e.WebsocketDisconnectionInfo?.CloseStatusDescription));
-                return;
-            }
-
-            if (!autoConnectRunning) // Don't spam logs
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS. CloseCode: {e.ObsCloseCode} Reason: {e.DisconnectReason} Exception: {e.WebsocketDisconnectionInfo?.Exception}\nInner Exception: {e.WebsocketDisconnectionInfo?.Exception?.InnerException?.Message}");
-            }
-            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
-            if (!disconnectCalled)
-            {
-                lock (autoConnectLock)
-                {
-                    if (!autoConnectRunning && ServerManager.Instance.ServerInfo != null)
-                    {
-                        autoConnectRunning = true;
-                        Task.Run(() => AutoConnectBackgroundWorker());
-                    }
-                }
-            }
-        }
-
-        private void Obs_RecordStateChanged(object sender, OBSWebsocketDotNet.Types.Events.RecordStateChangedEventArgs e)
-        {
-            IsRecording = e.OutputState.IsActive;
-            RecordingStatusChanged?.Invoke(this, e.OutputState);
-        }
-
-        private void Obs_StreamStateChanged(object sender, OBSWebsocketDotNet.Types.Events.StreamStateChangedEventArgs e)
-        {
-            IsStreaming = e.OutputState.IsActive;
-            StreamStatusChanged?.Invoke(this, e.OutputState);
-        }
-
-        private void Obs_CurrentProgramSceneChanged(object sender, OBSWebsocketDotNet.Types.Events.ProgramSceneChangedEventArgs e)
-        {
-
-            // This can be caused by a race condition with the CheckStatus() function
-            if (CurrentSceneName == e.SceneName && !String.IsNullOrEmpty(previousSceneBackupName))
-            {
-                PreviousSceneName = previousSceneBackupName;
-                previousSceneBackupName = String.Empty;
-            }
-            else
-            {
-                PreviousSceneName = CurrentSceneName;
-                CurrentSceneName = e.SceneName;
-            }
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {e.SceneName}");
-            SceneChanged?.Invoke(this, new SceneChangedEventArgs(e.SceneName));
-            Task.Run(() => GetNextSceneName());
-        }
-
-        private void Obs_CurrentPreviewSceneChanged(object sender, OBSWebsocketDotNet.Types.Events.CurrentPreviewSceneChangedEventArgs e)
-        {
-            CurrentPreviewSceneName = e.SceneName;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"New preview/studio scene received from OBS: {e.SceneName}");
-        }
-
-
-        private void Instance_TokensChanged(object sender, ServerInfoEventArgs e)
-        {
-            if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo Exists - Connecting");
-                Connect();
-            }
-            else if (!ServerManager.Instance.ServerInfoExists)
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo does not exist - Disconnecting");
-                Disconnect();
-            }
-            else
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: Tokens changed - connection remains open");
-            }
-        }
-
-        private void Obs_ReplayBufferStateChanged(object sender, OBSWebsocketDotNet.Types.Events.ReplayBufferStateChangedEventArgs e)
-        {
-            InstantReplyStatus = e.OutputState.State;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {e.OutputState.StateStr}");
-            ReplayBufferStateChanged?.Invoke(this, e.OutputState);
-        }
 
         private void GetNextSceneName()
         {
@@ -1442,24 +1341,6 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    string backup = CurrentSceneName;
-                    CurrentSceneName = obs.GetCurrentProgramScene();
-
-                    // We changed the scene name since last refresh
-                    if (CurrentSceneName != backup)
-                    {
-                        previousSceneBackupName = backup;
-                    }
-
-                    if (IsStudioModeEnabled())
-                    {
-                        CurrentPreviewSceneName = obs.GetCurrentPreviewScene();
-                    }
-                    else
-                    {
-                        CurrentPreviewSceneName = String.Empty;
-                    }
-
                     // Todo: Limit this to every x seconds
                     FetchStatsFromOBS();
 
@@ -1474,22 +1355,10 @@ namespace BarRaider.ObsTools.Backend
         private void FetchStatsFromOBS()
         {
             LastObsStats = null;
-            LastRecordingStats = null;
-            LastStreamingStats = null;
-
-            if (IsConnected)
+            if (IsConnected && ObsStatsChanged != null)
             {
-                LastStreamingStats = obs.GetStreamStatus();
-                IsStreaming = LastStreamingStats?.IsActive ?? false;
-
-                LastRecordingStats = obs.GetRecordStatus();
-                IsRecording = LastRecordingStats?.IsRecording ?? false;
-
-                if (ObsStatsChanged != null)
-                {
-                    LastObsStats = obs.GetStats();
-                    ObsStatsChanged?.Invoke(this, LastObsStats);
-                }
+                LastObsStats = obs.GetStats();
+                ObsStatsChanged?.Invoke(this, LastObsStats);
             }
         }
 
@@ -1565,5 +1434,142 @@ namespace BarRaider.ObsTools.Backend
         }
 
         #endregion
+
+        #region Event Listeners
+
+        private void Obs_Connected(object sender, EventArgs e)
+        {
+            try
+            {
+                internalConnected = true;
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
+
+                Task.Run(() => HandlePostConnectionSettings());
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"CONNECTION EXCEPTION! [OBSManager] Exception: {ex}");
+            }
+        }
+
+        private void Obs_Disconnected(object sender, OBSWebsocketDotNet.Communication.ObsDisconnectionInfo e)
+        {
+            internalConnected = false;
+
+            if (e.ObsCloseCode == OBSWebsocketDotNet.Communication.ObsCloseCodes.AuthenticationFailed)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
+                ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                ObsConnectionFailed?.Invoke(this, new AuthFailureException());
+                return;
+            }
+            else if (e.WebsocketDisconnectionInfo?.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.ProtocolError ||
+                     e.WebsocketDisconnectionInfo?.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.InternalServerError)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"Invalid Websocket version! {e.WebsocketDisconnectionInfo?.CloseStatusDescription}");
+                ObsConnectionFailed?.Invoke(this, new InvalidOperationException(e.WebsocketDisconnectionInfo?.CloseStatusDescription));
+                return;
+            }
+
+            if (!autoConnectRunning) // Don't spam logs
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS. CloseCode: {e.ObsCloseCode} Reason: {e.DisconnectReason} Exception: {e.WebsocketDisconnectionInfo?.Exception}\nInner Exception: {e.WebsocketDisconnectionInfo?.Exception?.InnerException?.Message}");
+            }
+            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+            if (!disconnectCalled)
+            {
+                lock (autoConnectLock)
+                {
+                    if (!autoConnectRunning && ServerManager.Instance.ServerInfo != null)
+                    {
+                        autoConnectRunning = true;
+                        Task.Run(() => AutoConnectBackgroundWorker());
+                    }
+                }
+            }
+        }
+
+        private void Obs_RecordStateChanged(object sender, OBSWebsocketDotNet.Types.Events.RecordStateChangedEventArgs e)
+        {
+            Task.Run(() =>
+            {
+                LastRecordingStats = obs.GetRecordStatus();
+                RecordingStatusChanged?.Invoke(this, e.OutputState);
+            });
+        }
+
+        private void Obs_StreamStateChanged(object sender, OBSWebsocketDotNet.Types.Events.StreamStateChangedEventArgs e)
+        {
+            Task.Run(() =>
+            {
+                LastStreamingStats = obs.GetStreamStatus();
+                StreamStatusChanged?.Invoke(this, e.OutputState);
+            });
+        }
+
+        private void Obs_CurrentProgramSceneChanged(object sender, OBSWebsocketDotNet.Types.Events.ProgramSceneChangedEventArgs e)
+        {
+
+            // This can be caused by a race condition with the CheckStatus() function
+            if (CurrentSceneName == e.SceneName && !String.IsNullOrEmpty(previousSceneBackupName))
+            {
+                PreviousSceneName = previousSceneBackupName;
+                previousSceneBackupName = String.Empty;
+            }
+            else
+            {
+                PreviousSceneName = CurrentSceneName;
+                CurrentSceneName = e.SceneName;
+            }
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {e.SceneName}");
+            SceneChanged?.Invoke(this, new SceneChangedEventArgs(e.SceneName));
+            Task.Run(() => GetNextSceneName());
+        }
+
+        private void Obs_CurrentPreviewSceneChanged(object sender, OBSWebsocketDotNet.Types.Events.CurrentPreviewSceneChangedEventArgs e)
+        {
+            CurrentPreviewSceneName = e.SceneName;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New preview/studio scene received from OBS: {e.SceneName}");
+        }
+
+        private void Obs_StudioModeStateChanged(object sender, OBSWebsocketDotNet.Types.Events.StudioModeStateChangedEventArgs e)
+        {
+            if (e.StudioModeEnabled)
+            {
+                CurrentPreviewSceneName = obs.GetCurrentPreviewScene();
+            }
+            else
+            {
+                CurrentPreviewSceneName = String.Empty;
+            }
+        }
+
+        private void Instance_TokensChanged(object sender, ServerInfoEventArgs e)
+        {
+            if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo Exists - Connecting");
+                Connect();
+            }
+            else if (!ServerManager.Instance.ServerInfoExists)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo does not exist - Disconnecting");
+                Disconnect();
+            }
+            else
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: Tokens changed - connection remains open");
+            }
+        }
+
+        private void Obs_ReplayBufferStateChanged(object sender, OBSWebsocketDotNet.Types.Events.ReplayBufferStateChangedEventArgs e)
+        {
+            InstantReplyStatus = e.OutputState.State;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {e.OutputState.StateStr}");
+            ReplayBufferStateChanged?.Invoke(this, e.OutputState);
+        }
+
+        #endregion
+
     }
 }

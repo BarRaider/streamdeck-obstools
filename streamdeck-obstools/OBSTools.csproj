@@ -45,12 +45,13 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="NLog" Version="5.0.4" />
-		<PackageReference Include="Serilog" Version="2.11.0" />
+		<PackageReference Include="obs-websocket-dotnet" Version="5.0.0.2" />
+		<PackageReference Include="Serilog" Version="2.12.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
 		<PackageReference Include="streamdeck-client-csharp" Version="4.3.0" />
 		<PackageReference Include="StreamDeck-Tools" Version="3.2.0" />
@@ -452,7 +453,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\DotNet\OTI.Shared\OTI.Shared.csproj" />
-		<ProjectReference Include="..\..\obs-websocket-dotnet-v5\obs-websocket-dotnet\obs-websocket-dotnet.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="Wrappers\TwitchChat.cs" />
