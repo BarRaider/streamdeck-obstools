@@ -3,16 +3,10 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
-# New in v2.5
-- Migrated code to use Twitch's new APIs
-
-# New in v2.4
-- :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
-- :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
-- :new: `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
-     - Includes Multi-Action support!
-- Added support for customizable icons to many of the actions
-- Reworked the setup wizard to clearly state the required Websocket version and give more informative messages in case of errors.
+# New in v2.8
+- Support for OBS v28 (with OBS Websocket v5)
+- `Instant Replay` action now allows to switch to a specific Scene before starting the replay 🔥
+- Stability and performance improvements
 
 ## Features:
 - `Smart Scene Switcher`  - Easily switch scenes between Preview/Studio (if enabled)  and Live modes. 
@@ -152,3 +146,14 @@ What's New:
 - Added Multi-Action support for the `Previous Scene` action
 - Added checks to verify user is on the correct version of obs-websocket
 ***Make sure to upgrade to obs-websocket v4.7 or above ***
+
+# New in v2.5
+- Migrated code to use Twitch's new APIs
+
+# New in v2.4
+- :new: `Source Monitor Set` action allows you to set the Monitor Type of an Audio Source (None, Monitor Only, Monitor and Output)
+- :new: `Source Mute Toggle` action allows you to mute/unmute Audio Sources.
+- :new: `Virtual Camera` action allows you to enable/disable the Virtual Camera from the Stream Deck
+     - Includes Multi-Action support!
+- Added support for customizable icons to many of the actions
+- Reworked the setup wizard to clearly state the required Websocket version and give more informative messages in case of errors.
