@@ -136,7 +136,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 try
                 {
-                    await Connection.SetTitleAsync(Tools.SplitStringToFit(Settings.TransitionName, titleParameters));
+                    await Connection.SetTitleAsync(Settings.TransitionName.SplitToFitKey(titleParameters));
                     if (OBSManager.Instance.GetCurrentTransition()?.Name == Settings.TransitionName)
                     {
                         selectedImageShown = true;

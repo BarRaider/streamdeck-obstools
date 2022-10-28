@@ -74,7 +74,7 @@ namespace BarRaider.ObsTools.Actions
         private const int DEFAULT_MIN_FRAMES_THRESHOLD = 0;
 
         private ObsStats obsStats;
-        private int lastCountOfDroppedFrames = 0;
+        private long lastCountOfDroppedFrames = 0;
         private readonly Timer tmrAlert = new Timer();
         private bool isAlerting = false;
         private int alertStage = 0;
@@ -168,7 +168,7 @@ namespace BarRaider.ObsTools.Actions
 
             if (obsStats != null)
             {
-                int currentDroppedFrames = GetCurrentDroppedFrames();
+                long currentDroppedFrames = GetCurrentDroppedFrames();
                 if (firstDataLoad || currentDroppedFrames > lastCountOfDroppedFrames + minFramesThreshold)
                 {
                     lastCountOfDroppedFrames = currentDroppedFrames;
@@ -181,9 +181,9 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        private int GetCurrentDroppedFrames()
+        private long GetCurrentDroppedFrames()
         {
-            int currentDroppedFrames = 0;
+            long currentDroppedFrames = 0;
             if (obsStats != null)
             {
                 switch (Settings.DroppedFramesType)

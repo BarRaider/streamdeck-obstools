@@ -113,7 +113,7 @@ namespace BarRaider.ObsTools.Actions
                     if (prevSceneName != OBSManager.Instance.PreviousSceneName)
                     {
                         prevSceneName = OBSManager.Instance.PreviousSceneName;
-                        await Connection.SetTitleAsync(Tools.SplitStringToFit($"{OBSManager.Instance.PreviousSceneName}", titleParameters));
+                        await Connection.SetTitleAsync(OBSManager.Instance.PreviousSceneName.SplitToFitKey(titleParameters));
                     }
                     showedPrevScene = true;                    
                 }
