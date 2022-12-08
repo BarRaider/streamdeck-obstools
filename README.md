@@ -3,9 +3,7 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
-# New in v2.8
-- Support for OBS v28 (with OBS Websocket v5)
-- `Instant Replay` action now allows to switch to a specific Scene before starting the replay 🔥
+# New in v2.9
 - Stability and performance improvements
 
 ## Features:
@@ -78,6 +76,11 @@ Please contact the developer. Contact information is available at https://barrai
 * Uses [Easy-PI](https://github.com/BarRaider/streamdeck-easypi) by BarRaider - Provides seamless integration with the Stream Deck PI (Property Inspector) 
 
 ## Change Log
+
+# New in v2.8
+- Support for OBS v28 (with OBS Websocket v5)
+- `Instant Replay` action now allows to switch to a specific Scene before starting the replay 🔥
+- Stability and performance improvements
 
 # New in v2.1
 ***NOTE: This version requires upgrading to OBS Websocket v4.9 (!!) see: https://barraider.com/obs***
