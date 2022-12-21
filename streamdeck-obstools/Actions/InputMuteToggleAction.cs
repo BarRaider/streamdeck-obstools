@@ -36,7 +36,7 @@ namespace BarRaider.ObsTools.Actions
             }
 
             [JsonProperty(PropertyName = "sources", NullValueHandling = NullValueHandling.Ignore)]
-            public List<SceneSourceInfo> Sources { get; set; }
+            public List<InputBasicInfo> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
             public String SourceName { get; set; }
@@ -71,7 +71,7 @@ namespace BarRaider.ObsTools.Actions
         private DateTime lastStatusCheck = DateTime.MinValue;
 
         #endregion
-        public SourceMuteToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public InputMuteToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -112,7 +112,7 @@ namespace BarRaider.ObsTools.Actions
                 return;
             }
 
-            if (!OBSManager.Instance.ToggleSourceMute(Settings.SourceName))
+            if (!OBSManager.Instance.ToggleInputMute(Settings.SourceName))
             {
                 await Connection.ShowAlert();
                 return;
@@ -142,7 +142,7 @@ namespace BarRaider.ObsTools.Actions
                 if ((DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
                 {
                     lastStatusCheck = DateTime.Now;
-                    var isEnabled = OBSManager.Instance.IsSourceMuted(Settings.SourceName);
+                    var isEnabled = OBSManager.Instance.IsInputMuted(Settings.SourceName);
                     await Connection.SetImageAsync(isEnabled ? enabledImage : disabledImage);
                 }
             }

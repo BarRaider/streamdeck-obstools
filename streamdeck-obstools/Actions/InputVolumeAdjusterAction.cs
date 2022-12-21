@@ -3,8 +3,10 @@ using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -17,11 +19,10 @@ namespace BarRaider.ObsTools.Actions
 
     //---------------------------------------------------
     //          BarRaider's Hall Of Fame
-    // Subscriber: nubby_ninja x5 Gifted Subs
+    // Subscriber: SP__LIT
     //---------------------------------------------------
-
-    [PluginActionId("com.barraider.obstools.sourcevolumesetter")]
-    public class InputVolumeSetterAction : KeypadActionBase
+    [PluginActionId("com.barraider.obstools.sourcevolumeadjuster")]
+    public class InputVolumeAdjusterAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -31,14 +32,14 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     Inputs = null,
-                    Volume = DEFAULT_VOLUME_PERCENTAGE.ToString(),
+                    VolumeStep = DEFAULT_VOLUME_STEP.ToString(),
                     InputName = String.Empty
                 };
                 return instance;
             }
 
-            [JsonProperty(PropertyName = "volume")]
-            public String Volume { get; set; }
+            [JsonProperty(PropertyName = "volumeStep")]
+            public String VolumeStep { get; set; }
 
             [JsonProperty(PropertyName = "sources")]
             public List<InputBasicInfo> Inputs { get; set; }
@@ -66,13 +67,14 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private const int DEFAULT_VOLUME_PERCENTAGE = 100;
+        private const int DEFAULT_VOLUME_STEP = 5;
+        private const float MINIMAL_DB_VALUE = -95.8f;
 
-        private int volume = DEFAULT_VOLUME_PERCENTAGE;
+        private int volumeStep = DEFAULT_VOLUME_STEP;
 
 
         #endregion
-        public SourceVolumeSetterAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public InputVolumeAdjusterAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -107,7 +109,21 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                OBSManager.Instance.SetInputVolume(Settings.InputName, volume, true);
+                // Get current volume
+                var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
+                if (volumeInfo != null)
+                {
+                    float outputVolume = volumeInfo.VolumeDb + volumeStep;
+                    if (outputVolume > 0)
+                    {
+                        outputVolume = 0;
+                    }
+                    if (outputVolume < MINIMAL_DB_VALUE)
+                    {
+                        outputVolume = MINIMAL_DB_VALUE;
+                    }
+                    OBSManager.Instance.SetInputVolume(Settings.InputName, outputVolume, true);
+                }
             }
             else
             {
@@ -135,7 +151,7 @@ namespace BarRaider.ObsTools.Actions
                         }
                         else
                         {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume,1)} db");
+                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.VolumeDb, 1)} db");
                         }
                     }
                 }
@@ -161,9 +177,9 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
-            if (!Int32.TryParse(Settings.Volume, out volume))
+            if (!Int32.TryParse(Settings.VolumeStep, out volumeStep))
             {
-                Settings.Volume = DEFAULT_VOLUME_PERCENTAGE.ToString();
+                Settings.VolumeStep = DEFAULT_VOLUME_STEP.ToString();
                 SaveSettings();
             }
         }
@@ -173,9 +189,10 @@ namespace BarRaider.ObsTools.Actions
             LoadInputsList();
             SaveSettings();
         }
+
         private void LoadInputsList()
         {
-            Settings.Inputs = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
+            Settings.Inputs = OBSManager.Instance.GetAudioInputs()?.OrderBy(s => s?.InputName ?? "Z")?.ToList();
         }
 
         #endregion

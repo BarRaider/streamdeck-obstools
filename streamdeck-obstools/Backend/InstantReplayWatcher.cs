@@ -23,13 +23,6 @@ namespace BarRaider.ObsTools.Backend
         private static InstantReplayWatcher instance = null;
         private static readonly object objLock = new object();
 
-        private bool autoReplay = false;
-        private bool muteSound = false;
-        private string replayDirectory = null;
-        private int hideReplaySeconds = 0;
-        private int delayReplaySeconds = 0;
-        private int playSpeed = 100;
-        private string sourceName = String.Empty;
         private GlobalSettings global;
         readonly FileSystemWatcher watcher;
 
@@ -86,13 +79,6 @@ namespace BarRaider.ObsTools.Backend
             if (payload?.Settings != null && payload.Settings.Count > 0)
             {
                 global = payload.Settings.ToObject<GlobalSettings>();
-                autoReplay = global.AutoReplay;
-                replayDirectory = global.ReplayDirectory;
-                hideReplaySeconds = global.HideReplaySeconds;
-                delayReplaySeconds = global.DelayReplaySeconds;
-                sourceName = global.SourceName;
-                muteSound = global.MuteSound;
-                playSpeed = global.PlaySpeed;
             }
 
             InitializeDirectoryWatcher();
@@ -103,13 +89,22 @@ namespace BarRaider.ObsTools.Backend
             Logger.Instance.LogMessage(TracingLevel.INFO, "InitializeDirectoryWatcher Called");
             try
             {
-                if (watcher.Path == replayDirectory)
+                if (global == null || global.InstantReplaySettings == null )
                 {
-                    if (watcher.EnableRaisingEvents != autoReplay)
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "InitializeDirectoryWatcher called but settings are null!");
+                    watcher.EnableRaisingEvents = false;
+                    return;
+                }
+
+                var settings = global.InstantReplaySettings;
+
+                if (watcher.Path == settings.ReplayDirectory)
+                {
+                    if (watcher.EnableRaisingEvents != settings.AutoReplay)
                     {
-                        Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher mode changed to: {autoReplay}");
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher mode changed to: {settings.AutoReplay}");
                     }
-                    watcher.EnableRaisingEvents = autoReplay;
+                    watcher.EnableRaisingEvents = settings.AutoReplay;
                     return;
                 }
 
@@ -117,15 +112,15 @@ namespace BarRaider.ObsTools.Backend
                 watcher.EnableRaisingEvents = false;
 
                 // Valid directory
-                if (autoReplay && Directory.Exists(replayDirectory))
+                if (settings.AutoReplay && Directory.Exists(settings.ReplayDirectory))
                 {
-                    watcher.Path = replayDirectory;
+                    watcher.Path = settings.ReplayDirectory;
                     watcher.EnableRaisingEvents = true;
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher watching over directory {replayDirectory}");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher watching over directory {settings.ReplayDirectory}");
                 }
                 else
                 {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher Disabled. AutoReplay: {autoReplay} Directory: {replayDirectory}");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher Disabled. AutoReplay: {settings.AutoReplay} Directory: {settings.ReplayDirectory}");
                 }
             }
             catch (Exception ex)
@@ -136,19 +131,23 @@ namespace BarRaider.ObsTools.Backend
 
         private void FileCreated(object sender, FileSystemEventArgs e)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"InitializeDirectoryWatcher new file created: {e.Name}");
-
-
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"InstantReplayWatcher: Starting Instant Replay for: {e.Name} ");
+            if (global?.InstantReplaySettings == null)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, "InstantReplayWatcher: FileCreated but settings are null!");
+                return;
+            }
 
             OBSManager.Instance.PlayInstantReplay(new OTI.Shared.SourcePropertyVideoPlayer()
             {
                 VideoFileName = e.FullPath,
-                SourceName = sourceName,
-                DelayPlayStartSeconds = delayReplaySeconds,
-                HideReplaySeconds = hideReplaySeconds,
-                MuteSound = muteSound,
-                PlaySpeedPercent = playSpeed
-            });
+                SceneName = global.InstantReplaySettings.SceneName,
+                InputName = global.InstantReplaySettings.InputName,
+                DelayPlayStartSeconds = global.InstantReplaySettings.DelayReplaySeconds,
+                HideReplaySeconds = global.InstantReplaySettings.HideReplaySeconds,
+                MuteSound = global.InstantReplaySettings.MuteSound,
+                PlaySpeedPercent = global.InstantReplaySettings.PlaySpeed
+            }, global.InstantReplaySettings.AutoSwitch);
         }
 
         #endregion

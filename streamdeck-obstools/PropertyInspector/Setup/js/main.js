@@ -77,7 +77,7 @@ function setStatusBarTitles(view) {
 
 function sendPing() {
     if (!pongTimeout) {
-        pongTimeout = setTimeout(function () { console.log('Pong timeout!'); setFailReason('RESTART STREAM DECK!'); loadFailedView(); }, 5000)
+        pongTimeout = setTimeout(function () { console.log('Pong timeout!'); setFailReason('RESTART STREAM DECK (Plugin Blocked!)'); loadFailedView(); }, 5000)
     }
     window.opener.sendPing();
 }

@@ -114,7 +114,7 @@ namespace BarRaider.ObsTools.Actions
                     if (nextSceneName != OBSManager.Instance.NextSceneName)
                     {
                         nextSceneName = OBSManager.Instance.NextSceneName;
-                        await Connection.SetTitleAsync(Tools.SplitStringToFit($"{OBSManager.Instance.NextSceneName}", titleParameters));
+                        await Connection.SetTitleAsync(OBSManager.Instance.NextSceneName.SplitToFitKey(titleParameters));
                     }
                     showedNextScene = true;
                 }

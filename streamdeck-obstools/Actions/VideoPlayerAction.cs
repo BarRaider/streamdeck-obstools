@@ -1,7 +1,9 @@
 ﻿using BarRaider.ObsTools.Backend;
 using BarRaider.SdTools;
+using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet.Types;
 using OTI.Shared;
 using System;
 using System.Collections.Generic;
@@ -32,7 +34,10 @@ namespace BarRaider.ObsTools.Actions
                     ServerInfoExists = false,
                     VideoFileName = String.Empty,
                     MuteSound = false,
-                    SourceName = String.Empty,
+                    Scenes = null,
+                    SceneName = String.Empty,
+                    Inputs = null,
+                    InputName = String.Empty,
                     HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString(),
                     PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString()
                 };
@@ -46,8 +51,17 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "hideReplaySeconds")]
             public String HideReplaySeconds { get; set; }
 
-            [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }
+            [JsonProperty(PropertyName = "scenes", NullValueHandling = NullValueHandling.Ignore)]
+            public List<SceneBasicInfo> Scenes { get; set; }
+
+            [JsonProperty(PropertyName = "sceneName")]
+            public String SceneName { get; set; }
+
+            [JsonProperty(PropertyName = "inputs", NullValueHandling = NullValueHandling.Ignore)]
+            public List<InputBasicInfo> Inputs { get; set; }
+
+            [JsonProperty(PropertyName = "inputName")]
+            public String InputName { get; set; }
 
             [JsonProperty(PropertyName = "muteSound")]
             public bool MuteSound { get; set; }
@@ -77,6 +91,7 @@ namespace BarRaider.ObsTools.Actions
 
         private int hideReplaySettings = HIDE_REPLAY_SECONDS;
         private const int DEFAULT_PLAY_SPEED_PERCENTAGE = 100;
+        private const string MEDIA_PLAYER_TYPE = "ffmpeg_source";
 
         private int speed = DEFAULT_PLAY_SPEED_PERCENTAGE;
 
@@ -91,12 +106,104 @@ namespace BarRaider.ObsTools.Actions
             else
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
+                MakeBackwardsCompatibleForV5(payload.Settings);
             }
 
             Connection.OnSendToPlugin += Connection_OnSendToPlugin;
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
             InitializeSettings();
+        }
+
+        public override void Dispose()
+        {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
+            Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
+            base.Dispose();
+        }
+
+        #region Public Methods
+
+        public async override void KeyPressed(KeyPayload payload)
+        {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Video Player KeyPress");
+
+            baseHandledKeypress = false;
+            base.KeyPressed(payload);
+
+            if (!baseHandledKeypress)
+            {
+                if (String.IsNullOrEmpty(Settings.VideoFileName))
+                {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, "KeyPressed called, but no Video File configured");
+                    await Connection.ShowAlert();
+                    return;
+                }
+
+                if (!File.Exists(Settings.VideoFileName))
+                {
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"KeyPressed called, but file does not exist: {Settings.VideoFileName}");
+                    await Connection.ShowAlert();
+                    return;
+                }
+
+                await OBSManager.Instance.PlayInstantReplay(new SourcePropertyVideoPlayer()
+                {
+                    VideoFileName = Settings.VideoFileName,
+                    SceneName = Settings.SceneName,
+                    InputName = Settings.InputName,
+                    DelayPlayStartSeconds = 0,
+                    HideReplaySeconds = hideReplaySettings,
+                    MuteSound = Settings.MuteSound,
+                    PlaySpeedPercent = speed
+                }, false);
+            }
+        }
+
+        public override void KeyReleased(KeyPayload payload)
+        {
+        }
+
+        public override void OnTick()
+        {
+            baseHandledOnTick = false;
+            base.OnTick();
+        }
+
+        public override void ReceivedSettings(ReceivedSettingsPayload payload)
+        {
+            Tools.AutoPopulateSettings(Settings, payload.Settings);
+            InitializeSettings();
+            SaveSettings();
+        }
+
+        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+        {
+        }
+
+        public override Task SaveSettings()
+        {
+            return Connection.SetSettingsAsync(JObject.FromObject(Settings));
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void InitializeSettings()
+        {
+            if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))
+            {
+                Settings.HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString();
+                SaveSettings();
+            }
+
+            if (!Int32.TryParse(Settings.PlaySpeed, out speed))
+            {
+                Settings.PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString();
+                SaveSettings();
+            }
         }
 
         private async void Connection_OnSendToPlugin(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.SendToPlugin> e)
@@ -148,93 +255,35 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        public override void Dispose()
+        private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {
-            Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
-            base.Dispose();
+            await LoadScenes();
+            LoadInputs();
+            await SaveSettings();
         }
 
-        #region Public Methods
-
-        public async override void KeyPressed(KeyPayload payload)
+        private async Task LoadScenes()
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Video Player KeyPress");
+            Settings.Scenes = await CommonFunctions.FetchScenesAndActiveCaption();
+            await SaveSettings();
+        }
 
-            baseHandledKeypress = false;
-            base.KeyPressed(payload);
+        private void LoadInputs()
+        {
+            Settings.Inputs = null;
+            Settings.Inputs = OBSManager.Instance.GetAllInputs()?.Where(i => i.InputKind == MEDIA_PLAYER_TYPE)?.OrderBy(i => i.InputName)?.ToList();
+        }
 
-            if (!baseHandledKeypress)
+        private void MakeBackwardsCompatibleForV5(JObject oldSettings)
+        {
+            if (oldSettings.ContainsKey("sourceName") && string.IsNullOrEmpty(Settings.InputName))
             {
-                if (String.IsNullOrEmpty(Settings.VideoFileName))
-                {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, "KeyPressed called, but no Video File configured");
-                    await Connection.ShowAlert();
-                    return;
-                }
-
-                if (!File.Exists(Settings.VideoFileName))
-                {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"KeyPressed called, but file does not exist: {Settings.VideoFileName}");
-                    await Connection.ShowAlert();
-                    return;
-                }
-
-                await OBSManager.Instance.PlayInstantReplay(new SourcePropertyVideoPlayer()
-                {
-                    VideoFileName = Settings.VideoFileName,
-                    SourceName = Settings.SourceName,
-                    DelayPlayStartSeconds = 0,
-                    HideReplaySeconds = hideReplaySettings,
-                    MuteSound = Settings.MuteSound,
-                    PlaySpeedPercent = speed
-                });
-            }
-        }
-
-        public override void KeyReleased(KeyPayload payload)
-        {
-        }
-
-        public override void OnTick()
-        {
-            baseHandledOnTick = false;
-            base.OnTick();
-        }
-
-        public override void ReceivedSettings(ReceivedSettingsPayload payload)
-        {
-            Tools.AutoPopulateSettings(Settings, payload.Settings);
-            InitializeSettings();
-            SaveSettings();
-        }
-
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
-        {
-        }
-
-        public override Task SaveSettings()
-        {
-            return Connection.SetSettingsAsync(JObject.FromObject(Settings));
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private void InitializeSettings()
-        {
-            if (String.IsNullOrEmpty(Settings.HideReplaySeconds) || !int.TryParse(Settings.HideReplaySeconds, out hideReplaySettings))
-            {
-                Settings.HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString();
-                SaveSettings();
-            }
-
-            if (!Int32.TryParse(Settings.PlaySpeed, out speed))
-            {
-                Settings.PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString();
+                Settings.InputName = (string)oldSettings["sourceName"];
                 SaveSettings();
             }
         }
+
+
 
         #endregion
 

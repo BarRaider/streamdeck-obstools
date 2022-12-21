@@ -136,8 +136,8 @@ namespace BarRaider.ObsTools.Actions
             {
                 try
                 {
-                    await Connection.SetTitleAsync(Tools.SplitStringToFit(Settings.TransitionName, titleParameters));
-                    if (OBSManager.Instance.GetTransition()?.Name == Settings.TransitionName)
+                    await Connection.SetTitleAsync(Settings.TransitionName.SplitToFitKey(titleParameters));
+                    if (OBSManager.Instance.GetCurrentTransition()?.Name == Settings.TransitionName)
                     {
                         selectedImageShown = true;
                         await Connection.SetImageAsync(enabledImage);
@@ -177,7 +177,7 @@ namespace BarRaider.ObsTools.Actions
             selectedImageShown = true;
             if (OBSManager.Instance.IsConnected)
             {
-                Settings.Transitions = OBSManager.Instance.GetAllTransitions().Select(t => new TransitionInfo() { Name = t }).ToList();
+                Settings.Transitions = OBSManager.Instance.GetAllTransitions().Select(t => new TransitionInfo() { Name = t.Name }).ToList();
                 SaveSettings();
             }
 

@@ -1,8 +1,10 @@
 ﻿using BarRaider.ObsTools.Backend;
 using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -37,7 +39,10 @@ namespace BarRaider.ObsTools.Actions
                     AutoReplay = false,
                     ReplayDirectory = String.Empty,
                     MuteSound = false,
-                    SourceName = String.Empty,
+                    Scenes = null,
+                    SceneName = String.Empty,
+                    Inputs = null,
+                    InputName = String.Empty,
                     HideReplaySeconds = HIDE_REPLAY_SECONDS.ToString(),
                     DelayReplaySeconds = DELAY_REPLAY_SECONDS.ToString(),
                     TwitchIntegration = false,
@@ -45,7 +50,8 @@ namespace BarRaider.ObsTools.Actions
                     ChatReplay = false,
                     ReplayCooldown = "30",
                     AllowedUsers = String.Empty,
-                    PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString()
+                    PlaySpeed = DEFAULT_PLAY_SPEED_PERCENTAGE.ToString(),
+                    AutoSwitch = false
                 };
                 return instance;
             }
@@ -62,8 +68,17 @@ namespace BarRaider.ObsTools.Actions
             [JsonProperty(PropertyName = "hideReplaySeconds")]
             public String HideReplaySeconds { get; set; }
 
-            [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }
+            [JsonProperty(PropertyName = "scenes", NullValueHandling = NullValueHandling.Ignore)]
+            public List<SceneBasicInfo> Scenes { get; set; }
+
+            [JsonProperty(PropertyName = "sceneName")]
+            public String SceneName { get; set; }
+
+            [JsonProperty(PropertyName = "inputs", NullValueHandling = NullValueHandling.Ignore)]
+            public List<InputBasicInfo> Inputs { get; set; }
+
+            [JsonProperty(PropertyName = "inputName")]
+            public String InputName { get; set; }
 
             [JsonProperty(PropertyName = "muteSound")]
             public bool MuteSound { get; set; }
@@ -88,6 +103,10 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "playSpeed")]
             public String PlaySpeed { get; set; }
+
+            [JsonProperty(PropertyName = "autoSwitch")]
+            public bool AutoSwitch { get; set; }
+            
 
         }
 
@@ -115,6 +134,7 @@ namespace BarRaider.ObsTools.Actions
         private const int DELAY_REPLAY_SECONDS = 1;
         private const int LONG_KEYPRESS_LENGTH = 600;
         private const int DEFAULT_PLAY_SPEED_PERCENTAGE = 100;
+        private const string MEDIA_PLAYER_TYPE = "ffmpeg_source";
 
         private readonly string[] DEFAULT_IMAGES = new string[]
         {
@@ -149,11 +169,15 @@ namespace BarRaider.ObsTools.Actions
             Connection.GetGlobalSettingsAsync();
             ChatPager.Twitch.TwitchChat.Instance.PageRaised += Instance_PageRaised;
             ChatPager.Twitch.TwitchTokenManager.Instance.TokenStatusChanged += Instance_TokenStatusChanged;
+            Connection.OnSendToPlugin += Connection_OnSendToPlugin;
+            Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             InitializeSettings();
         }
 
         public override void Dispose()
         {
+            Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
+            Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             ChatPager.Twitch.TwitchChat.Instance.PageRaised -= Instance_PageRaised;
             ChatPager.Twitch.TwitchTokenManager.Instance.TokenStatusChanged -= Instance_TokenStatusChanged;
             base.Dispose();
@@ -226,12 +250,22 @@ namespace BarRaider.ObsTools.Actions
                 if (payload?.Settings != null && payload.Settings.Count > 0)
                 {
                     global = payload.Settings.ToObject<GlobalSettings>();
-                    Settings.AutoReplay = global.AutoReplay;
-                    Settings.ReplayDirectory = global.ReplayDirectory;
-                    Settings.HideReplaySeconds = global.HideReplaySeconds.ToString();
-                    Settings.SourceName = global.SourceName;
-                    Settings.MuteSound = global.MuteSound;
-                    Settings.PlaySpeed = global.PlaySpeed.ToString();
+
+                    if (global.InstantReplaySettings == null)
+                    {
+                        global.InstantReplaySettings = new GlobalInstantReplaySettings();
+                        SetGlobalSettings();
+                        return;
+                    }
+
+                    Settings.SceneName = global.InstantReplaySettings.SceneName;
+                    Settings.AutoReplay = global.InstantReplaySettings.AutoReplay;
+                    Settings.ReplayDirectory = global.InstantReplaySettings.ReplayDirectory;
+                    Settings.HideReplaySeconds = global.InstantReplaySettings.HideReplaySeconds.ToString();
+                    Settings.InputName = global.InstantReplaySettings.InputName;
+                    Settings.MuteSound = global.InstantReplaySettings.MuteSound;
+                    Settings.PlaySpeed = global.InstantReplaySettings.PlaySpeed.ToString();
+                    Settings.AutoSwitch = global.InstantReplaySettings.AutoSwitch;
                     InitializeSettings();
                     SaveSettings();
                 }
@@ -329,13 +363,19 @@ namespace BarRaider.ObsTools.Actions
 
         private void SetGlobalSettings()
         {
-            global.AutoReplay = Settings.AutoReplay;
-            global.ReplayDirectory = Settings.ReplayDirectory;
-            global.HideReplaySeconds = hideReplaySettings;
-            global.MuteSound = Settings.MuteSound;
-            global.SourceName = Settings.SourceName;
-            global.DelayReplaySeconds = delayReplaySettings;
-            global.PlaySpeed = speed;
+            if (global.InstantReplaySettings == null)
+            {
+                global.InstantReplaySettings = new GlobalInstantReplaySettings();
+            }
+            global.InstantReplaySettings.AutoReplay = Settings.AutoReplay;
+            global.InstantReplaySettings.ReplayDirectory = Settings.ReplayDirectory;
+            global.InstantReplaySettings.HideReplaySeconds = hideReplaySettings;
+            global.InstantReplaySettings.MuteSound = Settings.MuteSound;
+            global.InstantReplaySettings.SceneName = Settings.SceneName;
+            global.InstantReplaySettings.InputName = Settings.InputName;
+            global.InstantReplaySettings.DelayReplaySeconds = delayReplaySettings;
+            global.InstantReplaySettings.PlaySpeed = speed;
+            global.InstantReplaySettings.AutoSwitch = Settings.AutoSwitch;
             Connection.SetGlobalSettingsAsync(JObject.FromObject(global));
         }
 
@@ -422,6 +462,52 @@ namespace BarRaider.ObsTools.Actions
                 await Connection.ShowAlert();
             }
         }
+
+        private void Connection_OnSendToPlugin(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.SendToPlugin> e)
+        {
+            var payload = e.Event.Payload;
+
+            if (payload["property_inspector"] != null)
+            {
+                switch (payload["property_inspector"].ToString().ToLowerInvariant())
+                {
+                    case "loadfolderpicker":
+                        string folderPropertyName = (string)payload["property_name"];
+                        string folderTitle = (string)payload["picker_title"];
+                        string folderName = PickersUtil.Pickers.FolderPicker(folderTitle, null);
+                        if (!string.IsNullOrEmpty(folderName))
+                        {
+                            if (!PickersUtil.Pickers.SetJsonPropertyValue(settings, folderPropertyName, folderName))
+                            {
+                                Logger.Instance.LogMessage(TracingLevel.ERROR, "Failed to save picker value to settings");
+                            }
+                            SaveSettings();
+                            SetGlobalSettings();
+                        }
+                        break;
+                }
+            }
+        }
+
+        private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        {
+            await LoadScenes();
+            LoadInputs();
+            await SaveSettings();
+        }
+
+        private async Task LoadScenes()
+        {
+            Settings.Scenes = await CommonFunctions.FetchScenesAndActiveCaption();
+            await SaveSettings();
+        }
+
+        private void LoadInputs()
+        {
+            Settings.Inputs = null;
+            Settings.Inputs = OBSManager.Instance.GetAllInputs()?.Where(i => i.InputKind == MEDIA_PLAYER_TYPE)?.OrderBy(i => i.InputName)?.ToList();
+        }
+
 
         #endregion
 

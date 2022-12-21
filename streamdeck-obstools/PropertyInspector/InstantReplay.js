@@ -1,4 +1,6 @@
-﻿document.addEventListener('websocketCreate', function () {
+﻿const activeSceneName = "- Active Scene -";
+
+document.addEventListener('websocketCreate', function () {
     console.log("Websocket created!");
     checkSettings(actionInfo.payload.settings);
 
@@ -33,6 +35,11 @@ function checkSettings(payload) {
     if (payload['chatReplay']) {
         setTwitchReplaySettings("");
     }
+
+    showAutoSwitchTextBox("");
+    if (payload['sceneName'] === activeSceneName) {
+        showAutoSwitchTextBox("none");
+    }
 }
 
 function setAutoReplayWrapper(displayValue) {
@@ -60,4 +67,17 @@ function openTutorial() {
         };
         websocket.send(JSON.stringify(json));
     }
+}
+
+function showAutoSwitchTextBox(show) {
+    var dvAutoSwitch = document.getElementById('dvAutoSwitch');
+    dvAutoSwitch.style.display = show;
+}
+
+function setInputNameSetting() {
+    var dvSourceSelect = document.getElementById('inputs');
+    var dvSourceName = document.getElementById('inputName');
+
+    dvSourceName.value = dvSourceSelect.value;
+    setSettings();
 }

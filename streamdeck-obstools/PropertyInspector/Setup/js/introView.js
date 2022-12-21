@@ -15,7 +15,7 @@ function loadIntroView() {
     document.getElementById('br-logo').className = "br-logo";
 
     // Fill the content area
-    var content = "<p>" + localization['Intro']['Description'] + "<span class='linkspan' onclick='window.opener.openObsDownload()'>" + localization['Intro']['WebSocket'] + "</span>" + localization['Intro']['Description2'] + "</p> \
+    var content = "<p>" + localization['Intro']['Description'] + "<br/>" + localization['Intro']['Description2'] + "</p> \
                   <br/><p class='nextStep'>" + localization['Intro']['NextStep'] + "<p>\
                    <div class='button' id='start'>" + localization['Intro']['Start'] + "</div> \
                    <div class='button-transparent' id='close'>" + localization['Intro']['Close'] + "</div>";
