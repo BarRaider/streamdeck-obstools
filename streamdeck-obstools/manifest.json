@@ -184,7 +184,7 @@
       "DisableCaching": true,
       "Tooltip": "Set the volume of a source in OBS",
       "UUID": "com.barraider.obstools.sourcevolumesetter",
-      "PropertyInspectorPath": "PropertyInspector/InputVolume.html"
+      "PropertyInspectorPath": "PropertyInspector/InputVolumeSet.html"
     },
     {
       "Icon": "Images/icon",
