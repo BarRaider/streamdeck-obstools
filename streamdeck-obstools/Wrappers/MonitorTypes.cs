@@ -21,11 +21,11 @@ namespace BarRaider.ObsTools.Wrappers
             switch (monitorType)
             {
                 case MonitorTypes.None:
-                    return "none";
+                    return "OBS_MONITORING_TYPE_NONE";
                 case MonitorTypes.MonitorOnly:
-                    return "monitorOnly";
+                    return "OBS_MONITORING_TYPE_MONITOR_ONLY";
                 case MonitorTypes.MonitorAndOutput:
-                    return "monitorAndOutput";
+                    return "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT";
                 default:
                     Logger.Instance.LogMessage(TracingLevel.WARN, $"MonitorTypes.ToString - Invalid Type: {monitorType}");
                     break;
@@ -38,11 +38,11 @@ namespace BarRaider.ObsTools.Wrappers
         {
             switch (strType)
             {
-                case "none":
+                case "OBS_MONITORING_TYPE_NONE":
                     return MonitorTypes.None;
-                case "monitorOnly":
+                case "OBS_MONITORING_TYPE_MONITOR_ONLY":
                     return MonitorTypes.MonitorOnly;
-                case "monitorAndOutput":
+                case "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT":
                     return MonitorTypes.MonitorAndOutput;
                 default:
                     Logger.Instance.LogMessage(TracingLevel.WARN, $"MonitorTypes.ToMonitorType - Invalid Type: {strType}");

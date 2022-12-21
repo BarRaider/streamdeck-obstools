@@ -1,6 +1,8 @@
 ﻿using BarRaider.ObsTools.Backend;
+using BarRaider.ObsTools.Properties;
 using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using Newtonsoft.Json.Linq;
 using NLog.Time;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
@@ -9,9 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BarRaider.ObsTools.Backend
 {
@@ -27,18 +31,22 @@ namespace BarRaider.ObsTools.Backend
 
         private const string CONNECTION_STRING = "ws://{0}:{1}";
         private const string REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE = "replay buffer already active";
-        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("4.9");
+        private readonly Version MINIMUM_SUPPORTED_WEBSOCKET_VERSION = new Version("5.0");
+        private readonly string[] AUDIO_INPUT_KINDS = new string[] { "browser_source", "dshow_input", "ffmpeg_source", "wasapi_input_capture", "wasapi_output_capture", "wasapi_process_output_capture" };
+
+
         private readonly SemaphoreSlim connectLock = new SemaphoreSlim(1, 1);
-        private const int CONNECT_COOLDOWN_MS = 10000;
+        private const int CONNECT_COOLDOWN_MS = 9500;
         private const int AUTO_CONNECT_SLEEP_MS = 10000;
-        private const int INVALID_WEBSOCKET_VERSION_ERROR_CODE = 4009;
 
         private static OBSManager instance = null;
         private static readonly object objLock = new object();
         private readonly OBSWebsocket obs;
-        private DateTime lastStreamStatus;
         private readonly System.Timers.Timer tmrCheckStatus = new System.Timers.Timer();
+
+
         private DateTime lastConnectAttempt = DateTime.MinValue;
+        private bool internalConnected = false;
         private bool disconnectCalled = false;
         private bool autoConnectRunning = false;
         private static readonly object autoConnectLock = new object();
@@ -72,25 +80,26 @@ namespace BarRaider.ObsTools.Backend
 
         private OBSManager()
         {
-            IsConnected = false;
+            internalConnected = false;
             IsValidVersion = true;
             obs = new OBSWebsocket();
 
             obs.Connected += Obs_Connected;
             obs.Disconnected += Obs_Disconnected;
-            obs.StreamStatus += Obs_StreamStatus;
-            obs.SceneChanged += Obs_SceneChanged;
+            obs.CurrentProgramSceneChanged += Obs_CurrentProgramSceneChanged;
+            obs.StreamStateChanged += Obs_StreamStateChanged;
+            obs.RecordStateChanged += Obs_RecordStateChanged;
             obs.ReplayBufferStateChanged += Obs_ReplayBufferStateChanged;
-            obs.PreviewSceneChanged += Obs_PreviewSceneChanged;
-
+            obs.CurrentPreviewSceneChanged += Obs_CurrentPreviewSceneChanged;
+            obs.StudioModeStateChanged += Obs_StudioModeStateChanged;
 
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
 
-            tmrCheckStatus.Interval = 5000;
+            tmrCheckStatus.Interval = 1000;
             tmrCheckStatus.Elapsed += TmrCheckStatus_Elapsed;
             tmrCheckStatus.Start();
 
-            InstantReplyStatus = OutputState.Stopped;
+            InstantReplyStatus = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
             Connect();
             InstantReplayWatcher.Instance.Initialize();
 
@@ -102,11 +111,19 @@ namespace BarRaider.ObsTools.Backend
 
         public event EventHandler ObsConnectionChanged;
         public event EventHandler<Exception> ObsConnectionFailed;
-        public event EventHandler<StreamStatusEventArgs> StreamStatusChanged;
+        public event EventHandler<OutputStateChanged> StreamStatusChanged;
+        public event EventHandler<OutputStateChanged> RecordingStatusChanged;
         public event EventHandler<SceneChangedEventArgs> SceneChanged;
-        public event EventHandler<OutputState> ReplayBufferStateChanged;
+        public event EventHandler<OutputStateChanged> ReplayBufferStateChanged;
+        public event EventHandler<ObsStats> ObsStatsChanged;
 
-        public bool IsConnected { get; private set; }
+        public bool IsConnected
+        {
+            get
+            {
+                return obs != null && obs.IsConnected && internalConnected;
+            }
+        }
 
         public bool IsValidVersion { get; private set; }
 
@@ -120,9 +137,27 @@ namespace BarRaider.ObsTools.Backend
 
         public OutputState InstantReplyStatus { get; private set; }
 
-        public bool IsStreaming { get; private set; }
+        public bool IsStreaming
+        {
+            get
+            {
+                return IsConnected && LastStreamingStats != null && LastStreamingStats.IsActive;
+            }
+        }
 
-        public bool IsRecording { get; private set; }
+        public bool IsRecording
+        {
+            get
+            {
+                return IsConnected && LastRecordingStats != null && LastRecordingStats.IsRecording;
+            }
+        }
+
+        public OutputStatus LastStreamingStats { get; private set; }
+
+        public RecordingStatus LastRecordingStats { get; private set; }
+
+        public ObsStats LastObsStats { get; private set; }
 
         public async void Connect(bool autoConnect = false)
         {
@@ -140,11 +175,6 @@ namespace BarRaider.ObsTools.Backend
                     {
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Connect: Already connected");
                         return;
-                    }
-
-                    if (!autoConnect) // Don't spam log
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect");
                     }
 
                     if ((DateTime.Now - lastConnectAttempt).TotalMilliseconds < CONNECT_COOLDOWN_MS)
@@ -166,13 +196,7 @@ namespace BarRaider.ObsTools.Backend
                     }
                     lastConnectAttempt = DateTime.Now;
                     obs.WSTimeout = new TimeSpan(0, 0, 3);
-                    obs.Connect(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
-                }
-                catch (AuthFailureException afe)
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
-                    ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
-                    ObsConnectionFailed?.Invoke(this, afe);
+                    obs.ConnectAsync(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                 }
                 catch (Exception ex)
                 {
@@ -188,6 +212,7 @@ namespace BarRaider.ObsTools.Backend
 
         public void Disconnect()
         {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnect() function was called");
             disconnectCalled = true;
             if (obs.IsConnected)
             {
@@ -201,7 +226,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.SetCurrentScene(sceneName);
+                    obs.SetCurrentProgramScene(sceneName);
                     return true;
                 }
                 catch (Exception ex)
@@ -226,7 +251,7 @@ namespace BarRaider.ObsTools.Backend
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"StartInstantReplay Exception: {ex}");
                     if (ex.Message == REPLAY_ALREADY_ACTIVE_ERROR_MESSAGE)
                     {
-                        InstantReplyStatus = OutputState.Started;
+                        InstantReplyStatus = OutputState.OBS_WEBSOCKET_OUTPUT_STARTED;
                     }
                 }
             }
@@ -239,7 +264,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.StartRecording();
+                    obs.StartRecord();
                     return true;
                 }
                 catch (Exception ex)
@@ -256,7 +281,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.StopRecording();
+                    obs.StopRecord();
                     return true;
                 }
                 catch (Exception ex)
@@ -273,7 +298,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.PauseRecording();
+                    obs.PauseRecord();
                     return true;
                 }
                 catch (Exception ex)
@@ -290,7 +315,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.ResumeRecording();
+                    obs.ResumeRecord();
                     return true;
                 }
                 catch (Exception ex)
@@ -307,7 +332,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.StartStreaming();
+                    obs.StartStream();
                     return true;
                 }
                 catch (Exception ex)
@@ -324,7 +349,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.StopStreaming();
+                    obs.StopStream();
                     return true;
                 }
                 catch (Exception ex)
@@ -341,7 +366,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.EnableStudioMode();
+                    obs.SetStudioModeEnabled(true);
                     return true;
                 }
                 catch (Exception ex)
@@ -358,7 +383,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.DisableStudioMode();
+                    obs.SetStudioModeEnabled(false);
                     return true;
                 }
                 catch (Exception ex)
@@ -375,7 +400,8 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    obs.ToggleStudioMode();
+                    bool studioEnabled = obs.GetStudioModeEnabled();
+                    obs.SetStudioModeEnabled(!studioEnabled);
                     return true;
                 }
                 catch (Exception ex)
@@ -392,7 +418,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
-                    return obs.GetStudioModeStatus();
+                    return obs.GetStudioModeEnabled();
                 }
                 catch (Exception ex)
                 {
@@ -439,13 +465,13 @@ namespace BarRaider.ObsTools.Backend
             });
         }
 
-        public Task<bool> ModifyBrowserSource(string urlOrFile, bool localFile, string sourceName, int delayReplaySeconds, int hideReplaySeconds, bool muteSound)
+        public Task<bool> ModifyBrowserInput(string sceneName, string inputName, string urlOrFile, bool localFile, int delayReplaySeconds, int hideReplaySeconds, bool muteSound)
         {
             return Task.Run(() =>
             {
-                if (String.IsNullOrEmpty(sourceName))
+                if (String.IsNullOrEmpty(inputName))
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyBrowserSource failed. Missing source name");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyBrowserInput failed. Missing Input name");
                     return false;
                 }
 
@@ -454,22 +480,33 @@ namespace BarRaider.ObsTools.Backend
                     try
                     {
                         Thread.Sleep(delayReplaySeconds * 1000);
-                        obs.SetMute(sourceName, muteSound);
-                        obs.SetSourceRender(sourceName, false);
-                        var sourceSettings = obs.GetBrowserSourceProperties(sourceName);
-                        sourceSettings.URL = urlOrFile;
-                        sourceSettings.IsLocalFile = localFile;
-                        obs.SetBrowserSourceProperties(sourceName, sourceSettings);
+
+                        sceneName = GetValidSceneName(sceneName);
+                        obs.SetInputMute(inputName, muteSound);
+                        int itemId = obs.GetSceneItemId(sceneName, inputName, 0);
+                        obs.SetSceneItemEnabled(sceneName, itemId, false);
+                        var sourceSettings = obs.GetInputSettings(inputName);
+                        var browserSettings = InputBrowserSourceSettings.FromInputSettings(sourceSettings);
+                        browserSettings.IsLocalFile = localFile;
+                        if (localFile)
+                        {
+                            browserSettings.LocalFile = urlOrFile;
+                        }
+                        else
+                        {
+                            browserSettings.URL = urlOrFile;
+                        }
+                        obs.SetInputSettings(inputName, JObject.FromObject(browserSettings));
                         Thread.Sleep(200);
-                        obs.SetSourceRender(sourceName, true);
+                        obs.SetSceneItemEnabled(sceneName, itemId, true);
 
                         if (hideReplaySeconds > 0)
                         {
                             Task.Run(() =>
                             {
                                 Thread.Sleep(hideReplaySeconds * 1000);
-                                obs.SetSourceRender(sourceName, false);
-                                Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyBrowserSource AutoHid source {sourceName} after {hideReplaySeconds} seconds");
+                                obs.SetSceneItemEnabled(sceneName, itemId, false);
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyBrowserSource AutoHid source {inputName} after {hideReplaySeconds} seconds");
                             });
                         }
 
@@ -488,11 +525,11 @@ namespace BarRaider.ObsTools.Backend
             });
         }
 
-        public Task<bool> ModifyImageSource(string sourceName, string fileName, int autoHideSeconds)
+        public Task<bool> ModifyImageSource(string sceneName, string inputName, string fileName, int autoHideSeconds)
         {
             return Task.Run(() =>
             {
-                if (String.IsNullOrEmpty(sourceName))
+                if (String.IsNullOrEmpty(inputName))
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource failed. Missing source name");
                     return false;
@@ -502,32 +539,34 @@ namespace BarRaider.ObsTools.Backend
                 {
                     try
                     {
-                        obs.SetSourceRender(sourceName, false);
-                        SourceSettings sourceSettings = obs.GetSourceSettings(sourceName);
+                        sceneName = GetValidSceneName(sceneName);
+                        int itemId = obs.GetSceneItemId(sceneName, inputName, 0);
+                        obs.SetSceneItemEnabled(sceneName, itemId, false);
+                        var sourceSettings = obs.GetInputSettings(inputName);
                         if (sourceSettings == null)
                         {
-                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: GetSourceSettings return null for source {sourceName}");
+                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: GetSourceSettings return null for source {inputName}");
                             return false;
                         }
 
-                        if (sourceSettings.SourceType != "image_source")
+                        if (sourceSettings.InputKind != "image_source")
                         {
-                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: Source {sourceName} is not an image source: {sourceSettings.SourceType}");
+                            Logger.Instance.LogMessage(TracingLevel.ERROR, $"ModifyImageSource: Source {inputName} is not an image source: {sourceSettings.InputKind}");
                             return false;
                         }
 
                         sourceSettings.Settings["file"] = fileName;
-                        obs.SetSourceSettings(sourceName, sourceSettings.Settings);
+                        obs.SetInputSettings(inputName, sourceSettings.Settings);
                         Thread.Sleep(200);
-                        obs.SetSourceRender(sourceName, true);
+                        obs.SetSceneItemEnabled(sceneName, itemId, true);
 
                         if (autoHideSeconds > 0)
                         {
                             Task.Run(() =>
                             {
                                 Thread.Sleep(autoHideSeconds * 1000);
-                                obs.SetSourceRender(sourceName, false);
-                                Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyImageSource AutoHid source {sourceName} after {autoHideSeconds} seconds");
+                                obs.SetSceneItemEnabled(sceneName, itemId, false);
+                                Logger.Instance.LogMessage(TracingLevel.INFO, $"ModifyImageSource AutoHid source {inputName} after {autoHideSeconds} seconds");
                             });
                         }
 
@@ -546,40 +585,64 @@ namespace BarRaider.ObsTools.Backend
             });
         }
 
-        public Task<bool> PlayInstantReplay(SourcePropertyVideoPlayer settings)
-        {
-            return AnimationManager.Instance.HandleMediaPlayer(obs, settings);
-        }
-
-        public VolumeInfo GetSourceVolume(string sourceName)
+        public Task<bool> PlayInstantReplay(SourcePropertyVideoPlayer settings, bool autoSwitchToScene)
         {
             if (IsConnected)
             {
                 try
                 {
-                    return obs.GetVolume(sourceName, true);
+                    string currentScene = obs.GetCurrentProgramScene();
+                    if (String.IsNullOrEmpty(settings.SceneName) || settings.SceneName == Constants.ACTIVE_SCENE_CAPTION)
+                    {
+                        settings.SceneName = currentScene;
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"PlayInstantReplay using active scene {currentScene}");
+                    }
+                    else if (autoSwitchToScene && settings.SceneName != currentScene)
+                    {
+                        // Switch to scene
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"PlayInstantReplay auto switching to scene {settings.SceneName}");
+                        obs.SetCurrentProgramScene(settings.SceneName);
+                    }
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"(Additional logs in oti.log file)");
+                    return AnimationManager.Instance.HandleMediaPlayer(obs, settings);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceVolume Exception Source:{sourceName}: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"PlayInstantReplay Exception: {ex}");
                 }
             }
             return null;
         }
 
-        public bool SetSourceVolume(string sourceName, float volume)
+        public VolumeInfo GetInputVolume(string inputName)
         {
             if (IsConnected)
             {
                 try
                 {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting volume for source {sourceName} to {volume}");
-                    obs.SetVolume(sourceName, volume, true);
+                    return obs.GetInputVolume(inputName);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceVolume Exception Source:{inputName}: {ex}");
+                }
+            }
+            return null;
+        }
+
+        public bool SetInputVolume(string inputName, float volume, bool volumeModeDB)
+        {
+            if (IsConnected)
+            {
+                try
+                {
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting volume for source {inputName} to {volume}");
+                    obs.SetInputVolume(inputName, volume, volumeModeDB);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSourceVolume Exception Source:{sourceName}: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"SetSourceVolume Exception Source:{inputName}: {ex}");
                 }
             }
             return false;
@@ -592,7 +655,7 @@ namespace BarRaider.ObsTools.Backend
                 try
                 {
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting preview scene to {sceneName}");
-                    obs.SetPreviewScene(sceneName);
+                    obs.SetCurrentPreviewScene(sceneName);
                     return true;
                 }
                 catch (Exception ex)
@@ -610,7 +673,7 @@ namespace BarRaider.ObsTools.Backend
                 try
                 {
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting current scene to {sceneName}");
-                    obs.SetCurrentScene(sceneName);
+                    obs.SetCurrentProgramScene(sceneName);
                     return true;
                 }
                 catch (Exception ex)
@@ -621,13 +684,18 @@ namespace BarRaider.ObsTools.Backend
             return false;
         }
 
-        public SourceScreenshotResponse GetSourceSnapshot(string sourceName)
+        /// <summary>
+        /// Returns a base 64 snapshot image of the current source
+        /// </summary>
+        /// <param name="sourceName"></param>
+        /// <returns></returns>
+        public string GetSourceSnapshot(string sourceName)
         {
             if (IsConnected)
             {
                 try
                 {
-                    return obs.TakeSourceScreenshot(sourceName, "png", null, 144);
+                    return obs.GetSourceScreenshot(sourceName, "png", 144, 144);
                 }
                 catch (Exception ex)
                 {
@@ -666,9 +734,9 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    var sourceInfo = obs.GetSourceSettings(sourceName);
+                    var sourceInfo = obs.GetInputSettings(sourceName);
                     sourceInfo.Settings["window"] = windowInfo;
-                    obs.SetSourceSettings(sourceName, sourceInfo.Settings);
+                    obs.SetInputSettings(sourceName, sourceInfo.Settings);
                     return true;
                 }
             }
@@ -685,13 +753,9 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    var item = obs.GetSceneItemProperties(sourceName, sceneName);
-                    if (item != null)
-                    {
-                        // Toggle visibility
-                        item.Visible = !item.Visible;
-                    }
-                    obs.SetSceneItemProperties(item, sceneName);
+                    var itemId = obs.GetSceneItemId(sceneName, sourceName, 0);
+                    var isVisibile = obs.GetSceneItemEnabled(sceneName, itemId);
+                    obs.SetSceneItemEnabled(sceneName, itemId, !isVisibile);
                     return true;
                 }
             }
@@ -708,13 +772,8 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    var item = obs.GetSceneItemProperties(sourceName, sceneName);
-                    if (item == null)
-                    {
-                        Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceVisible Item is null for Source {sourceName}");
-                        return false;
-                    }
-                    return item.Visible;
+                    var itemId = obs.GetSceneItemId(sceneName, sourceName, 0);
+                    return obs.GetSceneItemEnabled(sceneName, itemId);
                 }
             }
             catch (OBSWebsocketDotNet.ErrorResponseException) { }
@@ -724,35 +783,35 @@ namespace BarRaider.ObsTools.Backend
             }
             return false;
         }
-        public bool ToggleSourceMute(string sourceName)
+        public bool ToggleInputMute(string inputName)
         {
             try
             {
                 if (IsConnected)
                 {
-                    obs.ToggleMute(sourceName);
+                    obs.ToggleInputMute(inputName);
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleSourceMute Exception Source: {sourceName}: {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"ToggleInputeMute Exception Source: {inputName}: {ex}");
             }
             return false;
         }
 
-        public bool IsSourceMuted(string sourceName)
+        public bool IsInputMuted(string inputName)
         {
             try
             {
                 if (IsConnected)
                 {
-                    return obs.GetMute(sourceName);
+                    return obs.GetInputMute(inputName);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsSourceMute Exception Source: {sourceName} {ex}");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"IsInputMuted Exception Source: {inputName} {ex}");
             }
             return false;
         }
@@ -763,7 +822,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    obs.SetSourceFilterVisibility(sourceName, filterName, enableFilter);
+                    obs.SetSourceFilterEnabled(sourceName, filterName, enableFilter);
                 }
             }
             catch (Exception ex)
@@ -779,7 +838,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    var filterInfo = obs.GetSourceFilterInfo(sourceName, filterName);
+                    var filterInfo = obs.GetSourceFilter(sourceName, filterName);
                     if (filterInfo != null)
                     {
                         return filterInfo.IsEnabled;
@@ -835,7 +894,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    return obs.GetSourceFilters(sourceName);
+                    return obs.GetSourceFilterList(sourceName);
                 }
             }
             catch (Exception ex)
@@ -845,13 +904,13 @@ namespace BarRaider.ObsTools.Backend
             return null;
         }
 
-        public List<String> GetAllTransitions()
+        public List<TransitionSettings> GetAllTransitions()
         {
             try
             {
                 if (IsConnected)
                 {
-                    return obs.ListTransitions();
+                    return obs.GetSceneTransitionList().Transitions;
                 }
             }
             catch (Exception ex)
@@ -876,13 +935,13 @@ namespace BarRaider.ObsTools.Backend
             }
             return null;
         }
-        public List<SourceInfo> GetAllSources()
+        public List<SceneItemDetails> GetAllSourcesForScene(string sceneName)
         {
             try
             {
                 if (IsConnected)
                 {
-                    return obs.GetSourcesList();
+                    return obs.GetSceneItemList(sceneName);
                 }
             }
             catch (Exception ex)
@@ -892,19 +951,56 @@ namespace BarRaider.ObsTools.Backend
             return null;
         }
 
-        public List<SceneSourceInfo> GetAllSceneAndSourceNames()
+        public List<InputBasicInfo> GetAllInputs()
         {
             try
             {
                 if (IsConnected)
                 {
-                    var sources = GetAllSources();
-                    var scenes = GetAllScenes();
+                    return obs.GetInputList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllScenes Exception {ex}");
+            }
+            return null;
+        }
+
+        public List<InputBasicInfo> GetAudioInputs()
+        {
+            try
+            {
+                if (IsConnected)
+                {
+                    return obs.GetInputList().Where(i => AUDIO_INPUT_KINDS.Contains(i.UnversionedKind)).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetAllScenes Exception {ex}");
+            }
+            return null;
+
+        }
+
+        public List<SceneSourceInfo> GetAllSceneAndSceneItemNames()
+        {
+            try
+            {
+                if (IsConnected)
+                {
                     List<SceneSourceInfo> list = new List<SceneSourceInfo>();
-                    list.AddRange(sources?.Select(s => new SceneSourceInfo() { Name = s.Name }).ToList());
+
+                    var scenes = GetAllScenes();
+                    foreach (var scene in scenes.Scenes)
+                    {
+                        list.AddRange(GetAllSourcesForScene(scene.Name)?.Select(s => new SceneSourceInfo() { Name = s.SourceName }).ToList());
+                    }
                     list.AddRange(scenes?.Scenes?.Select(s => new SceneSourceInfo() { Name = s.Name }).ToList());
 
-                    return list.OrderBy(n => n.Name).ToList();
+                    // Distinct
+                    return list.OrderBy(n => n.Name).GroupBy(g => g.Name).Select(grp => grp.FirstOrDefault()).ToList();
                 }
             }
             catch (Exception ex)
@@ -920,7 +1016,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    return obs.ListSceneCollections();
+                    return obs.GetSceneCollectionList();
                 }
             }
             catch (Exception ex)
@@ -935,6 +1031,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
+                    sceneName = GetValidSceneName(sceneName);
                     return obs.GetSceneItemList(sceneName).ToList();
                 }
             }
@@ -977,13 +1074,13 @@ namespace BarRaider.ObsTools.Backend
             }
         }
 
-        public TransitionSettings GetTransition()
+        public TransitionSettings GetCurrentTransition()
         {
             try
             {
                 if (IsConnected)
                 {
-                    var transition = obs.GetCurrentTransition();
+                    var transition = obs.GetCurrentSceneTransition();
                     return transition;
                 }
             }
@@ -1001,7 +1098,7 @@ namespace BarRaider.ObsTools.Backend
                 if (IsConnected)
                 {
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition to: {transitionName}");
-                    obs.SetCurrentTransition(transitionName);
+                    obs.SetCurrentSceneTransition(transitionName);
                 }
             }
             catch (Exception ex)
@@ -1017,7 +1114,7 @@ namespace BarRaider.ObsTools.Backend
                 if (IsConnected)
                 {
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting Transition Duration to: {duration}");
-                    obs.SetTransitionDuration(duration);
+                    obs.SetCurrentSceneTransitionDuration(duration);
                 }
             }
             catch (Exception ex)
@@ -1032,7 +1129,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    return obs.ListProfiles();
+                    return obs.GetProfileList().Profiles;
                 }
             }
             catch (Exception ex)
@@ -1064,7 +1161,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    return obs.GetCurrentProfile();
+                    return obs.GetProfileList().CurrentProfileName;
                 }
             }
             catch (Exception ex)
@@ -1074,14 +1171,14 @@ namespace BarRaider.ObsTools.Backend
             return null;
         }
 
-        public List<SourcePropertyAnimationConfiguration> GetSourceProperties(string sourceName, out string errorMessage)
+        public List<SourcePropertyAnimationConfiguration> GetSceneItemProperties(string sceneName, string sourceName, out string errorMessage)
         {
             errorMessage = null;
             try
             {
                 if (IsConnected)
                 {
-                    return AnimationManager.Instance.GetSourceProperties(obs, sourceName, out errorMessage);
+                    return AnimationManager.Instance.GetSceneItemProperties(obs, sceneName, sourceName, out errorMessage);
                 }
             }
             catch (Exception ex)
@@ -1113,7 +1210,7 @@ namespace BarRaider.ObsTools.Backend
             {
                 if (IsConnected)
                 {
-                    return obs.GetRecordingStatus();
+                    return obs.GetRecordStatus();
                 }
             }
             catch (Exception ex)
@@ -1148,7 +1245,7 @@ namespace BarRaider.ObsTools.Backend
                     }
 
                     OBSHotkey hotkey = (OBSHotkey)Enum.Parse(typeof(OBSHotkey), obsKeyCode, true);
-                    obs.TriggerHotkeyBySequence(hotkey, keyModifier);
+                    obs.TriggerHotkeyByKeySequence(hotkey, keyModifier);
                     return true;
                 }
             }
@@ -1159,14 +1256,14 @@ namespace BarRaider.ObsTools.Backend
             return false;
         }
 
-        public void SetAudioMonitorType(string sourceName, MonitorTypes monitorType)
+        public void SetInputAudioMonitorType(string inputName, MonitorTypes monitorType)
         {
             try
             {
                 if (IsConnected)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting {sourceName} MonitorType to: {monitorType}");
-                    obs.SetAudioMonitorType(sourceName, monitorType.ToStringEx());
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting {inputName} MonitorType to: {monitorType}");
+                    obs.SetInputAudioMonitorType(inputName, monitorType.ToStringEx());
                 }
             }
             catch (Exception ex)
@@ -1175,13 +1272,13 @@ namespace BarRaider.ObsTools.Backend
             }
         }
 
-        public MonitorTypes GetAudioMonitorType(string sourceName)
+        public MonitorTypes GetInputAudioMonitorType(string inputName)
         {
             try
             {
                 if (IsConnected)
                 {
-                    string monitorType = obs.GetAudioMonitorType(sourceName);
+                    string monitorType = obs.GetInputAudioMonitorType(inputName);
                     return monitorType.ToMonitorType();
                 }
             }
@@ -1196,165 +1293,57 @@ namespace BarRaider.ObsTools.Backend
 
         #region Private Methods
 
-        private void Obs_Connected(object sender, EventArgs e)
+        private void HandlePostConnectionSettings()
         {
-            IsConnected = true;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
-            var version = obs.GetVersion();
-            if (version != null)
+            try
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {version.OBSStudioVersion}");
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"WebSocket Version: {version.PluginVersion}");
-            }
-
-            IsStreaming = obs.GetStreamingStatus().IsStreaming;
-            IsRecording = obs.GetStreamingStatus().IsRecording;
-            CurrentSceneName = obs.GetCurrentScene()?.Name;
-            Task.Run(() => GetNextSceneName());
-
-            if (IsStudioModeEnabled())
-            {
-                CurrentPreviewSceneName = obs.GetPreviewScene()?.Name;
-            }
-            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
-            VerifyValidVersion(version);
-        }
-
-        private void Obs_Disconnected(object sender, EventArgs e)
-        {
-            IsConnected = false;
-
-            if (e is WebSocketSharp.CloseEventArgs cea)
-            {
-                if (cea.Code == INVALID_WEBSOCKET_VERSION_ERROR_CODE)
+                var version = obs.GetVersion();
+                if (version != null)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"Invalid Websocket version! {cea.Reason}");
-                    ObsConnectionFailed?.Invoke(this, new InvalidOperationException(cea.Reason));
-                    return;
-                }
-            }
-
-            if (!autoConnectRunning) // Don't spam logs
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS");
-            }
-            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
-            if (!disconnectCalled)
-            {
-                lock (autoConnectLock)
-                {
-                    if (!autoConnectRunning)
-                    {
-                        autoConnectRunning = true;
-                        Task.Run(() => AutoConnectBackgroundWorker());
-                    }
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"OBS Version: {version.OBSStudioVersion}");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"WebSocket Version: {version.PluginVersion}");
                 }
 
+                LastStreamingStats = obs.GetStreamStatus();
+                LastRecordingStats = obs.GetRecordStatus();
+                CurrentSceneName = obs.GetCurrentProgramScene();
+
+                CurrentPreviewSceneName = String.Empty;
+                if (IsStudioModeEnabled())
+                {
+                    CurrentPreviewSceneName = obs.GetCurrentPreviewScene();
+                }
+
+                Task.Run(() => GetNextSceneName());
+                Task.Run(() => ObsConnectionChanged?.Invoke(this, EventArgs.Empty));
+                VerifyValidVersion(version);
             }
-        }
-
-        private void Obs_StreamStatus(OBSWebsocket sender, StreamStatus status)
-        {
-            lastStreamStatus = DateTime.Now;
-            IsStreaming = status.Streaming;
-            IsRecording = status.Recording;
-            StreamStatusChanged?.Invoke(this, new StreamStatusEventArgs(status));
-        }
-
-        private void Obs_SceneChanged(OBSWebsocket sender, string newSceneName)
-        {
-
-            // This can be caused by a race condition with the CheckStatus() function
-            if (CurrentSceneName == newSceneName && !String.IsNullOrEmpty(previousSceneBackupName))
+            catch (Exception ex)
             {
-                PreviousSceneName = previousSceneBackupName;
-                previousSceneBackupName = String.Empty;
-            }
-            else
-            {
-                PreviousSceneName = CurrentSceneName;
-                CurrentSceneName = newSceneName;
-            }
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {newSceneName}");
-            SceneChanged?.Invoke(this, new SceneChangedEventArgs(newSceneName));
-            Task.Run(() => GetNextSceneName());
-        }
-
-        private void Obs_PreviewSceneChanged(OBSWebsocket sender, string newSceneName)
-        {
-            CurrentPreviewSceneName = newSceneName;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"New preview/studio scene received from OBS: {newSceneName}");
-        }
-
-        private void Instance_TokensChanged(object sender, ServerInfoEventArgs e)
-        {
-            if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo Exists - Connecting");
-                Connect();
-            }
-            else if (!ServerManager.Instance.ServerInfoExists)
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo does not exist - Disconnecting");
-                Disconnect();
-            }
-            else
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: Tokens changed - connection remains open");
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"CONNECTION EXCEPTION! HandlePostConnectionSettings Exception: {ex}");
             }
         }
 
-        private void Obs_ReplayBufferStateChanged(OBSWebsocket sender, OutputState type)
-        {
-            InstantReplyStatus = type;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {type}");
-            ReplayBufferStateChanged?.Invoke(this, type);
-        }
 
         private void GetNextSceneName()
         {
             NextSceneName = string.Empty;
             var scenes = GetAllScenes();
-            int idx = scenes.Scenes.FindIndex(x => x.Name == scenes.CurrentScene) + 1;
-            if (idx > 0 && idx < scenes.Scenes.Count)
+            int idx = scenes.Scenes.FindIndex(x => x.Name == scenes.CurrentProgramSceneName) - 1;
+            if (idx >= 0 && idx < scenes.Scenes.Count)
             {
                 NextSceneName = scenes.Scenes[idx].Name;
             }
         }
-
         private void CheckStatus()
         {
             try
             {
-                if (obs.IsConnected)
+                if (IsConnected)
                 {
-                    string backup = CurrentSceneName;
-                    CurrentSceneName = obs.GetCurrentScene()?.Name;
+                    // Todo: Limit this to every x seconds
+                    FetchStatsFromOBS();
 
-                    // We changed the scene name since last refresh
-                    if (CurrentSceneName != backup)
-                    {
-                        previousSceneBackupName = backup;
-                    }
-
-                    if (IsStudioModeEnabled())
-                    {
-                        CurrentPreviewSceneName = obs.GetPreviewScene()?.Name;
-                    }
-                    else
-                    {
-                        CurrentPreviewSceneName = String.Empty;
-                    }
-
-                    if ((DateTime.Now - lastStreamStatus).TotalMilliseconds > 5000)
-                    {
-                        var status = obs.GetStreamingStatus();
-                        if (status != null)
-                        {
-                            IsRecording = status.IsRecording;
-                            IsStreaming = status.IsStreaming;
-                        }
-                    }
                 }
             }
             catch (Exception ex)
@@ -1363,11 +1352,21 @@ namespace BarRaider.ObsTools.Backend
             }
         }
 
+        private void FetchStatsFromOBS()
+        {
+            LastObsStats = null;
+            if (IsConnected && ObsStatsChanged != null)
+            {
+                LastObsStats = obs.GetStats();
+                ObsStatsChanged?.Invoke(this, LastObsStats);
+            }
+        }
+
         private void TmrCheckStatus_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             CheckStatus();
         }
-        private void VerifyValidVersion(OBSVersion obsVersion)
+        private void VerifyValidVersion(ObsVersion obsVersion)
         {
             IsValidVersion = false;
             if (obsVersion == null)
@@ -1411,7 +1410,6 @@ namespace BarRaider.ObsTools.Backend
             }
             catch (Exception ex)
             {
-
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} AutoConnectBackgroundWorker Exception: {ex}");
             }
             finally
@@ -1420,6 +1418,158 @@ namespace BarRaider.ObsTools.Backend
             }
         }
 
+        private string GetValidSceneName(string inputedSceneName)
+        {
+            if (String.IsNullOrEmpty(inputedSceneName) || inputedSceneName == Constants.ACTIVE_SCENE_CAPTION)
+            {
+                if (IsConnected)
+                {
+                    string activeScene = obs.GetCurrentProgramScene();
+                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} GetValidSceneName using {activeScene}");
+                    return activeScene;
+                }
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} GetValidSceneName called but OBS isn't connected!");
+            }
+            return inputedSceneName;
+        }
+
         #endregion
+
+        #region Event Listeners
+
+        private void Obs_Connected(object sender, EventArgs e)
+        {
+            try
+            {
+                internalConnected = true;
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Connected to OBS");
+
+                Task.Run(() => HandlePostConnectionSettings());
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"CONNECTION EXCEPTION! [OBSManager] Exception: {ex}");
+            }
+        }
+
+        private void Obs_Disconnected(object sender, OBSWebsocketDotNet.Communication.ObsDisconnectionInfo e)
+        {
+            internalConnected = false;
+
+            if (e.ObsCloseCode == OBSWebsocketDotNet.Communication.ObsCloseCodes.AuthenticationFailed)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Invalid password, could not connect");
+                ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
+                ObsConnectionFailed?.Invoke(this, new AuthFailureException());
+                return;
+            }
+            else if (e.WebsocketDisconnectionInfo?.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.ProtocolError ||
+                     e.WebsocketDisconnectionInfo?.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.InternalServerError)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"Invalid Websocket version! {e.WebsocketDisconnectionInfo?.CloseStatusDescription}");
+                ObsConnectionFailed?.Invoke(this, new InvalidOperationException(e.WebsocketDisconnectionInfo?.CloseStatusDescription));
+                return;
+            }
+
+            if (!autoConnectRunning) // Don't spam logs
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"Disconnected from OBS. CloseCode: {e.ObsCloseCode} Reason: {e.DisconnectReason} Exception: {e.WebsocketDisconnectionInfo?.Exception}\nInner Exception: {e.WebsocketDisconnectionInfo?.Exception?.InnerException?.Message}");
+            }
+            ObsConnectionChanged?.Invoke(this, EventArgs.Empty);
+            if (!disconnectCalled)
+            {
+                lock (autoConnectLock)
+                {
+                    if (!autoConnectRunning && ServerManager.Instance.ServerInfo != null)
+                    {
+                        autoConnectRunning = true;
+                        Task.Run(() => AutoConnectBackgroundWorker());
+                    }
+                }
+            }
+        }
+
+        private void Obs_RecordStateChanged(object sender, OBSWebsocketDotNet.Types.Events.RecordStateChangedEventArgs e)
+        {
+            Task.Run(() =>
+            {
+                LastRecordingStats = obs.GetRecordStatus();
+                RecordingStatusChanged?.Invoke(this, e.OutputState);
+            });
+        }
+
+        private void Obs_StreamStateChanged(object sender, OBSWebsocketDotNet.Types.Events.StreamStateChangedEventArgs e)
+        {
+            Task.Run(() =>
+            {
+                LastStreamingStats = obs.GetStreamStatus();
+                StreamStatusChanged?.Invoke(this, e.OutputState);
+            });
+        }
+
+        private void Obs_CurrentProgramSceneChanged(object sender, OBSWebsocketDotNet.Types.Events.ProgramSceneChangedEventArgs e)
+        {
+
+            // This can be caused by a race condition with the CheckStatus() function
+            if (CurrentSceneName == e.SceneName && !String.IsNullOrEmpty(previousSceneBackupName))
+            {
+                PreviousSceneName = previousSceneBackupName;
+                previousSceneBackupName = String.Empty;
+            }
+            else
+            {
+                PreviousSceneName = CurrentSceneName;
+                CurrentSceneName = e.SceneName;
+            }
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New scene received from OBS: {e.SceneName}");
+            SceneChanged?.Invoke(this, new SceneChangedEventArgs(e.SceneName));
+            Task.Run(() => GetNextSceneName());
+        }
+
+        private void Obs_CurrentPreviewSceneChanged(object sender, OBSWebsocketDotNet.Types.Events.CurrentPreviewSceneChangedEventArgs e)
+        {
+            CurrentPreviewSceneName = e.SceneName;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New preview/studio scene received from OBS: {e.SceneName}");
+        }
+
+        private void Obs_StudioModeStateChanged(object sender, OBSWebsocketDotNet.Types.Events.StudioModeStateChangedEventArgs e)
+        {
+            if (e.StudioModeEnabled)
+            {
+                CurrentPreviewSceneName = obs.GetCurrentPreviewScene();
+            }
+            else
+            {
+                CurrentPreviewSceneName = String.Empty;
+            }
+        }
+
+        private void Instance_TokensChanged(object sender, ServerInfoEventArgs e)
+        {
+            if (ServerManager.Instance.ServerInfoExists && !obs.IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo Exists - Connecting");
+                Connect();
+            }
+            else if (!ServerManager.Instance.ServerInfoExists)
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: ServerInfo does not exist - Disconnecting");
+                Disconnect();
+            }
+            else
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"OBSManager: Tokens changed - connection remains open");
+            }
+        }
+
+        private void Obs_ReplayBufferStateChanged(object sender, OBSWebsocketDotNet.Types.Events.ReplayBufferStateChangedEventArgs e)
+        {
+            InstantReplyStatus = e.OutputState.State;
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"New replay buffer state received from OBS: {e.OutputState.StateStr}");
+            ReplayBufferStateChanged?.Invoke(this, e.OutputState);
+        }
+
+        #endregion
+
     }
 }

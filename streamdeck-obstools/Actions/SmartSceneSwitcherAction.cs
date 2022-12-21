@@ -62,7 +62,7 @@ namespace BarRaider.ObsTools.Actions
             public bool ShowPreview { get; set; }
 
             [JsonProperty(PropertyName = "scenes")]
-            public List<OBSScene> Scenes { get; set; }
+            public List<SceneBasicInfo> Scenes { get; set; }
         }
 
         protected PluginSettings Settings
@@ -336,7 +336,7 @@ namespace BarRaider.ObsTools.Actions
             if (Settings.OverrideTransition && OBSManager.Instance.CurrentSceneName == Settings.SceneName && String.IsNullOrEmpty(revertTransition))
             {
                 Logger.Instance.LogMessage(TracingLevel.INFO, "Overriding transition");
-                var transition = OBSManager.Instance.GetTransition();
+                var transition = OBSManager.Instance.GetCurrentTransition();
                 revertTransition = transition?.Name;
                 OBSManager.Instance.SetTransition("Fade");
             }
@@ -407,11 +407,11 @@ namespace BarRaider.ObsTools.Actions
                         Logger.Instance.LogMessage(TracingLevel.WARN, $"DrawSceneBorder GetSourceSnapshot returned null");
                         experimentalScreenshotRetries--;
                     }
-                    else if (snapshot != null && !String.IsNullOrEmpty(snapshot.ImageData))
+                    else if (snapshot != null && !String.IsNullOrEmpty(snapshot))
                     {
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"DrawSceneBorder Got updated snapshot for {Settings.SceneName}");
                         lastSnapshotTime = DateTime.Now;
-                        lastSnapshotImageData = snapshot.ImageData;
+                        lastSnapshotImageData = snapshot;
                         experimentalScreenshotRetries = MAX_EXPERIMENTAL_RETRIES;
                         using Image background = Tools.Base64StringToImage(lastSnapshotImageData);
                         graphics.DrawImage(background, new Rectangle(0, 0, width, height));

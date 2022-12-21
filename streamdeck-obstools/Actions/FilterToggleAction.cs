@@ -193,7 +193,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAllSceneAndSceneItemNames();
         }
 
         private void LoadSourceFilters()

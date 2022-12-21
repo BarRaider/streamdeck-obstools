@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.css">
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/pickers.js"></script>
     <script src="setup.js"></script>
     <script src="InstantReplay.js"></script>
     <script src="OBSTools.js"></script>
@@ -75,12 +76,23 @@
         <div id="dvAutoReplaySettings">
             <div class="sdpi-item" id="dvDirectory">
                 <div class="sdpi-item-label">Replays Directory</div>
-                <input class="sdpi-item-value sdProperty" placeholder="c:\obs\recordings" value="" id="replayDirectory">
-                <button class="sdpi-item-value max20 leftMargin0" onclick="setSettings()">Save</button>
+                <input class="sdpi-item-value sdProperty hasFileButton" disabled value="" id="replayDirectory">
+                <button class="max100 leftMargin0" onclick="openDirectoryPicker('Images Folder','replayDirectory')">...</button>
             </div>
-            <div class="sdpi-item" id="dvSourceName">
-                <div class="sdpi-item-label">Media Source Name</div>
-                <input class="sdpi-item-value sdProperty" placeholder="Source name in OBS" value="" id="sourceName" oninput="setSettings()">
+            <div class="sdpi-item" id="dvSceneName">
+                <div class="sdpi-item-label">OBS Scene Name</div>
+                <select class="sdpi-item-value select sdProperty sdList" id="scenes" oninput="setSettings()" sdListTextProperty="sceneName" sdListValueProperty="sceneName" sdValueField="sceneName"></select>
+            </div>
+            <div type="checkbox" class="sdpi-item" id="dvAutoSwitch">
+                <div class="sdpi-item-label">Auto Switch</div>
+                <div class="sdpi-item-value">
+                    <input id="autoSwitch" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                    <label for="autoSwitch" class="sdpi-item-label"><span></span>Switch to scene if not active</label>
+                </div>
+            </div>
+            <div class="sdpi-item" id="dvInputNameSelect">
+                <div class="sdpi-item-label">'Media Source' Name</div>
+                <select class="sdpi-item-value select sdProperty sdList" id="inputs" oninput="setSettings()" sdListTextProperty="inputName" sdListValueProperty="inputName" sdValueField="inputName"></select>
             </div>
             <div class="sdpi-item" id="dvDelayReplay">
                 <div class="sdpi-item-label">Delay Replay Start (seconds)</div>

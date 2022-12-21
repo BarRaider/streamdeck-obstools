@@ -4,6 +4,7 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -72,8 +73,8 @@ namespace BarRaider.ObsTools.Actions
         private const int TOTAL_ALERT_STAGES = 4;
         private const int DEFAULT_MIN_FRAMES_THRESHOLD = 0;
 
-        private StreamStatusEventArgs streamStatus;
-        private int lastCountOfDroppedFrames = 0;
+        private ObsStats obsStats;
+        private long lastCountOfDroppedFrames = 0;
         private readonly Timer tmrAlert = new Timer();
         private bool isAlerting = false;
         private int alertStage = 0;
@@ -92,7 +93,7 @@ namespace BarRaider.ObsTools.Actions
             {
                 this.settings = payload.Settings.ToObject<PluginSettings>();
             }
-            OBSManager.Instance.StreamStatusChanged += Instance_StreamStatusChanged;
+            OBSManager.Instance.ObsStatsChanged += Instance_ObsStatsChanged;
 
             tmrAlert.Interval = 200;
             tmrAlert.Elapsed += TmrAlert_Elapsed;
@@ -103,8 +104,8 @@ namespace BarRaider.ObsTools.Actions
 
         public override void Dispose()
         {
-            OBSManager.Instance.StreamStatusChanged -= Instance_StreamStatusChanged;
             tmrAlert.Stop();
+            OBSManager.Instance.ObsStatsChanged -= Instance_ObsStatsChanged;
             base.Dispose();
         }
 
@@ -112,11 +113,6 @@ namespace BarRaider.ObsTools.Actions
         {
             baseHandledKeypress = false;
             base.KeyPressed(payload);
-
-            if (!baseHandledKeypress)
-            {
-
-            }
 
             if (isAlerting)
             {
@@ -166,13 +162,13 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
-        private void Instance_StreamStatusChanged(object sender, StreamStatusEventArgs e)
+        private void Instance_ObsStatsChanged(object sender, ObsStats e)
         {
-            streamStatus = e;
+            obsStats = e;
 
-            if (streamStatus != null)
+            if (obsStats != null)
             {
-                int currentDroppedFrames = GetCurrentDroppedFrames();
+                long currentDroppedFrames = GetCurrentDroppedFrames();
                 if (firstDataLoad || currentDroppedFrames > lastCountOfDroppedFrames + minFramesThreshold)
                 {
                     lastCountOfDroppedFrames = currentDroppedFrames;
@@ -185,21 +181,21 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        private int GetCurrentDroppedFrames()
+        private long GetCurrentDroppedFrames()
         {
-            int currentDroppedFrames = 0;
-            if (streamStatus != null)
+            long currentDroppedFrames = 0;
+            if (obsStats != null)
             {
                 switch (Settings.DroppedFramesType)
                 {
                     case DroppedFramesType.DroppedFrames:
-                        currentDroppedFrames = streamStatus.Status.DroppedFrames;
+                        currentDroppedFrames = obsStats.OutputSkippedFrames;
                         break;
                     case DroppedFramesType.OutputSkipped:
-                        currentDroppedFrames = streamStatus.Status.SkippedFrames;
+                        currentDroppedFrames = obsStats.OutputSkippedFrames;
                         break;
                     case DroppedFramesType.RenderMissed:
-                        currentDroppedFrames = streamStatus.Status.RenderMissedFrames;
+                        currentDroppedFrames = obsStats.RenderMissedFrames;
                         break;
                 }
             }

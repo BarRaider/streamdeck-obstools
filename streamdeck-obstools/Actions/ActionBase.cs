@@ -150,7 +150,7 @@ namespace BarRaider.ObsTools.Actions
                         string ip = ((string)payload["ip"]).Trim();
                         string port = ((string)payload["port"]).Trim();
                         string password = ((string)payload["password"]).Trim();
-                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting server info. Ip: {ip} Port: {port} Password: {String.IsNullOrEmpty(password)}");
+                        Logger.Instance.LogMessage(TracingLevel.INFO, $"Setting server info. Ip: {ip} Port: {port} Password: {(String.IsNullOrEmpty(password) ? "Empty" : password.Length.ToString())}");
                         ServerManager.Instance.InitTokens(ip, port, password, DateTime.Now);
                         break;
                     case "updateapproval":
@@ -190,12 +190,10 @@ namespace BarRaider.ObsTools.Actions
             int errorCode = 0;
             if (e is AuthFailureException)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} OBS Auth Failure");
                 errorCode = 1;
             }
             else if (e is InvalidOperationException)
             {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"{GetType()} OBS Invalid Websocket Version");
                 ServerManager.Instance.InitTokens(null, null, null, DateTime.Now);
                 errorCode = 2;
             }

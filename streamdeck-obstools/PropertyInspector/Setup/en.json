@@ -8,10 +8,9 @@
       },
       "Intro": {
         "Title": "OBS Setup",
-        "Description": "<B>IMPORTANT:</B> You must install version 4.9.x of ",
-        "WebSocket": "obs-websocket",
-        "Description2": " for this plugin to work. <b>VERSION 5.x WILL NOT WORK!</b> <br/>After installing, <b><i>Enable</b></i> the WebSockets Server:<br/><i>Tools->\"WebSockets Server Settings\"</i> menu in OBS and also <b>set a password</b>!",
-        "NextStep": "Enabled WebSockets Server? Press LINK to continue..",
+        "Description": "<B>IMPORTANT:</B> Plugin supports OBS v28 and higher. ",
+        "Description2": "Websocket password <b>MUST BE SET</b> by going to <i>Tools->\"obs-websocket Settings\"</i> menu in OBS and MANUALLY setting a password (ignore the scary warning). Also verify the port number in that screen and fill both in next page.",
+        "NextStep": "Finished configuring WebSockets Server? Press LINK to continue..",
         "Start": "LINK",
         "Close": "Not Now"
       },
@@ -19,7 +18,7 @@
         "Title": "Server Info",
         "Description": "The 'Ip' and 'Port' should be kept as is, unless you made changes in OBS. Also, ensure to input the password you set in OBS",
         "IpPlaceholder": "IP [127.0.0.1]",
-        "PortPlaceholder": "Port [4444]",
+        "PortPlaceholder": "Port [4455]",
         "PassPlaceholder": "Password",
         "Submit": "SAVE",
         "Close": "Cancel"
@@ -30,7 +29,7 @@
         "SuccessTitle": "✔️ Plugin Configured",
         "SuccessDescription": "Enjoy using OBS with your Stream Deck.<br/>You may <b><i>close</i></b> this window.",
         "FailTitle": "SETUP FAILED",
-        "FailDescription": "We failed to save the settings. Validate the Ip/Port/Password are correct and that you're <b>not using Websocket v5.x</b>. For support:",
+        "FailDescription": "We failed to link with OBS. Validate the Ip/Port/Password are correct, that `Enable Websocket Server` is checked in OBS, and that you're <b>using OBS v28 or higher</b>. For support:",
         "FailRetry": "TRY AGAIN",
         "Close": "Close",
         "Cancel": "Cancel",

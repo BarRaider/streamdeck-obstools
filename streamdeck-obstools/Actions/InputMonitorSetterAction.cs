@@ -3,9 +3,9 @@ using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -16,12 +16,8 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
 
-    //---------------------------------------------------
-    //          BarRaider's Hall Of Fame
-    // Subscriber: SP__LIT
-    //---------------------------------------------------
-    [PluginActionId("com.barraider.obstools.sourcevolumeadjuster")]
-    public class SourceVolumeAdjusterAction : ActionBase
+    [PluginActionId("com.barraider.obstools.sourcemonitorsetter")]
+    public class InputMonitorSetterAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -31,20 +27,23 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     Sources = null,
-                    VolumeStep = DEFAULT_VOLUME_STEP.ToString(),
+                    MonitorType = DEFAULT_MONITOR_TYPE,
                     SourceName = String.Empty
                 };
                 return instance;
             }
 
-            [JsonProperty(PropertyName = "volumeStep")]
-            public String VolumeStep { get; set; }
+            [JsonProperty(PropertyName = "volume")]
+            public String Volume { get; set; }
 
             [JsonProperty(PropertyName = "sources")]
-            public List<SceneSourceInfo> Sources { get; set; }
+            public List<InputBasicInfo> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }            
+            public String SourceName { get; set; }
+
+            [JsonProperty(PropertyName = "monitorType")]
+            public MonitorTypes MonitorType { get; set; }
         }
 
         protected PluginSettings Settings
@@ -66,14 +65,17 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private const int DEFAULT_VOLUME_STEP = 5;
-        private const float MINIMAL_DB_VALUE = -95.8f;
-
-        private int volumeStep = DEFAULT_VOLUME_STEP;
-
+        private const MonitorTypes DEFAULT_MONITOR_TYPE = MonitorTypes.None;
+        private const int CHECK_STATUS_COOLDOWN_MS = 3000;
+        private readonly string[] DEFAULT_IMAGES = new string[]
+        {
+            @"images\monitorEnabled.png",
+            @"images\volumeAction@2x.png"
+        };
+        private DateTime lastStatusCheck = DateTime.MinValue;
 
         #endregion
-        public SourceVolumeAdjusterAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public InputMonitorSetterAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -108,21 +110,7 @@ namespace BarRaider.ObsTools.Actions
                     return;
                 }
 
-                // Get current volume
-                var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
-                if (volumeInfo != null)
-                {
-                    float outputVolume = volumeInfo.Volume + volumeStep;
-                    if (outputVolume > 0)
-                    {
-                        outputVolume = 0;
-                    }
-                    if (outputVolume < MINIMAL_DB_VALUE)
-                    {
-                        outputVolume = MINIMAL_DB_VALUE;
-                    }
-                    OBSManager.Instance.SetSourceVolume(Settings.SourceName, outputVolume);
-                }
+                OBSManager.Instance.SetInputAudioMonitorType(Settings.SourceName, Settings.MonitorType);
             }
             else
             {
@@ -139,27 +127,23 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (!String.IsNullOrEmpty(Settings.SourceName))
+                if (!String.IsNullOrEmpty(Settings.SourceName) && (DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
                 {
-                    var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
-                    if (volumeInfo != null)
-                    {
-                        if (volumeInfo.Muted)
-                        {
-                            await Connection.SetTitleAsync("🔇");
-                        }
-                        else
-                        {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume, 1)} db");
-                        }
-                    }
+                    lastStatusCheck = DateTime.Now;
+                    var monitorType = OBSManager.Instance.GetInputAudioMonitorType(Settings.SourceName);
+                    await Connection.SetImageAsync(monitorType == Settings.MonitorType ? enabledImage : disabledImage);
                 }
             }
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
+            MonitorTypes monitorType = Settings.MonitorType;
             Tools.AutoPopulateSettings(Settings, payload.Settings);
+            if (monitorType != Settings.MonitorType)
+            {
+                lastStatusCheck = DateTime.MinValue;
+            }
             InitializeSettings();
             SaveSettings();
         }
@@ -168,7 +152,7 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
-      
+
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
@@ -176,11 +160,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
-            if (!Int32.TryParse(Settings.VolumeStep, out volumeStep))
-            {
-                Settings.VolumeStep = DEFAULT_VOLUME_STEP.ToString();
-                SaveSettings();
-            }
+            PrefetchImages(DEFAULT_IMAGES);
         }
 
         private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
@@ -188,10 +168,9 @@ namespace BarRaider.ObsTools.Actions
             LoadSourcesList();
             SaveSettings();
         }
-
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
         }
 
         #endregion

@@ -5,7 +5,7 @@
     <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
     <meta name=apple-mobile-web-app-capable content=yes>
     <meta name=apple-mobile-web-app-status-bar-style content=black>
-    <title>OBS Tools Source Mute Toggle</title>
+    <title>OBS Tools Audio Monitor</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
     <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
     <script src="setup.js"></script>
@@ -17,11 +17,19 @@
             <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
         </details>
         <div class="sdpi-item" id="dvSourceName">
-            <div class="sdpi-item-label">Source Name</div>
-            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="sourceName"></select>
+            <div class="sdpi-item-label">Input Name</div>
+            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSettings()" sdListTextProperty="inputName" sdListValueProperty="inputName" sdValueField="sourceName"></select>
+        </div>
+        <div class="sdpi-item" id="dvMonitorType">
+            <div class="sdpi-item-label">Monitor Type</div>
+            <select class="sdpi-item-value select sdProperty" id="monitorType" oninput="setSettings()">
+                <option value="0">None</option>
+                <option value="1">Monitor Only</option>
+                <option value="2">Monitor And Output</option>
+            </select>
         </div>
         <div class="sdpi-item" id="dvEnabledImage">
-            <div class="sdpi-item-label">Muted image</div>
+            <div class="sdpi-item-label">Enabled image</div>
             <div class="sdpi-item-group file" id="filepickergroup">
                 <input class="sdpi-item-value sdProperty sdFile" type="file" id="enabledImage" accept=".jpg, .jpeg, .png, .ico, .gif, .bmp, .tiff" oninput="setSettings()">
                 <label class="sdpi-file-info " for="enabledImage" id="enabledImageFilename">No file...</label>
@@ -29,7 +37,7 @@
             </div>
         </div>
         <div class="sdpi-item" id="dvDisabledImage">
-            <div class="sdpi-item-label">Unumted image</div>
+            <div class="sdpi-item-label">Disabled image</div>
             <div class="sdpi-item-group file" id="filepickergroup">
                 <input class="sdpi-item-value sdProperty sdFile" type="file" id="disabledImage" accept=".jpg, .jpeg, .png, .ico, .gif, .bmp, .tiff" oninput="setSettings()">
                 <label class="sdpi-file-info " for="disabledImage" id="disabledImageFilename">No file...</label>

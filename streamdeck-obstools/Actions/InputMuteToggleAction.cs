@@ -1,27 +1,26 @@
 ﻿using BarRaider.ObsTools.Backend;
 using BarRaider.ObsTools.Wrappers;
 using BarRaider.SdTools;
+using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog.Fluent;
+using OBSWebsocketDotNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
 namespace BarRaider.ObsTools.Actions
 {
-
-    //---------------------------------------------------
-    //          BarRaider's Hall Of Fame
-    // Subscriber: nubby_ninja x5 Gifted Subs
-    //---------------------------------------------------
-
-    [PluginActionId("com.barraider.obstools.sourcevolumesetter")]
-    public class SourceVolumeSetterAction : ActionBase
+    [PluginActionId("com.barraider.obstools.sourcemutetoggle")]
+    public class InputMuteToggleAction : ActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -31,20 +30,16 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     Sources = null,
-                    Volume = DEFAULT_VOLUME_PERCENTAGE.ToString(),
-                    SourceName = String.Empty
+                    SourceName = String.Empty,
                 };
                 return instance;
             }
 
-            [JsonProperty(PropertyName = "volume")]
-            public String Volume { get; set; }
-
-            [JsonProperty(PropertyName = "sources")]
-            public List<SceneSourceInfo> Sources { get; set; }
+            [JsonProperty(PropertyName = "sources", NullValueHandling = NullValueHandling.Ignore)]
+            public List<InputBasicInfo> Sources { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }            
+            public String SourceName { get; set; }
         }
 
         protected PluginSettings Settings
@@ -66,13 +61,17 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Members
 
-        private const int DEFAULT_VOLUME_PERCENTAGE = 100;
+        private const int CHECK_STATUS_COOLDOWN_MS = 3000;
+        private readonly string[] DEFAULT_IMAGES = new string[]
+       {
+            @"images\muteEnabled.png",
+            @"images\volumeAction@2x.png"
+       };
 
-        private int volume = DEFAULT_VOLUME_PERCENTAGE;
-
+        private DateTime lastStatusCheck = DateTime.MinValue;
 
         #endregion
-        public SourceVolumeSetterAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public InputMuteToggleAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -86,7 +85,7 @@ namespace BarRaider.ObsTools.Actions
             Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
-            InitializeSettings();
+            PrefetchImages(DEFAULT_IMAGES);
         }
 
         public override void Dispose()
@@ -98,21 +97,27 @@ namespace BarRaider.ObsTools.Actions
         public async override void KeyPressed(KeyPayload payload)
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed");
-            if (OBSManager.Instance.IsConnected)
-            {
-                if (String.IsNullOrEmpty(Settings.SourceName))
-                {
-                    Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but SourceName is empty");
-                    await Connection.ShowAlert();
-                    return;
-                }
 
-                OBSManager.Instance.SetSourceVolume(Settings.SourceName, volume);
+            if (String.IsNullOrEmpty(Settings.SourceName))
+            {
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed but Source Name is empty");
+                await Connection.ShowAlert();
+                return;
             }
-            else
+
+            if (!OBSManager.Instance.IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key pressed but OBS is not connected");
+                await Connection.ShowAlert();
+                return;
+            }
+
+            if (!OBSManager.Instance.ToggleInputMute(Settings.SourceName))
             {
                 await Connection.ShowAlert();
+                return;
             }
+            lastStatusCheck = DateTime.MinValue;
         }
 
         public override void KeyReleased(KeyPayload payload) { }
@@ -124,20 +129,21 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (!String.IsNullOrEmpty(Settings.SourceName))
+                if (String.IsNullOrEmpty(Settings.SourceName))
                 {
-                    var volumeInfo = OBSManager.Instance.GetSourceVolume(Settings.SourceName);
-                    if (volumeInfo != null)
-                    {
-                        if (volumeInfo.Muted)
-                        {
-                            await Connection.SetTitleAsync("🔇");
-                        }
-                        else
-                        {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.Volume,1)} db");
-                        }
-                    }
+                    return;
+                }
+
+                if (!OBSManager.Instance.IsConnected)
+                {
+                    return;
+                }
+
+                if ((DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
+                {
+                    lastStatusCheck = DateTime.Now;
+                    var isEnabled = OBSManager.Instance.IsInputMuted(Settings.SourceName);
+                    await Connection.SetImageAsync(isEnabled ? enabledImage : disabledImage);
                 }
             }
         }
@@ -145,37 +151,42 @@ namespace BarRaider.ObsTools.Actions
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
         {
             Tools.AutoPopulateSettings(Settings, payload.Settings);
-            InitializeSettings();
+            PrefetchImages(DEFAULT_IMAGES);
             SaveSettings();
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
+        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+        {
+        }
 
         #region Private Methods
 
-      
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private void InitializeSettings()
+        private async Task DrawImage(bool sourceVisible)
         {
-            if (!Int32.TryParse(Settings.Volume, out volume))
+            if (sourceVisible)
             {
-                Settings.Volume = DEFAULT_VOLUME_PERCENTAGE.ToString();
-                SaveSettings();
+                await Connection.SetImageAsync(enabledImage);
+            }
+            else
+            {
+                await Connection.SetImageAsync(disabledImage);
             }
         }
 
-        private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
+        private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {
             LoadSourcesList();
-            SaveSettings();
+            await SaveSettings();
         }
+
         private void LoadSourcesList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
         }
 
         #endregion

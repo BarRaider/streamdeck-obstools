@@ -40,7 +40,7 @@ namespace BarRaider.ObsTools.Actions
             public String SceneName { get; set; }
 
             [JsonProperty(PropertyName = "scenes", NullValueHandling = NullValueHandling.Ignore)]
-            public List<OBSScene> Scenes { get; set; }
+            public List<SceneBasicInfo> Scenes { get; set; }
 
             [JsonProperty(PropertyName = "sources", NullValueHandling = NullValueHandling.Ignore)]
             public List<SceneItemDetails> Sources { get; set; }
@@ -74,7 +74,6 @@ namespace BarRaider.ObsTools.Actions
             @"images\sourceDisabled.png"
        };
 
-        private const string ACTIVE_SCENE_NAME = "- Active Scene -";
         private const string WINDOW_CAPTURE_TYPE = "window_capture";
 
         private TitleParameters titleParameters;
@@ -129,12 +128,6 @@ namespace BarRaider.ObsTools.Actions
                 return;
             }
 
-            if (payload.IsInMultiAction)
-            {
-                await HandleMultiActionKeypress(payload.UserDesiredState);
-                return;
-            }
-
             SetFocusedWindowCapture();
         }
 
@@ -144,26 +137,6 @@ namespace BarRaider.ObsTools.Actions
         {
             baseHandledOnTick = false;
             base.OnTick();
-
-            /*
-            if (!baseHandledOnTick)
-            {
-                if (String.IsNullOrEmpty(Settings.SceneName) || String.IsNullOrEmpty(Settings.SourceName))
-                {
-                    return;
-                }
-
-                if (!OBSManager.Instance.IsConnected)
-                {
-                    return;
-                }
-
-                string sceneName = Settings.SceneName;
-                if (Settings.SceneName == ACTIVE_SCENE_NAME)
-                {
-                    sceneName = null;
-                }
-            }*/
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -189,32 +162,10 @@ namespace BarRaider.ObsTools.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private Task LoadScenes()
+        private async Task LoadScenes()
         {
-            return Task.Run(async () =>
-            {
-                Settings.Scenes = new List<OBSScene>
-                {
-                    new OBSScene
-                    {
-                        Name = ACTIVE_SCENE_NAME
-                    }
-                };
-                int retries = 40;
-
-                while (!OBSManager.Instance.IsConnected && retries > 0)
-                {
-                    retries--;
-                    await Task.Delay(250);
-                }
-
-                var scenes = OBSManager.Instance.GetAllScenes();
-                if (scenes != null && scenes.Scenes != null)
-                {
-                    Settings.Scenes.AddRange(scenes.Scenes.OrderBy(s => s.Name).ToList());
-                }
-                await SaveSettings();
-            });
+            Settings.Scenes = await CommonFunctions.FetchScenesAndActiveCaption();
+            await SaveSettings();
         }
 
         private void LoadSceneSources()
@@ -231,62 +182,6 @@ namespace BarRaider.ObsTools.Actions
         private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
         {
             titleParameters = e?.Event?.Payload?.TitleParameters;
-        }
-
-        private async Task DrawImage(bool sourceVisible)
-        {
-            if (sourceVisible)
-            {
-                await Connection.SetImageAsync(enabledImage);
-            }
-            else
-            {
-                await Connection.SetImageAsync(disabledImage);
-            }
-        }
-
-        private async Task HandleMultiActionKeypress(uint state)
-        {
-            string sceneName = Settings.SceneName;
-            if (Settings.SceneName == ACTIVE_SCENE_NAME)
-            {
-                sceneName = null;
-            }
-            bool isVisible;
-            switch (state) // 0 = Toggle, 1 = Show, 2 = Hide
-            {
-                case 0:
-                    if (!OBSManager.Instance.ToggleSourceVisibility(sceneName, Settings.SourceName))
-                    {
-                        await Connection.ShowAlert();
-                    }
-                    break;
-                case 1: // Show
-                    isVisible = OBSManager.Instance.IsSourceVisible(sceneName, Settings.SourceName);
-                    if (isVisible)
-                    {
-                        return;
-                    }
-                    if (!OBSManager.Instance.ToggleSourceVisibility(sceneName, Settings.SourceName))
-                    {
-                        await Connection.ShowAlert();
-                    }
-                    break;
-                case 2: // Hide
-                    isVisible = OBSManager.Instance.IsSourceVisible(sceneName, Settings.SourceName);
-                    if (!isVisible)
-                    {
-                        return;
-                    }
-                    if (!OBSManager.Instance.ToggleSourceVisibility(sceneName, Settings.SourceName))
-                    {
-                        await Connection.ShowAlert();
-                    }
-                    break;
-                default:
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"HandleMultiActionKeypress Invalid state: {state}");
-                    return;
-            }
         }
 
         private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)

@@ -118,6 +118,72 @@
       "UUID": "com.barraider.obstools.imagesettings",
       "PropertyInspectorPath": "PropertyInspector/ImageSettings.html"
     },
+
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Monitor Set",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Set the monitor type of an audio source in OBS",
+      "UUID": "com.barraider.obstools.sourcemonitorsetter",
+      "PropertyInspectorPath": "PropertyInspector/InputAudioMonitor.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Mute Toggle",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Toggles the mute on an audio source in OBS",
+      "UUID": "com.barraider.obstools.sourcemutetoggle",
+      "PropertyInspectorPath": "PropertyInspector/InputMuteToggle.html"
+    },
+
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Volume Adjust",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Adjusts the volume of a source in OBS",
+      "UUID": "com.barraider.obstools.sourcevolumeadjuster",
+      "PropertyInspectorPath": "PropertyInspector/InputVolumeAdjuster.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Volume Set",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Set the volume of a source in OBS",
+      "UUID": "com.barraider.obstools.sourcevolumesetter",
+      "PropertyInspectorPath": "PropertyInspector/InputVolume.html"
+    },
     {
       "Icon": "Images/icon",
       "Name": "Instant Replay",
@@ -281,7 +347,7 @@
     },
     {
       "Icon": "Images/icon",
-      "Name": "Smart Scene Switcher",
+      "Name": "Scene Switcher",
       "States": [
         {
           "Image": "Images/pluginAction",
@@ -348,71 +414,6 @@
       "Tooltip": "Toggle source on and off",
       "UUID": "com.barraider.obstools.sourcetoggle",
       "PropertyInspectorPath": "PropertyInspector/SourceToggle.html"
-    },
-    {
-      "Icon": "Images/icon",
-      "Name": "Source Monitor Set",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Set the monitor type of an audio source in OBS",
-      "UUID": "com.barraider.obstools.sourcemonitorsetter",
-      "PropertyInspectorPath": "PropertyInspector/SourceAudioMonitor.html"
-    },
-    {
-      "Icon": "Images/icon",
-      "Name": "Source Mute Toggle",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Toggles the mute on an audio source in OBS",
-      "UUID": "com.barraider.obstools.sourcemutetoggle",
-      "PropertyInspectorPath": "PropertyInspector/SourceMuteToggle.html"
-    },
-
-    {
-      "Icon": "Images/icon",
-      "Name": "Source Volume Adjust",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Adjusts the volume of a source in OBS",
-      "UUID": "com.barraider.obstools.sourcevolumeadjuster",
-      "PropertyInspectorPath": "PropertyInspector/SourceVolumeAdjuster.html"
-    },
-    {
-      "Icon": "Images/icon",
-      "Name": "Source Volume Set",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Set the volume of a source in OBS",
-      "UUID": "com.barraider.obstools.sourcevolumesetter",
-      "PropertyInspectorPath": "PropertyInspector/SourceVolume.html"
     },
     {
       "Icon": "Images/icon",
@@ -488,7 +489,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "2.7",
+  "Version": "2.9",
   "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",
@@ -501,6 +502,6 @@
   ],
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion": "4.9"
+    "MinimumVersion": "5.3"
   }
 }
