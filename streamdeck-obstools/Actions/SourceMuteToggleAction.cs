@@ -20,7 +20,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.sourcemutetoggle")]
-    public class SourceMuteToggleAction : ActionBase
+    public class InputMuteToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -85,7 +85,7 @@ namespace BarRaider.ObsTools.Actions
             Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             OBSManager.Instance.Connect();
             CheckServerInfoExists();
-            PrefetchImages(DEFAULT_IMAGES);
+            PrefetchMuteImages(DEFAULT_IMAGES);
         }
 
         public override void Dispose()
@@ -166,27 +166,54 @@ namespace BarRaider.ObsTools.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
         }
 
-        private async Task DrawImage(bool sourceVisible)
-        {
-            if (sourceVisible)
-            {
-                await Connection.SetImageAsync(enabledImage);
-            }
-            else
-            {
-                await Connection.SetImageAsync(disabledImage);
-            }
-        }
-
         private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {
-            LoadSourcesList();
+            LoadInputsList();
             await SaveSettings();
         }
 
-        private void LoadSourcesList()
+        private void LoadInputsList()
         {
-            Settings.Sources = OBSManager.Instance.GetAllSceneAndSourceNames();
+            Settings.Sources = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
+        }
+
+        protected void PrefetchMuteImages(string[] defaultImages)
+        {
+            if (enabledImage != null)
+            {
+                enabledImage.Dispose();
+                enabledImage = null;
+            }
+
+            if (disabledImage != null)
+            {
+                disabledImage.Dispose();
+                disabledImage = null;
+            }
+
+            if (defaultImages.Length < 2)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} PrefetchImages: Invalid default images list");
+                return;
+            }
+
+            enabledImage = Image.FromFile(IsValidFile(settings.EnabledImage) ? settings.EnabledImage : defaultImages[0]);
+            disabledImage = Image.FromFile(IsValidFile(settings.DisabledImage) ? settings.DisabledImage : defaultImages[1]);
+        }
+
+        private bool IsValidFile(string fileName)
+        {
+            if (String.IsNullOrEmpty(fileName))
+            {
+                return false;
+            }
+
+            if (!File.Exists(fileName))
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} IsValidFile - File not found: {fileName}");
+                return false;
+            }
+            return true;
         }
 
         #endregion

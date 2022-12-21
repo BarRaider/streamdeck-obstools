@@ -24,7 +24,7 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.instantreply")]
-    public class InstantReplyAction : ActionBase
+    public class InstantReplyAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

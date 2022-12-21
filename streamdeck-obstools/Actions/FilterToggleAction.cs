@@ -16,7 +16,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.filtertoggle")]
-    public class FilterToggleAction : ActionBase
+    public class FilterToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

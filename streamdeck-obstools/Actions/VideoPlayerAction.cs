@@ -20,7 +20,7 @@ namespace BarRaider.ObsTools.Actions
     // Subscriber: iMackk x2
     //---------------------------------------------------
     [PluginActionId("com.barraider.obstools.videoplayer")]
-    public class VideoPlayerAction : ActionBase
+    public class VideoPlayerAction : KeypadActionBase
     {
         private const int HIDE_REPLAY_SECONDS = 20;
         protected class PluginSettings : PluginSettingsBase

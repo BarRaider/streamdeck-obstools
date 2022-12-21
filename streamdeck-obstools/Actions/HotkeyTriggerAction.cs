@@ -17,7 +17,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.hotkeytrigger")]
-    public class HotkeyTriggerAction : ActionBase
+    public class HotkeyTriggerAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

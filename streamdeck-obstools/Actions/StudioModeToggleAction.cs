@@ -27,7 +27,7 @@ namespace BarRaider.ObsTools.Actions
     //  Marbles On Stream Winner: TheRickBlack
     //---------------------------------------------------
     [PluginActionId("com.barraider.obstools.studiomodetoggle")]
-    public class StudioModeToggleAction : ActionBase
+    public class StudioModeToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

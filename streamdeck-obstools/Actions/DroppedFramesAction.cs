@@ -16,7 +16,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.droppedframes")]
-    public class DroppedFramesAction : ActionBase
+    public class DroppedFramesAction : KeypadActionBase
     {
         public enum DroppedFramesType
         {

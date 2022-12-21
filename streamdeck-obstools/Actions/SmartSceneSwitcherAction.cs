@@ -27,7 +27,7 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.smartsceneswitcher")]
-    public class SmartSceneSwitcherAction : ActionBase
+    public class SmartSceneSwitcherAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

@@ -25,7 +25,7 @@ namespace BarRaider.ObsTools.Actions
     // Subscriber: transparentpixel
     //---------------------------------------------------
     [PluginActionId("com.barraider.obstools.sourceanimation")]
-    public class SourceAnimationAction : ActionBase
+    public class SourceAnimationAction : KeypadActionBase
     {
         protected class SourceAnimationActionSettings : PluginSettingsBase
         {

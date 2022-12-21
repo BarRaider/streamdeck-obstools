@@ -16,7 +16,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.settransition")]
-    public class SetTransitionAction : ActionBase
+    public class SetTransitionAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

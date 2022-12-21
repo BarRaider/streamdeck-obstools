@@ -15,7 +15,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.setscenecollection")]
-    public class SetSceneCollectionAction : ActionBase
+    public class SetSceneCollectionAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
