@@ -20,6 +20,15 @@
             <div class="sdpi-item-label">Input Name</div>
             <select class="sdpi-item-value select sdProperty sdList" id="inputs" oninput="setSettings()" sdListTextProperty="inputName" sdListValueProperty="inputName" sdValueField="inputName"></select>
         </div>
+        <div class="sdpi-item" id="dvStepSize">
+            <div class="sdpi-item-label">Step Size</div>
+            <select class="sdpi-item-value select sdProperty" id="stepSize" oninput="setSettings()">
+                <option value="1" selected>1 db</option>
+                <option value="2">2 db</option>
+                <option value="5">5 db</option>
+                <option value="10">10 db</option>
+            </select>
+        </div>
     </div>
     <hr />
     <div class="sdpi-item" id="dvReset">
