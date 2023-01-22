@@ -52,7 +52,7 @@
 		<PackageReference Include="NLog" Version="5.1.0" />
 		<PackageReference Include="Serilog" Version="2.12.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
-		<PackageReference Include="StreamDeck-Tools" Version="5.9.0-Beta1" />
+		<PackageReference Include="StreamDeck-Tools" Version="5.9.1-Beta1" />
 		<PackageReference Include="System.Buffers" Version="4.5.1" />
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
@@ -471,6 +471,9 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Images\prevAction.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="inputVolumeDialLayout.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="PropertyInspector\InputVolumeDial.html">
