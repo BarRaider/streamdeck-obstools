@@ -17,7 +17,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.cpuusage")]
-    public class CPUUsageAction : ActionBase
+    public class CPUUsageAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

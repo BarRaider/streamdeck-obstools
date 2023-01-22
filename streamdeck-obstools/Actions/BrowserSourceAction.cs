@@ -26,7 +26,7 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.browsersource")]
-    public class BrowserSourceAction : ActionBase
+    public class BrowserSourceAction : KeypadActionBase
     {
         private const int HIDE_SOURCE_SECONDS = 20;
         protected class PluginSettings : PluginSettingsBase

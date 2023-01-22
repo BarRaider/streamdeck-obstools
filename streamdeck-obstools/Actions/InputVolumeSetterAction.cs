@@ -22,7 +22,7 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.sourcevolumesetter")]
-    public class InputVolumeSetterAction : ActionBase
+    public class InputVolumeSetterAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {
@@ -31,9 +31,9 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings
                 {
                     ServerInfoExists = false,
-                    Sources = null,
+                    Inputs = null,
                     Volume = DEFAULT_VOLUME_PERCENTAGE.ToString(),
-                    SourceName = String.Empty
+                    InputName = String.Empty
                 };
                 return instance;
             }
@@ -42,10 +42,10 @@ namespace BarRaider.ObsTools.Actions
             public String Volume { get; set; }
 
             [JsonProperty(PropertyName = "sources")]
-            public List<InputBasicInfo> Sources { get; set; }
+            public List<InputBasicInfo> Inputs { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }            
+            public String InputName { get; set; }            
         }
 
         protected PluginSettings Settings
@@ -101,14 +101,14 @@ namespace BarRaider.ObsTools.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed");
             if (OBSManager.Instance.IsConnected)
             {
-                if (String.IsNullOrEmpty(Settings.SourceName))
+                if (String.IsNullOrEmpty(Settings.InputName))
                 {
                     Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but SourceName is empty");
                     await Connection.ShowAlert();
                     return;
                 }
 
-                OBSManager.Instance.SetInputVolume(Settings.SourceName, volume, true);
+                OBSManager.Instance.SetInputVolume(Settings.InputName, volume, true);
             }
             else
             {
@@ -125,12 +125,12 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (!String.IsNullOrEmpty(Settings.SourceName))
+                if (!String.IsNullOrEmpty(Settings.InputName))
                 {
-                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.SourceName);
+                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
                     if (volumeInfo != null)
                     {
-                        if (OBSManager.Instance.IsInputMuted(Settings.SourceName))
+                        if (OBSManager.Instance.IsInputMuted(Settings.InputName))
                         {
                             await Connection.SetTitleAsync("🔇");
                         }
@@ -171,12 +171,12 @@ namespace BarRaider.ObsTools.Actions
 
         private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {
-            LoadSourcesList();
+            LoadInputsList();
             SaveSettings();
         }
-        private void LoadSourcesList()
+        private void LoadInputsList()
         {
-            Settings.Sources = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
+            Settings.Inputs = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
         }
 
         #endregion

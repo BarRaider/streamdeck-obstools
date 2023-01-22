@@ -14,7 +14,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.previousscene")]
-    public class PreviousSceneAction : ActionBase
+    public class PreviousSceneAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

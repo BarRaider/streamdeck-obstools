@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace BarRaider.ObsTools.Actions
 {
-    public abstract class ActionBase : PluginBase
+    public abstract class KeypadActionBase : KeypadBase
     {
         protected class PluginSettingsBase
         {
@@ -46,7 +46,7 @@ namespace BarRaider.ObsTools.Actions
 
         #endregion
 
-        public ActionBase(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public KeypadActionBase(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             ServerManager.Instance.TokensChanged += Instance_TokensChanged;
             OBSManager.Instance.ObsConnectionFailed += Instance_ObsConnectionFailed;
@@ -64,7 +64,7 @@ namespace BarRaider.ObsTools.Actions
             OBSManager.Instance.ObsConnectionChanged -= Instance_ObsConnectionChanged;
             Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             OBSManager.Instance.ObsConnectionFailed -= Instance_ObsConnectionFailed;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called {this.GetType()}");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called {this.GetType()} {Connection.ContextId}");
         }
 
         public virtual Task SaveSettings()
@@ -253,7 +253,7 @@ namespace BarRaider.ObsTools.Actions
                 return;
             }
 
-            enabledImage = Image.FromFile( IsValidFile(settings.EnabledImage)  ? settings.EnabledImage  : defaultImages[0]);
+            enabledImage = Image.FromFile(IsValidFile(settings.EnabledImage)  ? settings.EnabledImage  : defaultImages[0]);
             disabledImage = Image.FromFile(IsValidFile(settings.DisabledImage) ? settings.DisabledImage : defaultImages[1]);
         }
 

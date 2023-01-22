@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>OBS Tools Source Volume</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.css">
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@master/src/rangeTooltip.js"></script>
+    <script src="setup.js"></script>
+    <script src="InputVolumeSet.js"></script>
+    <script src="OBSTools.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <details class="message">
+            <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
+        </details>
+        <div class="sdpi-item" id="dvSourceName">
+            <div class="sdpi-item-label">Source Name</div>
+            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="sourceName"></select>
+        </div>
+        <div type="range" class="sdpi-item sdShowTooltip" id="dvVolume">
+            <div class="sdpi-item-label" id="volumeLabel">Volume</div>
+            <div class="sdpi-item-value">
+                <span class="clickable" value="0">-100</span>
+                <input type="range" min="-100" max="0" value=0 list="numbers" data-suffix=" db" class="sdProperty" id="volume" oninput="setSettings()">
+                <span class="clickable" value="100">0</span>
+                <label for="volume" class="rangeLabel"></label>
+            </div>
+        </div>
+        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
+    </div>
+    <hr />
+    <div class="sdpi-item" id="dvReset">
+        <div class="sdpi-item-label">Reset Settings</div>
+        <button class="sdpi-item-value max20" onclick="resetPlugin()">Reset</button>
+        <p>Plugin will no longer communicate with OBS and will ask for a new configuration</p>
+    </div>
+    <div class="sdpi-item" id="dvHdn">
+        <input value="" type="hidden" id="serverInfoExists" class="sdProperty" oninput="setSettings()">
+    </div>
+</body>
+</html>

@@ -28,6 +28,7 @@
       ],
       "SupportedInMultiActions": false,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Shows the current OBS CPU usage",
       "UUID": "com.barraider.obstools.cpuusage",
       "PropertyInspectorPath": "PropertyInspector/CPUUsage.html"
@@ -44,6 +45,7 @@
       ],
       "SupportedInMultiActions": false,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Shows the number of dropped frames on your Stream Deck and alerts if it increases",
       "UUID": "com.barraider.obstools.droppedframes",
       "PropertyInspectorPath": "PropertyInspector/DroppedFrames.html"
@@ -182,7 +184,98 @@
       "DisableCaching": true,
       "Tooltip": "Set the volume of a source in OBS",
       "UUID": "com.barraider.obstools.sourcevolumesetter",
-      "PropertyInspectorPath": "PropertyInspector/InputVolume.html"
+      "PropertyInspectorPath": "PropertyInspector/InputVolumeSet.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Monitor Set",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Set the monitor type of an audio input in OBS",
+      "UUID": "com.barraider.obstools.sourcemonitorsetter",
+      "PropertyInspectorPath": "PropertyInspector/InputAudioMonitor.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Mute Toggle",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "Tooltip": "Toggles the mute on an audio input in OBS",
+      "UUID": "com.barraider.obstools.sourcemutetoggle",
+      "PropertyInspectorPath": "PropertyInspector/InputMuteToggle.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Volume",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "Controllers": [ "Encoder" ],
+      "Encoder": {
+        "layout": "inputVolumeDialLayout.json",
+        "TriggerDescription": {
+          "Rotate": "Increase/Decrease",
+          "Push": "Toggle mute"
+        }
+      },
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "UserTitleEnabled": false,
+      "Tooltip": "Adjusts the volume of a input in OBS",
+      "UUID": "com.barraider.obstools.volumedial",
+      "PropertyInspectorPath": "PropertyInspector/InputVolumeDial.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Volume Adjust",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "UserTitleEnabled": false,
+      "Tooltip": "Adjusts the volume of a input in OBS",
+      "UUID": "com.barraider.obstools.sourcevolumeadjuster",
+      "PropertyInspectorPath": "PropertyInspector/InputVolumeAdjuster.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Input Volume Set",
+      "States": [
+        {
+          "Image": "Images/volumeAction",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "DisableCaching": true,
+      "UserTitleEnabled": false,
+      "Tooltip": "Set the volume of a input in OBS",
+      "UUID": "com.barraider.obstools.sourcevolumesetter",
+      "PropertyInspectorPath": "PropertyInspector/InputVolumeSet.html"
     },
     {
       "Icon": "Images/icon",
@@ -207,6 +300,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Saves your Instant Replay and allows to Toggle the Instant Replay On or Off",
       "UUID": "com.barraider.obstools.instantreply",
       "PropertyInspectorPath": "PropertyInspector/InstantReplay.html"
@@ -223,6 +317,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Moves to the next scene down in the scenes list",
       "UUID": "com.barraider.obstools.nextscene",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
@@ -239,6 +334,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Allows you to switch back to your previously used scene",
       "UUID": "com.barraider.obstools.previousscene",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
@@ -271,6 +367,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Allows you to start or stop recording in OBS",
       "UUID": "com.barraider.obstools.recordingtoggle",
       "PropertyInspectorPath": "PropertyInspector/Recording.html"
@@ -309,6 +406,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Change the OBS profile you're on",
       "UUID": "com.barraider.obstools.setprofile",
       "PropertyInspectorPath": "PropertyInspector/SetProfile.html"
@@ -325,6 +423,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Change the Scene Collections",
       "UUID": "com.barraider.obstools.setscenecollection",
       "PropertyInspectorPath": "PropertyInspector/SetSceneCollection.html"
@@ -341,6 +440,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Set the default transition in OBS",
       "UUID": "com.barraider.obstools.settransition",
       "PropertyInspectorPath": "PropertyInspector/Transition.html"
@@ -368,6 +468,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Transitions scenes between Studio and Live mode",
       "UUID": "com.barraider.obstools.smartsceneswitcher",
       "PropertyInspectorPath": "PropertyInspector/SmartSceneSwitcher.html"
@@ -436,6 +537,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Toggles Studio Mode On or Off",
       "UUID": "com.barraider.obstools.studiomodetoggle",
       "PropertyInspectorPath": "PropertyInspector/OBSTools.html"
@@ -489,7 +591,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "2.9",
+  "Version": "3.0",
   "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",
@@ -502,6 +604,6 @@
   ],
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion": "5.3"
+    "MinimumVersion": "6.0"
   }
 }

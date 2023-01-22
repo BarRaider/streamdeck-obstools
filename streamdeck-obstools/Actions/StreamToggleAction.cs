@@ -15,7 +15,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.streamtoggle")]
-    public class StreamToggleAction : ActionBase
+    public class StreamToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

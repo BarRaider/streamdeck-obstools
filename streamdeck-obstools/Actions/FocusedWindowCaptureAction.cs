@@ -19,7 +19,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.focusedwindowcapture")]
-    public class FocusedWindowCaptureAction : ActionBase
+    public class FocusedWindowCaptureAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

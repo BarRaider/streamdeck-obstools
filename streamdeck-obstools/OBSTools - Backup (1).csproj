@@ -12,19 +12,12 @@
 		<Copyright>Copyright ©  2020</Copyright>
 		<OutputPath>bin\$(Configuration)\com.barraider.obstools.sdPlugin\</OutputPath>
 		<LangVersion>8.0</LangVersion>
-		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<DebugType>full</DebugType>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DebugType>full</DebugType>
-	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<DebugType>pdbonly</DebugType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DebugType>pdbonly</DebugType>
 	</PropertyGroup>
 	<PropertyGroup>
 		<ApplicationIcon>brlogo.ico</ApplicationIcon>
@@ -39,9 +32,24 @@
 	<ItemGroup>
 		<PackageReference Include="CommandLineParser" Version="2.9.1" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+<<<<<<< Updated upstream
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="NLog" Version="5.0.1" />
+		<PackageReference Include="obs-websocket-dotnet" Version="4.9.1" />
+		<PackageReference Include="Serilog" Version="2.11.0" />
+=======
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
@@ -51,12 +59,14 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 		<PackageReference Include="NLog" Version="5.1.0" />
 		<PackageReference Include="Serilog" Version="2.12.0" />
+>>>>>>> Stashed changes
 		<PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
-		<PackageReference Include="StreamDeck-Tools" Version="5.9.1-Beta1" />
+		<PackageReference Include="streamdeck-client-csharp" Version="4.3.0" />
+		<PackageReference Include="StreamDeck-Tools" Version="3.2.0" />
 		<PackageReference Include="System.Buffers" Version="4.5.1" />
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
-		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
+		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="System.IO" Version="4.3.0" />
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
@@ -69,7 +79,7 @@
 		<PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-		<PackageReference Include="TwitchLib.Client" Version="3.3.1" />
+		<PackageReference Include="TwitchLib.Client" Version="3.2.4" />
 		<PackageReference Include="TwitchLib.Communication" Version="1.0.4" />
 		<PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
 	</ItemGroup>
@@ -253,6 +263,9 @@
 		<Content Include="PropertyInspector\CPUUsage.html">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<Content Include="PropertyInspector\InputVolumeDial.html">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="PropertyInspector\Setup\images\appLogo.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -283,10 +296,10 @@
 		<Content Include="PropertyInspector\SourceToggle.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="PropertyInspector\InputAudioMonitor.html">
+		<Content Include="PropertyInspector\SourceAudioMonitor.html">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="PropertyInspector\InputMuteToggle.html">
+		<Content Include="PropertyInspector\SourceMuteToggle.html">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Include="PropertyInspector\Streaming.html">
@@ -310,10 +323,10 @@
 		<Content Include="PropertyInspector\SourceAnimation.html">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="PropertyInspector\InputVolumeAdjuster.js">
+		<Content Include="PropertyInspector\SourceVolumeAdjuster.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="PropertyInspector\InputVolumeAdjuster.html">
+		<Content Include="PropertyInspector\SourceVolumeAdjuster.html">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Include="PropertyInspector\SetProfile.html">
@@ -385,6 +398,19 @@
 		<Content Include="PropertyInspector\BrowserSource.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+<<<<<<< Updated upstream
+		<Content Include="PropertyInspector\SourceVolume.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="PropertyInspector\SourceVolume.js">
+=======
+		<Content Include="PropertyInspector\InputVolumeSet.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="PropertyInspector\InputVolumeSet.js">
+>>>>>>> Stashed changes
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="PropertyInspector\ImageSettings.html">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -453,6 +479,7 @@
 		<None Remove="PropertyInspector\CPUUsage.html" />
 		<None Remove="PropertyInspector\FocusedWindowCapture.html" />
 		<None Remove="PropertyInspector\FocusedWindowCapture.js" />
+		<None Remove="PropertyInspector\InputVolumeDial.html" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="Images\captureAction%402x.png">
@@ -474,15 +501,6 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="inputVolumeDialLayout.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="PropertyInspector\InputVolumeDial.html">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="PropertyInspector\InputVolumeSet.html">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="PropertyInspector\InputVolumeSet.js">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

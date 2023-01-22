@@ -17,7 +17,7 @@ namespace BarRaider.ObsTools.Actions
 {
 
     [PluginActionId("com.barraider.obstools.sourcemonitorsetter")]
-    public class InputMonitorSetterAction : ActionBase
+    public class InputMonitorSetterAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

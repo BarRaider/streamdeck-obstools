@@ -26,7 +26,7 @@ namespace BarRaider.ObsTools.Actions
     }
 
     [PluginActionId("com.barraider.obstools.recordingtoggle")]
-    public class RecordToggleAction : ActionBase
+    public class RecordToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

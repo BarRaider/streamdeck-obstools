@@ -16,7 +16,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.virtualcamera")]
-    public class VirtualCameraToggleAction : ActionBase
+    public class VirtualCameraToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

@@ -29,7 +29,7 @@ namespace BarRaider.ObsTools.Actions
     //---------------------------------------------------
 
     [PluginActionId("com.barraider.obstools.sourcetoggle")]
-    public class SourceVisibilityToggleAction : ActionBase
+    public class SourceVisibilityToggleAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

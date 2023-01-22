@@ -14,7 +14,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.nextscene")]
-    public class NextSceneAction : ActionBase
+    public class NextSceneAction : KeypadActionBase
     {
         protected class PluginSettings : PluginSettingsBase
         {

@@ -16,7 +16,7 @@ using System.Timers;
 namespace BarRaider.ObsTools.Actions
 {
     [PluginActionId("com.barraider.obstools.imagesettings")]
-    public class ImageSettingsAction : ActionBase
+    public class ImageSettingsAction : KeypadActionBase
     {
         private const int AUTO_HIDE_SECONDS = 20;
         protected class PluginSettings : PluginSettingsBase
