@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -202,7 +203,7 @@ namespace BarRaider.ObsTools.Actions
                 {
                     return;
                 }
-                await Connection.SetTitleAsync(GraphicsTools.WrapStringToFitImage(Settings.SceneName, titleParameters)); 
+                await Connection.SetTitleAsync(GraphicsTools.WrapStringToFitImage(Settings.SceneName, titleParameters));
                 if (!String.IsNullOrEmpty(Settings.SceneName) && !isFetchingScreenshot)
                 {
                     // Run in task due to possible long wait times
@@ -367,7 +368,20 @@ namespace BarRaider.ObsTools.Actions
 
         private void Connection_OnTitleParametersDidChange(object sender, SDEventReceivedEventArgs<SdTools.Events.TitleParametersDidChange> e)
         {
-            titleParameters = e.Event.Payload.TitleParameters;
+            try
+            {
+                titleParameters = e.Event.Payload.TitleParameters;
+                Logger.Instance.LogMessage(TracingLevel.DEBUG, $"{this.GetType()} Got TitleParametersDidChange for {e.Event.Context} {Settings.SceneName}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SmartSceneSwitcher TitleParams: Keyup Cache miss for {e.Event.Context} {ex}");
+            }
+
+            if (titleParameters == null)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"SmartSceneSwitcher TitleParams null for {e.Event.Context}");
+            }
         }
 
         private void InitializeSettings()
