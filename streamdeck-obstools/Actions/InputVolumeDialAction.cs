@@ -33,7 +33,8 @@ namespace BarRaider.ObsTools.Actions
                 {
                     ServerInfoExists = false,
                     Inputs = null,
-                    InputName = String.Empty
+                    InputName = String.Empty,
+                    StepSize = DEFAULT_STEP_SIZE.ToString()
                 };
                 return instance;
             }
@@ -42,7 +43,10 @@ namespace BarRaider.ObsTools.Actions
             public List<InputBasicInfo> Inputs { get; set; }
 
             [JsonProperty(PropertyName = "inputName")]
-            public String InputName { get; set; }            
+            public String InputName { get; set; }
+
+            [JsonProperty(PropertyName = "stepSize")]
+            public String StepSize { get; set; }
         }
 
         protected PluginSettings Settings
@@ -65,6 +69,8 @@ namespace BarRaider.ObsTools.Actions
         #region Private Members
 
         private const float MINIMAL_DB_VALUE = -95.8f;
+        private const int DEFAULT_STEP_SIZE = 1;
+        private const int DIAL_PRESS_INCREMENT = 10;
 
         private readonly string[] DEFAULT_IMAGES = new string[]
        {
@@ -74,6 +80,7 @@ namespace BarRaider.ObsTools.Actions
         private string mutedImageStr;
         private string unmutedImageStr;
         private bool dialWasRotated = false;
+        private int stepSize = DEFAULT_STEP_SIZE;
 
 
         #endregion
@@ -125,10 +132,10 @@ namespace BarRaider.ObsTools.Actions
                 var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
                 if (volumeInfo != null)
                 {
-                    int increment = payload.Ticks;
+                    int increment = payload.Ticks * stepSize;
                     if (payload.IsDialPressed)
                     {
-                        increment = 10 * (payload.Ticks > 0 ? 1 : -1);
+                        increment = DIAL_PRESS_INCREMENT * (payload.Ticks > 0 ? 1 : -1);
                     }
                     double outputVolume = Math.Round(volumeInfo.VolumeDb + increment);
                     if (outputVolume > 0)
@@ -218,7 +225,7 @@ namespace BarRaider.ObsTools.Actions
                             dkv["icon"] = unmutedImageStr;
                             dkv["title"] = Settings.InputName;
                             dkv["value"] = $"{volume} db";
-                            dkv["indicator"] = RangeToPercentage((int)volume, -95, 0).ToString();
+                            dkv["indicator"] = Tools.RangeToPercentage((int)volume, -95, 0).ToString();
                             await Connection.SetFeedbackAsync(dkv);
                         }
                     }
@@ -246,6 +253,11 @@ namespace BarRaider.ObsTools.Actions
         private void InitializeSettings()
         {
             _ = Connection.SetFeedbackAsync("title", Settings.InputName);
+            if (!Int32.TryParse(Settings.StepSize, out stepSize))
+            {
+                stepSize = DEFAULT_STEP_SIZE;
+                SaveSettings();
+            }
         }
 
         private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
@@ -296,13 +308,6 @@ namespace BarRaider.ObsTools.Actions
 
             return OBSManager.Instance.ToggleInputMute(Settings.InputName);
         }
-
-        [Obsolete("Move to Stream Deck Tools")]
-        private int RangeToPercentage(int value, int originalMin, int originalMax)
-        {
-            return ((value - originalMin) * 100) / (originalMax - originalMin);
-        }
-
 
         #endregion
     }
