@@ -3,6 +3,9 @@ Advanced OBS commands and tools to use on your Elgato Stream Deck
 
 **Author's website and contact information:** [https://barraider.com](https://barraider.com)
 
+# New in v3.0
+- 🆕 **Stream Deck+ Support** - New `Input Volume` action allows you to control the volume of an OBS Audio Input from the Dials. Pressing the dial will toggle mute.
+
 # New in v2.9
 - Stability and performance improvements
 
