@@ -120,72 +120,6 @@
       "UUID": "com.barraider.obstools.imagesettings",
       "PropertyInspectorPath": "PropertyInspector/ImageSettings.html"
     },
-
-    {
-      "Icon": "Images/icon",
-      "Name": "Input Monitor Set",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Set the monitor type of an audio source in OBS",
-      "UUID": "com.barraider.obstools.sourcemonitorsetter",
-      "PropertyInspectorPath": "PropertyInspector/InputAudioMonitor.html"
-    },
-    {
-      "Icon": "Images/icon",
-      "Name": "Input Mute Toggle",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Toggles the mute on an audio source in OBS",
-      "UUID": "com.barraider.obstools.sourcemutetoggle",
-      "PropertyInspectorPath": "PropertyInspector/InputMuteToggle.html"
-    },
-
-    {
-      "Icon": "Images/icon",
-      "Name": "Input Volume Adjust",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Adjusts the volume of a source in OBS",
-      "UUID": "com.barraider.obstools.sourcevolumeadjuster",
-      "PropertyInspectorPath": "PropertyInspector/InputVolumeAdjuster.html"
-    },
-    {
-      "Icon": "Images/icon",
-      "Name": "Input Volume Set",
-      "States": [
-        {
-          "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
-        }
-      ],
-      "SupportedInMultiActions": true,
-      "DisableCaching": true,
-      "Tooltip": "Set the volume of a source in OBS",
-      "UUID": "com.barraider.obstools.sourcevolumesetter",
-      "PropertyInspectorPath": "PropertyInspector/InputVolumeSet.html"
-    },
     {
       "Icon": "Images/icon",
       "Name": "Input Monitor Set",
@@ -591,7 +525,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "3.0",
+  "Version": "3.1",
   "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",
