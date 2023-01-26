@@ -20,8 +20,8 @@
             <summary>For feedback/suggestions contact me at <span class="linkspan" onclick="openWebsite()">https://BarRaider.com</span></summary>
         </details>
         <div class="sdpi-item" id="dvSourceName">
-            <div class="sdpi-item-label">Source Name</div>
-            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="name" sdValueField="sourceName"></select>
+            <div class="sdpi-item-label">Source</div>
+            <select class="sdpi-item-value select sdProperty sdList" id="sources" oninput="setSettings()" sdListTextProperty="inputName" sdListValueProperty="inputName" sdValueField="sourceName"></select>
         </div>
         <div type="range" class="sdpi-item sdShowTooltip" id="dvVolume">
             <div class="sdpi-item-label" id="volumeLabel">Volume</div>
@@ -31,6 +31,10 @@
                 <span class="clickable" value="100">0</span>
                 <label for="volume" class="rangeLabel"></label>
             </div>
+        </div>
+        <div class="sdpi-item" id="dvTitlePrefix">
+            <div class="sdpi-item-label">Title Prefix</div>
+            <input class="sdpi-item-value sdProperty" placeholder="Mic:\n" value="" id="titlePrefix" oninput="setSettings()">
         </div>
         <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
     </div>
