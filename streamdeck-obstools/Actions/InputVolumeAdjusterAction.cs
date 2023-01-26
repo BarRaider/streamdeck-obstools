@@ -33,7 +33,8 @@ namespace BarRaider.ObsTools.Actions
                     ServerInfoExists = false,
                     Inputs = null,
                     VolumeStep = DEFAULT_VOLUME_STEP.ToString(),
-                    InputName = String.Empty
+                    InputName = String.Empty,
+                    TitlePrefix = String.Empty,
                 };
                 return instance;
             }
@@ -45,7 +46,10 @@ namespace BarRaider.ObsTools.Actions
             public List<InputBasicInfo> Inputs { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
-            public String InputName { get; set; }            
+            public String InputName { get; set; }
+
+            [JsonProperty(PropertyName = "titlePrefix")]
+            public String TitlePrefix { get; set; }
         }
 
         protected PluginSettings Settings
@@ -142,18 +146,20 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (!String.IsNullOrEmpty(Settings.InputName))
                 {
+                    string title = String.Empty;
                     var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
                     if (volumeInfo != null)
                     {
                         if (OBSManager.Instance.IsInputMuted(Settings.InputName))
                         {
-                            await Connection.SetTitleAsync("🔇");
+                            title = "🔇";
                         }
                         else
                         {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.VolumeDb, 1)} db");
+                            title = $"{Math.Round(volumeInfo.VolumeDb, 1)} db";
                         }
                     }
+                    await Connection.SetTitleAsync($"{Settings.TitlePrefix?.Replace(@"\n", "\n")}{title}");
                 }
             }
         }
@@ -192,7 +198,17 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadInputsList()
         {
-            Settings.Inputs = OBSManager.Instance.GetAudioInputs()?.OrderBy(s => s?.InputName ?? "Z")?.ToList();
+            Settings.Inputs = null;
+            if (!OBSManager.Instance.IsConnected)
+            {
+                return;
+            }
+
+            var inputs = OBSManager.Instance.GetAudioInputs();
+            if (inputs != null)
+            {
+                Settings.Inputs = inputs.OrderBy(s => s?.InputName ?? "Z").ToList();
+            }
         }
 
         #endregion

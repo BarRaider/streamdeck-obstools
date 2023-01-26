@@ -26,9 +26,9 @@ namespace BarRaider.ObsTools.Actions
                 PluginSettings instance = new PluginSettings
                 {
                     ServerInfoExists = false,
-                    Sources = null,
+                    Inputs = null,
                     MonitorType = DEFAULT_MONITOR_TYPE,
-                    SourceName = String.Empty
+                    InputName = String.Empty
                 };
                 return instance;
             }
@@ -37,10 +37,10 @@ namespace BarRaider.ObsTools.Actions
             public String Volume { get; set; }
 
             [JsonProperty(PropertyName = "sources")]
-            public List<InputBasicInfo> Sources { get; set; }
+            public List<InputBasicInfo> Inputs { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
-            public String SourceName { get; set; }
+            public String InputName { get; set; }
 
             [JsonProperty(PropertyName = "monitorType")]
             public MonitorTypes MonitorType { get; set; }
@@ -103,14 +103,14 @@ namespace BarRaider.ObsTools.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Key Pressed");
             if (OBSManager.Instance.IsConnected)
             {
-                if (String.IsNullOrEmpty(Settings.SourceName))
+                if (String.IsNullOrEmpty(Settings.InputName))
                 {
                     Logger.Instance.LogMessage(TracingLevel.WARN, $"{this.GetType()} Key Pressed but SourceName is empty");
                     await Connection.ShowAlert();
                     return;
                 }
 
-                OBSManager.Instance.SetInputAudioMonitorType(Settings.SourceName, Settings.MonitorType);
+                OBSManager.Instance.SetInputAudioMonitorType(Settings.InputName, Settings.MonitorType);
             }
             else
             {
@@ -127,10 +127,10 @@ namespace BarRaider.ObsTools.Actions
 
             if (!baseHandledOnTick)
             {
-                if (!String.IsNullOrEmpty(Settings.SourceName) && (DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
+                if (!String.IsNullOrEmpty(Settings.InputName) && (DateTime.Now - lastStatusCheck).TotalMilliseconds >= CHECK_STATUS_COOLDOWN_MS)
                 {
                     lastStatusCheck = DateTime.Now;
-                    var monitorType = OBSManager.Instance.GetInputAudioMonitorType(Settings.SourceName);
+                    var monitorType = OBSManager.Instance.GetInputAudioMonitorType(Settings.InputName);
                     await Connection.SetImageAsync(monitorType == Settings.MonitorType ? enabledImage : disabledImage);
                 }
             }
@@ -165,12 +165,22 @@ namespace BarRaider.ObsTools.Actions
 
         private void Connection_OnPropertyInspectorDidAppear(object sender, SdTools.Wrappers.SDEventReceivedEventArgs<SdTools.Events.PropertyInspectorDidAppear> e)
         {
-            LoadSourcesList();
+            LoadInputsList();
             SaveSettings();
         }
-        private void LoadSourcesList()
+        private void LoadInputsList()
         {
-            Settings.Sources = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
+            Settings.Inputs = null;
+            if (!OBSManager.Instance.IsConnected)
+            {
+                return;
+            }
+
+            var inputs = OBSManager.Instance.GetAudioInputs();
+            if (inputs != null)
+            {
+                Settings.Inputs = inputs.OrderBy(s => s?.InputName ?? "Z").ToList();
+            }
         }
 
         #endregion

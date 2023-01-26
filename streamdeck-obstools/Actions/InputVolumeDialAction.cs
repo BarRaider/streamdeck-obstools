@@ -268,7 +268,17 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadInputsList()
         {
-            Settings.Inputs = OBSManager.Instance.GetAudioInputs()?.OrderBy(s => s?.InputName ?? "Z")?.ToList();
+            Settings.Inputs = null;
+            if (!OBSManager.Instance.IsConnected)
+            {
+                return;
+            }
+
+            var inputs = OBSManager.Instance.GetAudioInputs();
+            if (inputs != null)
+            {
+                Settings.Inputs = inputs.OrderBy(s => s?.InputName ?? "Z").ToList();
+            }
         }
 
         protected void PrefetchImages(string[] defaultImages)
