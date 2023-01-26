@@ -76,10 +76,6 @@ namespace BarRaider.ObsTools.Actions
         protected void CheckServerInfoExists()
         {
             settings.ServerInfoExists = ServerManager.Instance.ServerInfoExists;
-            if (!settings.ServerInfoExists)
-            {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"No server info for action {GetType()}");
-            }
             SaveSettings();
         }
 
