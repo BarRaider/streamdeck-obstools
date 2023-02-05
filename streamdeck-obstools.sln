@@ -5,40 +5,28 @@ VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OBSTools", "streamdeck-obstools\OBSTools.csproj", "{D52AFB8F-650B-4000-8C41-5F99684933EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OTI.Shared", "..\..\DotNet\OTI.Shared\OTI.Shared.csproj", "{86096883-9575-4A6D-8B29-434D9D7B9601}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "barraider-sdtools", "..\streamdeck-tools\barraider-sdtools\barraider-sdtools.csproj", "{804124A5-33D6-4C19-BB9A-E1224531957E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "obs-websocket-dotnet", "..\obs-websocket-dotnet-v5\obs-websocket-dotnet\obs-websocket-dotnet.csproj", "{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OTI.Shared", "..\OTI.Shared\OTI.Shared.csproj", "{621AE01B-4B89-4805-B5AB-4F7E179BD277}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
-		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Debug|x64.ActiveCfg = Debug|x64
-		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Debug|x64.Build.0 = Debug|x64
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Release|x64.ActiveCfg = Release|x64
-		{D52AFB8F-650B-4000-8C41-5F99684933EC}.Release|x64.Build.0 = Release|x64
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Debug|x64.ActiveCfg = Debug|x64
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Debug|x64.Build.0 = Debug|x64
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Release|x64.ActiveCfg = Release|x64
-		{86096883-9575-4A6D-8B29-434D9D7B9601}.Release|x64.Build.0 = Release|x64
-		{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F2FD9E8F-FF02-4465-A636-2B56B4BB382E}.Release|x64.ActiveCfg = Release|Any CPU
+		{804124A5-33D6-4C19-BB9A-E1224531957E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{804124A5-33D6-4C19-BB9A-E1224531957E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{804124A5-33D6-4C19-BB9A-E1224531957E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{804124A5-33D6-4C19-BB9A-E1224531957E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
