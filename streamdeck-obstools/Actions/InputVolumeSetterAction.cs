@@ -35,6 +35,7 @@ namespace BarRaider.ObsTools.Actions
                     Volume = DEFAULT_VOLUME_PERCENTAGE.ToString(),
                     InputName = String.Empty,
                     TitlePrefix = String.Empty,
+                    HideVolume = false
                 };
                 return instance;
             }
@@ -50,6 +51,9 @@ namespace BarRaider.ObsTools.Actions
 
             [JsonProperty(PropertyName = "titlePrefix")]
             public String TitlePrefix { get; set; }
+
+            [JsonProperty(PropertyName = "hideVolume")]
+            public bool HideVolume { get; set; }
         }
 
         protected PluginSettings Settings
@@ -132,16 +136,19 @@ namespace BarRaider.ObsTools.Actions
                 if (!String.IsNullOrEmpty(Settings.InputName))
                 {
                     string title = String.Empty;
-                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
-                    if (volumeInfo != null)
+                    if (!Settings.HideVolume)
                     {
-                        if (OBSManager.Instance.IsInputMuted(Settings.InputName))
+                        var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
+                        if (volumeInfo != null)
                         {
-                            title = "🔇";
-                        }
-                        else
-                        {
-                            title = $"{Math.Round(volumeInfo.VolumeDb,1)} db";
+                            if (OBSManager.Instance.IsInputMuted(Settings.InputName))
+                            {
+                                title = "🔇";
+                            }
+                            else
+                            {
+                                title = $"{Math.Round(volumeInfo.VolumeDb, 1)} db";
+                            }
                         }
                     }
                     await Connection.SetTitleAsync($"{Settings.TitlePrefix?.Replace(@"\n", "\n")}{title}");

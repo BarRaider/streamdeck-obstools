@@ -36,6 +36,13 @@
             <div class="sdpi-item-label">Title Prefix</div>
             <input class="sdpi-item-value sdProperty" placeholder="Mic:\n" value="" id="titlePrefix" oninput="setSettings()">
         </div>
+        <div type="checkbox" class="sdpi-item" id="dvVolume">
+            <div class="sdpi-item-label">Volume</div>
+            <div class="sdpi-item-value">
+                <input id="hideVolume" type="checkbox" value="" class="sdProperty sdCheckbox" oninput="setSettings()">
+                <label for="hideVolume" class="sdpi-item-label"><span></span>Hide volume on key</label>
+            </div>
+        </div>
         <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
     </div>
     <hr />
