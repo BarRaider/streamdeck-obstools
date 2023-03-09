@@ -195,7 +195,7 @@ namespace BarRaider.ObsTools.Backend
                         Logger.Instance.LogMessage(TracingLevel.INFO, $"Attempting to connect to {serverInfo.Ip}:{serverInfo.Port}");
                     }
                     lastConnectAttempt = DateTime.Now;
-                    obs.WSTimeout = new TimeSpan(0, 0, 3);
+                    obs.WSTimeout = new TimeSpan(0, 0, 5);
                     obs.ConnectAsync(String.Format(CONNECTION_STRING, serverInfo.Ip, serverInfo.Port), serverInfo.Password);
                 }
                 catch (Exception ex)
@@ -620,11 +620,12 @@ namespace BarRaider.ObsTools.Backend
             {
                 try
                 {
+
                     return obs.GetInputVolume(inputName);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetSourceVolume Exception Source:{inputName}: {ex}");
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"GetInputVolume Exception Source:{inputName}: {ex}");
                 }
             }
             return null;

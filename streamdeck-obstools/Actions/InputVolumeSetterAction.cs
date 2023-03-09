@@ -33,7 +33,9 @@ namespace BarRaider.ObsTools.Actions
                     ServerInfoExists = false,
                     Inputs = null,
                     Volume = DEFAULT_VOLUME_PERCENTAGE.ToString(),
-                    InputName = String.Empty
+                    InputName = String.Empty,
+                    TitlePrefix = String.Empty,
+                    HideVolume = false
                 };
                 return instance;
             }
@@ -45,7 +47,13 @@ namespace BarRaider.ObsTools.Actions
             public List<InputBasicInfo> Inputs { get; set; }
 
             [JsonProperty(PropertyName = "sourceName")]
-            public String InputName { get; set; }            
+            public String InputName { get; set; }
+
+            [JsonProperty(PropertyName = "titlePrefix")]
+            public String TitlePrefix { get; set; }
+
+            [JsonProperty(PropertyName = "hideVolume")]
+            public bool HideVolume { get; set; }
         }
 
         protected PluginSettings Settings
@@ -127,18 +135,23 @@ namespace BarRaider.ObsTools.Actions
             {
                 if (!String.IsNullOrEmpty(Settings.InputName))
                 {
-                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
-                    if (volumeInfo != null)
+                    string title = String.Empty;
+                    if (!Settings.HideVolume)
                     {
-                        if (OBSManager.Instance.IsInputMuted(Settings.InputName))
+                        var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
+                        if (volumeInfo != null)
                         {
-                            await Connection.SetTitleAsync("🔇");
-                        }
-                        else
-                        {
-                            await Connection.SetTitleAsync($"{Math.Round(volumeInfo.VolumeDb,1)} db");
+                            if (OBSManager.Instance.IsInputMuted(Settings.InputName))
+                            {
+                                title = "🔇";
+                            }
+                            else
+                            {
+                                title = $"{Math.Round(volumeInfo.VolumeDb, 1)} db";
+                            }
                         }
                     }
+                    await Connection.SetTitleAsync($"{Settings.TitlePrefix?.Replace(@"\n", "\n")}{title}");
                 }
             }
         }
@@ -176,7 +189,17 @@ namespace BarRaider.ObsTools.Actions
         }
         private void LoadInputsList()
         {
-            Settings.Inputs = OBSManager.Instance.GetAudioInputs().OrderBy(s => s?.InputName ?? "Z").ToList();
+            Settings.Inputs = null;
+            if (!OBSManager.Instance.IsConnected)
+            {
+                return;
+            }
+
+            var inputs = OBSManager.Instance.GetAudioInputs();
+            if (inputs != null)
+            {
+                Settings.Inputs = inputs.OrderBy(s => s?.InputName ?? "Z").ToList();
+            }
         }
 
         #endregion

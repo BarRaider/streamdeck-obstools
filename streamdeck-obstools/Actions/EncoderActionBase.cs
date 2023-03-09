@@ -65,7 +65,7 @@ namespace BarRaider.ObsTools.Actions
             OBSManager.Instance.ObsConnectionChanged -= Instance_ObsConnectionChanged;
             Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
             OBSManager.Instance.ObsConnectionFailed -= Instance_ObsConnectionFailed;
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Base Destructor called {this.GetType()}");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"Dial Base Destructor called {this.GetType()}");
         }
 
         public virtual Task SaveSettings()
@@ -76,10 +76,6 @@ namespace BarRaider.ObsTools.Actions
         protected void CheckServerInfoExists()
         {
             settings.ServerInfoExists = ServerManager.Instance.ServerInfoExists;
-            if (!settings.ServerInfoExists)
-            {
-                Logger.Instance.LogMessage(TracingLevel.WARN, $"No server info for action {GetType()}");
-            }
             SaveSettings();
         }
 

@@ -126,8 +126,8 @@
       "States": [
         {
           "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
+          "TitleAlignment": "bottom",
+          "FontSize": "11"
         }
       ],
       "SupportedInMultiActions": true,
@@ -142,8 +142,8 @@
       "States": [
         {
           "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
+          "TitleAlignment": "bottom",
+          "FontSize": "11"
         }
       ],
       "SupportedInMultiActions": true,
@@ -158,8 +158,8 @@
       "States": [
         {
           "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
+          "TitleAlignment": "bottom",
+          "FontSize": "11"
         }
       ],
       "Controllers": [ "Encoder" ],
@@ -183,8 +183,8 @@
       "States": [
         {
           "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
+          "TitleAlignment": "bottom",
+          "FontSize": "11"
         }
       ],
       "SupportedInMultiActions": true,
@@ -200,8 +200,8 @@
       "States": [
         {
           "Image": "Images/volumeAction",
-          "TitleAlignment": "middle",
-          "FontSize": "13"
+          "TitleAlignment": "bottom",
+          "FontSize": "11"
         }
       ],
       "SupportedInMultiActions": true,
@@ -218,7 +218,7 @@
         {
           "Image": "Images/replayAction",
           "TitleAlignment": "bottom",
-          "FontSize": "12",
+          "FontSize": "11",
           "Name": "Enable"
         },
         {
@@ -246,7 +246,7 @@
         {
           "Image": "Images/nextAction",
           "TitleAlignment": "top",
-          "FontSize": "14"
+          "FontSize": "11"
         }
       ],
       "SupportedInMultiActions": true,
@@ -263,7 +263,7 @@
         {
           "Image": "Images/prevAction",
           "TitleAlignment": "top",
-          "FontSize": "14"
+          "FontSize": "11"
         }
       ],
       "SupportedInMultiActions": true,
@@ -280,7 +280,7 @@
         {
           "Image": "Images/recordingAction",
           "TitleAlignment": "middle",
-          "FontSize": "18",
+          "FontSize": "15",
           "Name": "Start"
         },
         {
@@ -313,7 +313,7 @@
         {
           "Image": "Images/streamAction",
           "TitleAlignment": "middle",
-          "FontSize": "18",
+          "FontSize": "10",
           "Name": "Start"
         },
         {
@@ -324,6 +324,7 @@
       ],
       "SupportedInMultiActions": true,
       "DisableCaching": true,
+      "UserTitleEnabled": false,
       "Tooltip": "Allows you to start or stop streaming in OBS",
       "UUID": "com.barraider.obstools.streamtoggle",
       "PropertyInspectorPath": "PropertyInspector/Streaming.html"
@@ -525,7 +526,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "3.1",
+  "Version": "3.2",
   "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",

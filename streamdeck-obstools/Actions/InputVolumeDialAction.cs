@@ -81,6 +81,7 @@ namespace BarRaider.ObsTools.Actions
         private string unmutedImageStr;
         private bool dialWasRotated = false;
         private int stepSize = DEFAULT_STEP_SIZE;
+        private VolumeInfoInternal prevVolumeInfo;
 
 
         #endregion
@@ -142,13 +143,13 @@ namespace BarRaider.ObsTools.Actions
                     {
                         outputVolume = 0;
                     }
-                    
+
                     if (outputVolume < MINIMAL_DB_VALUE)
                     {
                         outputVolume = MINIMAL_DB_VALUE;
                     }
 
-                    OBSManager.Instance.SetInputVolume(Settings.InputName, (float) outputVolume, true);
+                    OBSManager.Instance.SetInputVolume(Settings.InputName, (float)outputVolume, true);
                 }
             }
             else
@@ -198,39 +199,58 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        public async override void OnTick()
+        public override void OnTick()
         {
-            baseHandledOnTick = false;
-            base.OnTick();
-
-            if (!baseHandledOnTick)
+            try
             {
-                if (!String.IsNullOrEmpty(Settings.InputName))
+                baseHandledOnTick = false;
+                base.OnTick();
+                if (baseHandledOnTick)
                 {
-                    var volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
-                    if (volumeInfo != null)
+                    return;
+                }
+
+                if (String.IsNullOrEmpty(Settings.InputName))
+                {
+                    return;
+                }
+
+                VolumeInfo volumeInfo = OBSManager.Instance.GetInputVolume(Settings.InputName);
+                if (volumeInfo == null)
+                {
+                    return;
+                }
+
+                bool isMuted = OBSManager.Instance.IsInputMuted(Settings.InputName);
+                if (prevVolumeInfo == null || volumeInfo.VolumeDb != prevVolumeInfo.Volume ||
+                    isMuted != prevVolumeInfo.IsMuted)
+                {
+                    prevVolumeInfo = new VolumeInfoInternal(volumeInfo.VolumeDb, isMuted);
+                    Dictionary<string, string> dkv = new Dictionary<string, string>();
+                    if (isMuted)
                     {
-                        Dictionary<string, string> dkv = new Dictionary<string, string>();
-                        if (OBSManager.Instance.IsInputMuted(Settings.InputName))
-                        {
-                            dkv["icon"] = mutedImageStr;
-                            dkv["title"] = Settings.InputName;
-                            dkv["value"] = "Muted";
-                            dkv["indicator"] = "0";
-                            await Connection.SetFeedbackAsync(dkv);
-                        }
-                        else
-                        {
-                            var volume = Math.Round(volumeInfo.VolumeDb, 1);
-                            dkv["icon"] = unmutedImageStr;
-                            dkv["title"] = Settings.InputName;
-                            dkv["value"] = $"{volume} db";
-                            dkv["indicator"] = Tools.RangeToPercentage((int)volume, -95, 0).ToString();
-                            await Connection.SetFeedbackAsync(dkv);
-                        }
+                        dkv["icon"] = mutedImageStr;
+                        dkv["title"] = Settings.InputName;
+                        dkv["value"] = "Muted";
+                        dkv["indicator"] = "0";
+                        Connection.SetFeedbackAsync(dkv);
+                    }
+                    else
+                    {
+                        var volume = Math.Round(volumeInfo.VolumeDb, 1);
+                        dkv["icon"] = unmutedImageStr;
+                        dkv["title"] = Settings.InputName;
+                        dkv["value"] = $"{volume} db";
+                        dkv["indicator"] = Tools.RangeToPercentage((int)volume, -95, 0).ToString();
+                        Connection.SetFeedbackAsync(dkv);
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"{this.GetType()} OnTick Exception: {ex}");
+            }
+
         }
 
         public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -244,7 +264,7 @@ namespace BarRaider.ObsTools.Actions
 
         #region Private Methods
 
-      
+
         public override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(Settings));
@@ -252,6 +272,7 @@ namespace BarRaider.ObsTools.Actions
 
         private void InitializeSettings()
         {
+            prevVolumeInfo = null;
             _ = Connection.SetFeedbackAsync("title", Settings.InputName);
             if (!Int32.TryParse(Settings.StepSize, out stepSize))
             {
@@ -268,7 +289,17 @@ namespace BarRaider.ObsTools.Actions
 
         private void LoadInputsList()
         {
-            Settings.Inputs = OBSManager.Instance.GetAudioInputs()?.OrderBy(s => s?.InputName ?? "Z")?.ToList();
+            Settings.Inputs = null;
+            if (!OBSManager.Instance.IsConnected)
+            {
+                return;
+            }
+
+            var inputs = OBSManager.Instance.GetAudioInputs();
+            if (inputs != null)
+            {
+                Settings.Inputs = inputs.OrderBy(s => s?.InputName ?? "Z").ToList();
+            }
         }
 
         protected void PrefetchImages(string[] defaultImages)
@@ -310,5 +341,17 @@ namespace BarRaider.ObsTools.Actions
         }
 
         #endregion
+
+
+        private class VolumeInfoInternal
+        {
+            public float Volume { get; private set; }
+            public bool IsMuted { get; private set; }
+            public VolumeInfoInternal(float volume, bool isMuted)
+            {
+                Volume = volume;
+                IsMuted = isMuted;
+            }
+        }
     }
 }
