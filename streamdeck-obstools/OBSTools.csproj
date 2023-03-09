@@ -37,9 +37,10 @@
 		<Error Condition="!Exists('..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
 	</Target>
 	<ItemGroup>
+		<PackageReference Include="StreamDeck-Tools" Version="6.0.0" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
 		<PackageReference Include="TwitchLib.Client" Version="3.3.1" />
-		<PackageReference Include="TwitchLib.Communication" Version="1.0.4" />
+		<PackageReference Include="TwitchLib.Communication" Version="1.0.6" />
 		<PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
 	</ItemGroup>
 	<ItemGroup>
@@ -414,7 +415,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\OTI.Shared\OTI.Shared.csproj" />
-		<ProjectReference Include="..\..\streamdeck-tools\barraider-sdtools\barraider-sdtools.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="Wrappers\TwitchChat.cs" />

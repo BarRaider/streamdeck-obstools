@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OBSTools", "streamdeck-obst
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OTI.Shared", "..\OTI.Shared\OTI.Shared.csproj", "{621AE01B-4B89-4805-B5AB-4F7E179BD277}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "barraider-sdtools", "..\streamdeck-tools\barraider-sdtools\barraider-sdtools.csproj", "{11BE1874-1FFA-4123-8238-852F4550B708}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,14 +31,6 @@ Global
 		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Release|Any CPU.Build.0 = Release|Any CPU
 		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Release|x64.ActiveCfg = Release|Any CPU
 		{621AE01B-4B89-4805-B5AB-4F7E179BD277}.Release|x64.Build.0 = Release|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Debug|x64.Build.0 = Debug|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Release|Any CPU.Build.0 = Release|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Release|x64.ActiveCfg = Release|Any CPU
-		{11BE1874-1FFA-4123-8238-852F4550B708}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

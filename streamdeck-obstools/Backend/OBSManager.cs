@@ -621,7 +621,6 @@ namespace BarRaider.ObsTools.Backend
                 try
                 {
 
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} GetInputVolume for {inputName}");
                     return obs.GetInputVolume(inputName);
                 }
                 catch (Exception ex)
