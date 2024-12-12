@@ -9,7 +9,7 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AssemblyTitle>com.barraider.obstools</AssemblyTitle>
 		<Product>com.barraider.obstools</Product>
-		<Copyright>Copyright ©  2020</Copyright>
+		<Copyright>Copyright ©  2024</Copyright>
 		<OutputPath>bin\$(Configuration)\com.barraider.obstools.sdPlugin\</OutputPath>
 		<LangVersion>8.0</LangVersion>
 		<Platforms>AnyCPU</Platforms>
@@ -37,16 +37,17 @@
 		<Error Condition="!Exists('..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\DotNet\StreamDeck\packages\Microsoft.Extensions.Logging.Abstractions.6.0.1\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
 	</Target>
 	<ItemGroup>
-		<PackageReference Include="StreamDeck-Tools" Version="6.0.0" />
+		<PackageReference Include="StreamDeck-Tools" Version="6.2.0" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
 		<PackageReference Include="TwitchLib.Client" Version="3.3.1" />
-		<PackageReference Include="TwitchLib.Communication" Version="1.0.6" />
+		<PackageReference Include="TwitchLib.Communication" Version="2.0.1" />
 		<PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="PickersUtil">
 			<HintPath>..\..\PickersUtil\PickersUtil\bin\Release\PickersUtil.dll</HintPath>
 		</Reference>
+		<Reference Include="System.Management" />
 		<Reference Include="System.Windows.Forms" />
 	</ItemGroup>
 	<ItemGroup>
