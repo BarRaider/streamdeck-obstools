@@ -158,23 +158,31 @@ namespace BarRaider.ObsTools.Actions
             }
         }
 
-        public async override void DialPress(DialPressPayload payload)
+        public override void DialDown(DialPayload payload)
         {
             baseHandledDialInteraction = false;
-            base.DialPress(payload);
+            base.DialDown(payload);
             if (baseHandledDialInteraction)
             {
                 return;
             }
 
-            if (payload.IsDialPressed)
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Dial Down");
+            dialWasRotated = false;
+            return;
+
+        }
+
+        public async override void DialUp(DialPayload payload)
+        {
+            baseHandledDialInteraction = false;
+            base.DialUp(payload);
+            if (baseHandledDialInteraction)
             {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Dial Pressed");
-                dialWasRotated = false;
                 return;
             }
 
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Dial Released");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"{this.GetType()} Dial Up");
             if (dialWasRotated)
             {
                 return;
@@ -187,6 +195,7 @@ namespace BarRaider.ObsTools.Actions
 
             }
         }
+
 
         public async override void TouchPress(TouchpadPressPayload payload)
         {

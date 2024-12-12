@@ -526,7 +526,7 @@
   "Name": "OBS Tools",
   "Icon": "Images/pluginIcon",
   "URL": "https://BarRaider.com/",
-  "Version": "3.2",
+  "Version": "3.3",
   "DefaultWindowSize": [ 620, 750 ],
   "CodePath": "com.barraider.obstools",
   "Category": "OBS Tools [BarRaider]",

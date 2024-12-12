@@ -79,7 +79,19 @@ namespace BarRaider.ObsTools.Actions
             SaveSettings();
         }
 
-        public async override void DialPress(DialPressPayload payload)
+        public async override void DialDown(DialPayload payload)
+        {
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"DialPress: {GetType()}");
+            if (ServerManager.Instance.ServerInfoExists && !OBSManager.Instance.IsConnected)
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, "DialPress - OBS is not connected");
+                baseHandledDialInteraction = true;
+                await Connection.ShowAlert();
+                OBSManager.Instance.Connect();
+            }
+        }
+
+        public async override void DialUp(DialPayload payload)
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"DialPress: {GetType()}");
             if (ServerManager.Instance.ServerInfoExists && !OBSManager.Instance.IsConnected)
